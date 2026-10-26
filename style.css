@@ -2955,3 +2955,11 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
 .sm-anim-card{box-sizing:border-box;width:1040px;height:470px;min-width:0;max-width:none;min-height:0;margin-top:40px;padding:40px 48px;
   display:flex;flex-direction:column;align-items:center;justify-content:center;}
 .sm-anim-card.sm-wrap-bus{margin-top:40px;}
+/* [P3/P4 read focus] while a story card is being read, the other card steps back (lighter, greyed, a light grey card) so the
+   eye stays on the text being read. Driven by the card's existing "reading" state. A card coming back waits .3s first, so
+   the hand-over between the two cards' VOs (a .3s pause) is one smooth cross-fade, never a flash of both cards bright. */
+.sm-story-opt{transition:transform .15s,translate .2s,border-color .35s ease .3s,box-shadow .35s ease .3s,background-color .35s ease .3s,opacity .35s ease .3s,filter .35s ease .3s;}
+.sm-stories:has(> .sm-story-opt.reading) > .sm-story-opt:not(.reading):not(.correct):not(.reveal){opacity:.45;filter:grayscale(.85);background:#F1F3F6;
+  border-color:#D9DEE6;box-shadow:0 4px 0 #E3E7EE;transition-delay:0s;}
+.sm-stories:has(> .sm-story-opt.reading) > .sm-story-opt.reading{transition-delay:0s;}
+.sm-story-opt.correct,.sm-story-opt.faded,.sm-story-opt.reveal,.sm-story-opt.flash{transition-delay:0s;}   /* answer feedback stays instant */
