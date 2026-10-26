@@ -1,0 +1,6 @@
+# review / source material - kept in the repo, not deployed
+*.pptx
+_review_shots/
+_review_*.json
+_build_report.json
+ASSETS_TO_GENERATE.md
