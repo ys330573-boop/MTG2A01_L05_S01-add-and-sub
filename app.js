@@ -3335,10 +3335,25 @@ function smAnimate(cfg, alive, onDone){
       `<div class="sm-anim-box${WRAP[cfg.wrap] ? " has-prop" : ""}">` +
         (WRAP[cfg.wrap] ? `<img class="sm-anim-prop" src="${smArt(WRAP[cfg.wrap])}" alt="" draggable="false" onerror="this.remove()">` : "") +
         `<div class="sm-anim-grid">${smGroup(cfg.kind, n, { cols:COLS[cfg.wrap] || 10 })}</div>` +
+        (cfg.wrap === "bus" ? `<img class="sm-anim-front" src="${smArt("prop_bus_front")}" alt="" draggable="false" onerror="this.remove()">` : "") +
       `</div>` + ends(cfg.to, "sm-anim-dst") +
     `</div>`;
   card.appendChild(badge);
   const items = [...card.querySelectorAll(".sm-anim-grid .sm-it")];
+  /* the bus: the passengers sit IN its five windows - two staggered rows of four per window, the back row a little smaller
+     and higher, the front row's shoulders hidden by the window sill (the bus's front layer, with see-through glass, is drawn
+     over them). The ones already aboard fill the rear windows; the new ones board into the front windows by the door. */
+  if(cfg.wrap === "bus" && items.length <= 40 && card.querySelector(".sm-anim-front")){
+    const WIN = [[7.56, 20.22], [21.33, 34.22], [35.33, 48.44], [49.56, 62.67], [63.78, 77.56]], WT = 25.6, WB = 48.97, AR = 900 / 390;
+    items[0].parentElement.classList.add("seated");
+    items.forEach((it, i) => {
+      const w = WIN[Math.floor(i / 8)], k = i % 8, front = k >= 4, s = k % 4, ww = w[1] - w[0];
+      const size = front ? 5.4 : 4.8, hPct = size * AR;                      // width in % of the bus width, height in % of its height
+      const cx = w[0] + ww * (front ? [0.14, 0.38, 0.62, 0.86] : [0.2, 0.43, 0.66, 0.89])[s] - (front ? 0 : ww * 0.04);
+      const top = front ? WB - hPct * 0.62 : WT + (WB - WT) * 0.2;
+      it.style.left = (cx - size / 2).toFixed(2) + "%"; it.style.top = top.toFixed(2) + "%"; it.style.width = size + "%";
+    });
+  }
   const endImg = sel => card.querySelector(sel + " img") || card.querySelector(sel);
   const bump = el => { if(el && el.animate) el.animate([{ scale:"1" }, { scale:"1.1 .92", offset:.35 }, { scale:".97 1.04", offset:.7 }, { scale:"1" }], { duration:320, easing:"ease-out" }); };
   /* an arc between two points (WAAPI): `lift` px up at the middle, landing with a little squash.
@@ -3489,6 +3504,9 @@ SlideModules.WORKED_EXAMPLE = {
     const align = ()=>{
       if(d.scene !== "marbles" || wrap.classList.contains("final")) return;
       eq.classList.add("aligned");                       // full width FIRST, then measure against it
+      // Pari's and Aaru's boxes are one size (the taller one's), so the two read as a matching pair
+      const pair = [scene.querySelector(".ba"), scene.querySelector(".bb")], ph = Math.max(...pair.map(x => x.offsetHeight));
+      pair.forEach(x => x.style.minHeight = ph + "px");
       const er = eq.getBoundingClientRect(), sc = smScale();
       const cx = el => { const r = el.getBoundingClientRect(); return (r.left + r.width / 2 - er.left) / sc; };
       const xs = [cx(scene.querySelector(".ca")), 0, cx(scene.querySelector(".cb")), cx(scene.querySelector(".sm-we-arrow")), cx(scene.querySelector(".cc"))];
@@ -3497,18 +3515,24 @@ SlideModules.WORKED_EXAMPLE = {
     };
     const unalign = ()=>{ eq.classList.remove("aligned"); cards.forEach(c => c.style.left = ""); };
 
-    // step 1 — the story card zooms out and moves up (FLIP), then the scene area opens below it
+    /* step 1 — the story card glides up into its place under the frame's top edge, shrinking to the strip size as it goes.
+       Only the position is FLIPped (a translate); the size is the card's real font/padding/width easing from the big card
+       to the strip, so every frame is a true card. (A uniform scale taken from the height ratio made the first frame ~2x
+       too wide - it burst out past the frame and zoomed back in.) The card's top is anchored in the final layout, so the
+       translate stays right while its height shrinks. */
     const zoomOut = (next) => {
-      const r0 = story.getBoundingClientRect();
-      wrap.classList.remove("intro"); story.classList.remove("sm-story-big"); story.classList.add("sm-story-top");
+      const r0 = story.getBoundingClientRect(), sc = smScale();
+      wrap.classList.add("settling");                       // the scene waits (hidden) until the card has arrived
+      wrap.classList.remove("intro");                       // final layout, card still big
       const r1 = story.getBoundingClientRect();
-      const s0 = r0.height / Math.max(1, r1.height), dx = (r0.left + r0.width / 2) - (r1.left + r1.width / 2), dy = r0.top - r1.top;
-      const sc = smScale();
-      story.style.transition = "none"; story.style.transformOrigin = "50% 0";
-      story.style.transform = `translate(${dx / sc}px,${dy / sc}px) scale(${s0})`;
+      const dx = (r0.left + r0.width / 2) - (r1.left + r1.width / 2), dy = r0.top - r1.top;
+      story.style.transition = "none";
+      story.style.transform = `translate(${(dx / sc).toFixed(1)}px,${(dy / sc).toFixed(1)}px)`;
       void story.offsetWidth;
-      story.style.transition = "transform .8s cubic-bezier(.3,.8,.3,1)"; story.style.transform = "";
-      smLater(alive, 820, ()=>{ align(); next(); });
+      const ease = ".8s cubic-bezier(.33,.9,.35,1)";
+      story.style.transition = ["transform", "font-size", "line-height", "padding", "max-width"].map(p => p + " " + ease).join(",");
+      story.classList.remove("sm-story-big"); story.classList.add("sm-story-top"); story.style.transform = "";
+      smLater(alive, 820, ()=>{ story.style.transition = ""; wrap.classList.remove("settling"); align(); next(); });
     };
     const popGroup = (box) => smPopIn([...box.querySelectorAll(".sm-it, .sm-bird")], 45, sfxClink);
     /* data.lead_vo: the story is READ on this same screen first (the big card, each word lit as it is spoken),

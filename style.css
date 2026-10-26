@@ -2917,3 +2917,28 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
   box-shadow:0 4px 0 #F2C77E,0 0 10px rgba(255,160,0,.55) !important;text-shadow:0 0 8px rgba(255,160,0,.4);transform:scale(1.08);}
 .sm-we.final .sm-eq-cards.glow .sm-card.lit{background:var(--ui-ok-bg) !important;border-color:var(--ui-ok) !important;
   box-shadow:0 4px 0 #A8E3B9,0 0 0 3px var(--ui-ok),0 0 12px rgba(0,177,50,.45) !important;}
+/* [T1 layout] the story card clears the frame's top edge, Pari and Aaru sit lower with room under the story, the name tags
+   clear the marble boxes, the equation row has air under the combined box, and the "?" card matches the other four cards
+   (same 84x72 size, border thickness and ledge shadow; only its dashed rim / green answer colour differ) */
+.sm-we-marbles{min-height:0;padding-top:12px;gap:24px;}   /* sized to the content area (it was centred and overflowed it, so the story sat on the frame edge) */
+.sm-we-marbles.intro{padding-top:0;}
+.sm-we-marbles .sm-we-col{gap:24px;}
+.sm-we-marbles .sm-we-box.bt{margin-top:108px;}
+.sm-we-marbles .sm-eq-cards .sm-card{box-sizing:border-box;width:84px;min-width:84px;height:72px;padding:0;}
+.sm-we-marbles:not(.final) .sm-card.q{border-width:2.69px;box-shadow:0 4px 0 var(--ui-ledge);}
+.sm-we-marbles:not(.final) .sm-card.q.ans{border-width:2.69px;box-shadow:0 4px 0 #A8E3B9,0 0 8px rgba(0,177,50,.5);}
+.sm-we-marbles > *{flex-shrink:0;}
+/* T2 too: the block is anchored to the top of the content area, so the story card's glide up has a fixed target */
+.sm-we-birds{min-height:0;}
+.sm-we-birds > *{flex-shrink:0;}
+.sm-we.settling .sm-we-scene,.sm-we.settling .sm-eq-cards{opacity:0;}   /* while the story card glides up; the scene then fades in (its own .45s opacity transition) */
+/* [hint panel] no number badge on the wrong-answer panels; the bus panel is a little larger and sits a little lower */
+.sm-anim-card .sm-anim-count{display:none;}
+.sm-anim-card.sm-wrap-bus{margin-top:40px;}
+.sm-wrap-bus .sm-anim-prop{width:700px !important;}
+.sm-wrap-bus .sm-anim-src img{height:215px;}
+/* the passengers sit in the windows: placed by the script (% of the bus), the bus's see-through front layer drawn over them */
+.sm-wrap-bus .sm-anim-box.has-prop .sm-anim-grid{left:0;top:0;width:100%;height:100%;z-index:1;}
+.sm-wrap-bus .sm-anim-grid .sm-grp.seated{position:absolute;inset:0;display:block;}
+.sm-wrap-bus .sm-grp.seated img.sm-person{position:absolute;height:auto;filter:none;}
+.sm-wrap-bus .sm-anim-front{position:absolute;inset:0;width:100%;height:auto;z-index:2;pointer-events:none;}
