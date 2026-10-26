@@ -1,0 +1,282 @@
+{
+  "created": "2026-10-26",
+  "references": [
+    "C:/Users/ys330/Downloads/MTG2A01_L05_S01-[ suresh]/MTG2A01_L05_S01/assets/char_meera_full.webp",
+    "C:/Users/ys330/Downloads/MTG2A01_L05_S01-[ suresh]/MTG2A01_L05_S01/assets/char_aman_full.webp",
+    "C:/Users/ys330/Downloads/MTG2A01_L05_S01-[ suresh]/MTG2A01_L05_S01/assets/UI/sw_lg_happy.png",
+    "C:/Users/ys330/Downloads/MTG2A01_L05_S01-[ suresh]/MTG2A01_L05_S01/assets/bg_landing_soft2.webp"
+  ],
+  "assets": [
+    {
+      "file": "obj_marble.png",
+      "width": 256,
+      "height": 256,
+      "transparent": true,
+      "generator": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Children's educational game for Indian Grade 2. Soft 2D cartoon, gentle cel shading, clean dark-brown outlines, rounded friendly shapes, warm saturated not neon colours, soft top-left light, no harsh shadows. Match the supplied game reference images: Pari, Aaru, Swiftie and courtyard, which are style guidance only. No text, letters, numbers, watermark or border.  Asset obj_marble.png. A single glass marble (kancha), glossy with a colourful swirl, top-left highlight, soft shadow. Target 256x256. Single object centered with 10% clear margin, simple silhouette readable at 28px. Transparent background.",
+      "source": "C:\\Users\\ys330\\.codex\\generated_images\\01a17710-0699-72c1-a2a6-f74ece8100bc\\exec-291b52a3-d912-4d1d-89c0-b8d25095d482.png"
+    },
+    {
+      "file": "obj_bird_sit.png",
+      "width": 256,
+      "height": 256,
+      "transparent": true,
+      "generator": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Children's educational game for Indian Grade 2. Soft 2D cartoon, gentle cel shading, clean dark-brown outlines, rounded friendly shapes, warm saturated not neon colours, soft top-left light, no harsh shadows. Match the supplied game reference images: Pari, Aaru, Swiftie and courtyard, which are style guidance only. No text, letters, numbers, watermark or border.  Asset obj_bird_sit.png. A single cute small brown-and-cream sparrow, side view facing right, perched pose with tiny curled feet as if on a wire, round body and friendly dark eye. No wire. Target 256x256. Single object centered with 10% clear margin, simple silhouette readable at 28px. Transparent background.",
+      "source": "C:\\Users\\ys330\\.codex\\generated_images\\01a17710-0699-72c1-a2a6-f74ece8100bc\\exec-927af343-e72b-48b3-8560-9f1f947293b3.png"
+    },
+    {
+      "file": "obj_bird_fly.png",
+      "width": 256,
+      "height": 256,
+      "transparent": true,
+      "generator": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Children's educational game for Indian Grade 2. Soft 2D cartoon, gentle cel shading, clean dark-brown outlines, rounded friendly shapes, warm saturated not neon colours, soft top-left light, no harsh shadows. Match the supplied game reference images: Pari, Aaru, Swiftie and courtyard, which are style guidance only. No text, letters, numbers, watermark or border.  Asset obj_bird_fly.png. A single cute small brown-and-cream sparrow flying up and right, wings spread and feet tucked. Round body and friendly dark eye. Target 256x256. Single object centered with 10% clear margin, simple silhouette readable at 28px. Transparent background.",
+      "source": "C:\\Users\\ys330\\.codex\\generated_images\\01a17710-0699-72c1-a2a6-f74ece8100bc\\exec-b76c8990-ba0a-4ac5-a4b8-bf68b494f7b2.png"
+    },
+    {
+      "file": "obj_bangle.png",
+      "width": 256,
+      "height": 256,
+      "transparent": true,
+      "generator": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Children's educational game for Indian Grade 2. Soft 2D cartoon, gentle cel shading, clean dark-brown outlines, rounded friendly shapes, warm saturated not neon colours, soft top-left light, no harsh shadows. Match the supplied game reference images: Pari, Aaru, Swiftie and courtyard, which are style guidance only. No text, letters, numbers, watermark or border.  Asset obj_bangle.png. One thin shiny red Indian glass bangle ring with small gold dots, slightly above view, glossy highlight. Target 256x256. Single object centered with 10% clear margin, simple silhouette readable at 28px. Transparent background.",
+      "source": "C:\\Users\\ys330\\.codex\\generated_images\\01a17710-0699-72c1-a2a6-f74ece8100bc\\exec-afa5cff3-b744-4686-acff-7f9afeea0a80.png"
+    },
+    {
+      "file": "obj_balloon.png",
+      "width": 256,
+      "height": 256,
+      "transparent": true,
+      "generator": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Children's educational game for Indian Grade 2. Soft 2D cartoon, gentle cel shading, clean dark-brown outlines, rounded friendly shapes, warm saturated not neon colours, soft top-left light, no harsh shadows. Match the supplied game reference images: Pari, Aaru, Swiftie and courtyard, which are style guidance only. No text, letters, numbers, watermark or border.  Asset obj_balloon.png. One round bright red party balloon, small knot and short curly hanging string, glossy top-left highlight. Target 256x256. Single object centered with 10% clear margin, simple silhouette readable at 28px. Transparent background.",
+      "source": "C:\\Users\\ys330\\.codex\\generated_images\\01a17710-0699-72c1-a2a6-f74ece8100bc\\exec-53f71d62-3688-4302-83bc-2fb5188b58bc.png"
+    },
+    {
+      "file": "obj_laddoo.png",
+      "width": 256,
+      "height": 256,
+      "transparent": true,
+      "generator": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Children's educational game for Indian Grade 2. Soft 2D cartoon, gentle cel shading, clean dark-brown outlines, rounded friendly shapes, warm saturated not neon colours, soft top-left light, no harsh shadows. Match the supplied game reference images: Pari, Aaru, Swiftie and courtyard, which are style guidance only. No text, letters, numbers, watermark or border.  Asset obj_laddoo.png. One golden-orange Indian boondi laddoo, round with bumpy grainy boondi pearls, soft highlight and small shadow. Target 256x256. Single object centered with 10% clear margin, simple silhouette readable at 28px. Transparent background.",
+      "source": "C:\\Users\\ys330\\.codex\\generated_images\\01a17710-0699-72c1-a2a6-f74ece8100bc\\exec-584f7182-4aac-4693-8124-7d46c292dfb9.png"
+    },
+    {
+      "file": "obj_banana.png",
+      "width": 256,
+      "height": 256,
+      "transparent": true,
+      "generator": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Children's educational game for Indian Grade 2. Soft 2D cartoon, gentle cel shading, clean dark-brown outlines, rounded friendly shapes, warm saturated not neon colours, soft top-left light, no harsh shadows. Match the supplied game reference images: Pari, Aaru, Swiftie and courtyard, which are style guidance only. No text, letters, numbers, watermark or border.  Asset obj_banana.png. One ripe yellow banana, slightly curved with a small brown tip and soft highlight. Target 256x256. Single object centered with 10% clear margin, simple silhouette readable at 28px. Transparent background.",
+      "source": "C:\\Users\\ys330\\.codex\\generated_images\\01a17710-0699-72c1-a2a6-f74ece8100bc\\exec-55ddda85-6f2a-41d3-b2de-78b4553a0fce.png"
+    },
+    {
+      "file": "obj_passenger.png",
+      "width": 256,
+      "height": 256,
+      "transparent": true,
+      "generator": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Children's educational game for Indian Grade 2. Soft 2D cartoon, gentle cel shading, clean dark-brown outlines, rounded friendly shapes, warm saturated not neon colours, soft top-left light, no harsh shadows. Match the supplied game reference images: Pari, Aaru, Swiftie and courtyard, which are style guidance only. No text, letters, numbers, watermark or border.  Asset obj_passenger.png. One smiling Indian adult bus passenger head-and-shoulders, neat hair, plain shirt, front view. No window frame. Target 256x256. Single object centered with 10% clear margin, simple silhouette readable at 28px. Transparent background.",
+      "source": "C:\\Users\\ys330\\.codex\\generated_images\\01a17710-0699-72c1-a2a6-f74ece8100bc\\exec-f17f11b7-ffff-417a-83ef-956ba939969e.png"
+    },
+    {
+      "file": "obj_boy.png",
+      "width": 256,
+      "height": 256,
+      "transparent": true,
+      "generator": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Children's educational game for Indian Grade 2. Soft 2D cartoon, gentle cel shading, clean dark-brown outlines, rounded friendly shapes, warm saturated not neon colours, soft top-left light, no harsh shadows. Match the supplied game reference images: Pari, Aaru, Swiftie and courtyard, which are style guidance only. No text, letters, numbers, watermark or border.  Asset obj_boy.png. One smiling Indian school boy head-and-shoulders, short black hair, white school shirt with navy collar, front view. Target 256x256. Single object centered with 10% clear margin, simple silhouette readable at 28px. Transparent background.",
+      "source": "C:\\Users\\ys330\\.codex\\generated_images\\01a17710-0699-72c1-a2a6-f74ece8100bc\\exec-eda7a3d8-da08-4900-a66c-2cd5a35f4d81.png"
+    },
+    {
+      "file": "obj_girl.png",
+      "width": 256,
+      "height": 256,
+      "transparent": true,
+      "generator": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Children's educational game for Indian Grade 2. Soft 2D cartoon, gentle cel shading, clean dark-brown outlines, rounded friendly shapes, warm saturated not neon colours, soft top-left light, no harsh shadows. Match the supplied game reference images: Pari, Aaru, Swiftie and courtyard, which are style guidance only. No text, letters, numbers, watermark or border.  Asset obj_girl.png. One smiling Indian school girl head-and-shoulders, two black braids with red ribbons, white school shirt with navy collar, front view. Target 256x256. Single object centered with 10% clear margin, simple silhouette readable at 28px. Transparent background.",
+      "source": "C:\\Users\\ys330\\.codex\\generated_images\\01a17710-0699-72c1-a2a6-f74ece8100bc\\exec-62029501-0609-4362-9eaa-8fe46e77b8a3.png"
+    },
+    {
+      "file": "prop_bus.png",
+      "width": 1200,
+      "height": 520,
+      "transparent": true,
+      "generator": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Children's educational game for Indian Grade 2. Soft 2D cartoon, gentle cel shading, clean dark-brown outlines, rounded friendly shapes, warm saturated not neon colours, soft top-left light, no harsh shadows. Match the supplied game reference images: Pari, Aaru, Swiftie and courtyard, which are style guidance only. No text, letters, numbers, watermark or border.  Asset prop_bus.png. One bright yellow Indian city bus exactly side view facing right, long row of large EMPTY light-blue windows, open front-right door, two black wheels, friendly rounded shape. Target 1200x520. Entire subject inside canvas with 8% clear margin. Transparent background.",
+      "source": "C:\\Users\\ys330\\.codex\\generated_images\\01a17710-0699-72c1-a2a6-f74ece8100bc\\exec-2c38727e-70b5-4a1a-9e57-a85fcee9b33d.png"
+    },
+    {
+      "file": "prop_bus_stop.png",
+      "width": 400,
+      "height": 520,
+      "transparent": true,
+      "generator": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Children's educational game for Indian Grade 2. Soft 2D cartoon, gentle cel shading, clean dark-brown outlines, rounded friendly shapes, warm saturated not neon colours, soft top-left light, no harsh shadows. Match the supplied game reference images: Pari, Aaru, Swiftie and courtyard, which are style guidance only. No text, letters, numbers, watermark or border.  Asset prop_bus_stop.png. One small Indian roadside bus stop, pole with round blue bus sign containing simple bus pictogram no text and small shelter roof, front view. Target 400x520. Entire subject inside canvas with 8% clear margin. Transparent background.",
+      "source": "C:\\Users\\ys330\\.codex\\generated_images\\01a17710-0699-72c1-a2a6-f74ece8100bc\\exec-9d90fb22-adbb-4111-bcb7-32863f0aaea8.png"
+    },
+    {
+      "file": "prop_bangle_stand.png",
+      "width": 900,
+      "height": 600,
+      "transparent": true,
+      "generator": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Children's educational game for Indian Grade 2. Soft 2D cartoon, gentle cel shading, clean dark-brown outlines, rounded friendly shapes, warm saturated not neon colours, soft top-left light, no harsh shadows. Match the supplied game reference images: Pari, Aaru, Swiftie and courtyard, which are style guidance only. No text, letters, numbers, watermark or border.  Asset prop_bangle_stand.png. One empty warm wooden village market bangle stand, flat tray and three horizontal wooden rods, front view. No bangles. Target 900x600. Entire subject inside canvas with 8% clear margin. Transparent background.",
+      "source": "C:\\Users\\ys330\\.codex\\generated_images\\01a17710-0699-72c1-a2a6-f74ece8100bc\\exec-525667f5-b9bf-46f2-91d4-e995b0643dc3.png"
+    },
+    {
+      "file": "prop_shopping_bag.png",
+      "width": 400,
+      "height": 400,
+      "transparent": true,
+      "generator": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Children's educational game for Indian Grade 2. Soft 2D cartoon, gentle cel shading, clean dark-brown outlines, rounded friendly shapes, warm saturated not neon colours, soft top-left light, no harsh shadows. Match the supplied game reference images: Pari, Aaru, Swiftie and courtyard, which are style guidance only. No text, letters, numbers, watermark or border.  Asset prop_shopping_bag.png. One pink cloth jhola shopping bag with two handles and simple flower print, slightly open top, front view. Target 400x400. Entire subject inside canvas with 8% clear margin. Transparent background.",
+      "source": "C:\\Users\\ys330\\.codex\\generated_images\\01a17710-0699-72c1-a2a6-f74ece8100bc\\exec-6279d9ed-8d9d-41ea-8d06-6b1edea985cf.png"
+    },
+    {
+      "file": "char_dadi.png",
+      "width": 500,
+      "height": 700,
+      "transparent": true,
+      "generator": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Children's educational game for Indian Grade 2. Soft 2D cartoon, gentle cel shading, clean dark-brown outlines, rounded friendly shapes, warm saturated not neon colours, soft top-left light, no harsh shadows. Match the supplied game reference images: Pari, Aaru, Swiftie and courtyard, which are style guidance only. No text, letters, numbers, watermark or border.  Asset char_dadi.png. One kind smiling Indian grandmother, grey bun, round glasses, cream saree maroon border, one hand held out giving something, full body standing front three-quarter view. Target 500x700. Entire subject inside canvas with 8% clear margin. Transparent background.",
+      "source": "C:\\Users\\ys330\\.codex\\generated_images\\01a17710-0699-72c1-a2a6-f74ece8100bc\\exec-87237273-3b91-47cb-9e00-1ebd20edc017.png"
+    },
+    {
+      "file": "prop_plate.png",
+      "width": 900,
+      "height": 600,
+      "transparent": true,
+      "generator": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Children's educational game for Indian Grade 2. Soft 2D cartoon, gentle cel shading, clean dark-brown outlines, rounded friendly shapes, warm saturated not neon colours, soft top-left light, no harsh shadows. Match the supplied game reference images: Pari, Aaru, Swiftie and courtyard, which are style guidance only. No text, letters, numbers, watermark or border.  Asset prop_plate.png. One EMPTY large round silver steel thali plate slightly above view, shiny with raised rim. Target 900x600. Entire subject inside canvas with 8% clear margin. Transparent background.",
+      "source": "C:\\Users\\ys330\\.codex\\generated_images\\01a17710-0699-72c1-a2a6-f74ece8100bc\\exec-a247add4-9e70-42c6-b715-2e73ed5b1b8d.png"
+    },
+    {
+      "file": "char_kids_eating.png",
+      "width": 600,
+      "height": 600,
+      "transparent": true,
+      "generator": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Children's educational game for Indian Grade 2. Soft 2D cartoon, gentle cel shading, clean dark-brown outlines, rounded friendly shapes, warm saturated not neon colours, soft top-left light, no harsh shadows. Match the supplied game reference images: Pari, Aaru, Swiftie and courtyard, which are style guidance only. No text, letters, numbers, watermark or border.  Asset char_kids_eating.png. Two happy Indian children boy and girl, half body eating laddoos, one holding laddoo near mouth, puffed cheeks and smiles. Target 600x600. Entire subject inside canvas with 8% clear margin. Transparent background.",
+      "source": "C:\\Users\\ys330\\.codex\\generated_images\\01a17710-0699-72c1-a2a6-f74ece8100bc\\exec-847e417b-e958-46e0-82c7-f39f97cc2e3f.png"
+    },
+    {
+      "file": "prop_basket.png",
+      "width": 900,
+      "height": 600,
+      "transparent": true,
+      "generator": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Children's educational game for Indian Grade 2. Soft 2D cartoon, gentle cel shading, clean dark-brown outlines, rounded friendly shapes, warm saturated not neon colours, soft top-left light, no harsh shadows. Match the supplied game reference images: Pari, Aaru, Swiftie and courtyard, which are style guidance only. No text, letters, numbers, watermark or border.  Asset prop_basket.png. One EMPTY wide shallow woven bamboo fruit basket, front view, warm tan visible weave. Target 900x600. Entire subject inside canvas with 8% clear margin. Transparent background.",
+      "source": "C:\\Users\\ys330\\.codex\\generated_images\\01a17710-0699-72c1-a2a6-f74ece8100bc\\exec-6fe45eb8-9593-4c81-b872-8b4f9953a837.png"
+    },
+    {
+      "file": "char_monkey.png",
+      "width": 500,
+      "height": 600,
+      "transparent": true,
+      "generator": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Children's educational game for Indian Grade 2. Soft 2D cartoon, gentle cel shading, clean dark-brown outlines, rounded friendly shapes, warm saturated not neon colours, soft top-left light, no harsh shadows. Match the supplied game reference images: Pari, Aaru, Swiftie and courtyard, which are style guidance only. No text, letters, numbers, watermark or border.  Asset char_monkey.png. One cute cheeky brown monkey pale face sitting, holding one banana and reaching with other hand, full body. Target 500x600. Entire subject inside canvas with 8% clear margin. Transparent background.",
+      "source": "C:\\Users\\ys330\\.codex\\generated_images\\01a17710-0699-72c1-a2a6-f74ece8100bc\\exec-510eea18-91e9-483c-897c-1411d9064141.png"
+    },
+    {
+      "file": "bg_palace_hall.png",
+      "width": 2666,
+      "height": 1500,
+      "transparent": false,
+      "generator": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Children's educational game for Indian Grade 2. Soft 2D cartoon, gentle cel shading, clean dark-brown outlines, rounded friendly shapes, warm saturated not neon colours, soft top-left light, no harsh shadows. Match the supplied game reference images: Pari, Aaru, Swiftie and courtyard, which are style guidance only. No text, letters, numbers, watermark or border.  Asset bg_palace_hall.png. Inside magical Indian palace corridor at night, tall carved arches receding toward central golden glow, purple indigo walls, pillars at left and right edges, maroon and royal blue hanging banners, warm wall torches, long red carpet from bottom centre to far arch, tiny sparkles. Centre and right half uncluttered for game overlays. No characters. Full opaque background. Target 2666x1500. Entire subject inside canvas with 8% clear margin. Full bleed opaque background.",
+      "source": "C:\\Users\\ys330\\.codex\\generated_images\\01a17710-0699-72c1-a2a6-f74ece8100bc\\exec-5c930128-d249-48bf-b057-e4c8268440d4.png"
+    },
+    {
+      "file": "door_pink_closed.png",
+      "width": 600,
+      "height": 860,
+      "transparent": true,
+      "generator": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Children's educational game for Indian Grade 2. Soft 2D cartoon, gentle cel shading, clean dark-brown outlines, rounded friendly shapes, warm saturated not neon colours, soft top-left light, no harsh shadows. Match the supplied game reference images: Pari, Aaru, Swiftie and courtyard, which are style guidance only. No text, letters, numbers, watermark or border.  Asset door_pink_closed.png. One tall ornate magical palace door, pointed arch, carved golden frame, two closed leaves decorated with golden swirls, large glowing pink diamond gem at centre and small keystone gem, pink glow. Front view centred, frame bounds 10% to 90% horizontally and 5% to 95% vertically. Target 600x860. Entire subject inside canvas with 8% clear margin. Transparent background.",
+      "source": "C:\\Users\\ys330\\.codex\\generated_images\\01a17710-0699-72c1-a2a6-f74ece8100bc\\exec-81e67c4a-7cdf-4538-a8ec-f1877c56dd6a.png"
+    },
+    {
+      "file": "door_pink_open.png",
+      "width": 600,
+      "height": 860,
+      "transparent": true,
+      "generator": "built-in image_gen",
+      "prompt": "Edit this pink palace door to its OPEN state. Preserve the entire golden outer frame exactly in the same position, shape, size, details, gems and framing. Change ONLY the two inner door leaves: swing inward so they are edge-on along the inside edges, reveal a bright pink-and-white swirling magic portal inside the arch. Same transparent canvas, no text. Do not move or redraw the outer frame.",
+      "source": "C:\\Users\\ys330\\.codex\\generated_images\\01a17710-0699-72c1-a2a6-f74ece8100bc\\exec-90f14695-1f21-4a96-910f-adb48967f186.png"
+    },
+    {
+      "file": "door_blue_closed.png",
+      "width": 600,
+      "height": 860,
+      "transparent": true,
+      "generator": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Children's educational game for Indian Grade 2. Soft 2D cartoon, gentle cel shading, clean dark-brown outlines, rounded friendly shapes, warm saturated not neon colours, soft top-left light, no harsh shadows. Match the supplied game reference images: Pari, Aaru, Swiftie and courtyard, which are style guidance only. No text, letters, numbers, watermark or border.  Asset door_blue_closed.png. One tall ornate magical palace door, pointed arch, carved golden frame, two closed leaves decorated with golden swirls, large glowing blue diamond gem at centre and small keystone gem, blue glow. Front view centred, frame bounds 10% to 90% horizontally and 5% to 95% vertically. Target 600x860. Entire subject inside canvas with 8% clear margin. Transparent background.",
+      "source": "C:\\Users\\ys330\\.codex\\generated_images\\01a17710-0699-72c1-a2a6-f74ece8100bc\\exec-765477e8-bb60-4192-8bfc-bc799df59331.png"
+    },
+    {
+      "file": "door_blue_open.png",
+      "width": 600,
+      "height": 860,
+      "transparent": true,
+      "generator": "built-in image_gen",
+      "prompt": "Edit this blue palace door to OPEN state. Preserve the entire golden outer frame exactly in the same position, shape, size, details, gems and framing. Change ONLY the two inner door leaves: swing inward so they are edge-on along the inside edges, reveal a bright blue-and-white swirling magic portal inside the arch. Same transparent canvas, no text. Do not move or redraw the outer frame.",
+      "source": "C:\\Users\\ys330\\.codex\\generated_images\\01a17710-0699-72c1-a2a6-f74ece8100bc\\exec-6968f5e4-bb08-41d3-bdf3-eeccba352041.png"
+    },
+    {
+      "file": "door_green_closed.png",
+      "width": 600,
+      "height": 860,
+      "transparent": true,
+      "generator": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Children's educational game for Indian Grade 2. Soft 2D cartoon, gentle cel shading, clean dark-brown outlines, rounded friendly shapes, warm saturated not neon colours, soft top-left light, no harsh shadows. Match the supplied game reference images: Pari, Aaru, Swiftie and courtyard, which are style guidance only. No text, letters, numbers, watermark or border.  Asset door_green_closed.png. One tall ornate magical palace door, pointed arch, carved golden frame, two closed leaves decorated with golden swirls, large glowing green diamond gem at centre and small keystone gem, green glow. Front view centred, frame bounds 10% to 90% horizontally and 5% to 95% vertically. Target 600x860. Entire subject inside canvas with 8% clear margin. Transparent background.",
+      "source": "C:\\Users\\ys330\\.codex\\generated_images\\01a17710-0699-72c1-a2a6-f74ece8100bc\\exec-708f911c-f6d7-40ee-8157-80a76db77306.png"
+    },
+    {
+      "file": "door_green_open.png",
+      "width": 600,
+      "height": 860,
+      "transparent": true,
+      "generator": "built-in image_gen",
+      "prompt": "Edit this green palace door to OPEN state. Preserve the entire golden outer frame exactly in the same position, shape, size, details, gems and framing. Change ONLY the two inner door leaves: swing inward so they are edge-on along the inside edges, reveal a bright green-and-white swirling magic portal inside the arch. Same transparent canvas, no text. Do not move or redraw the outer frame.",
+      "source": "C:\\Users\\ys330\\.codex\\generated_images\\01a17710-0699-72c1-a2a6-f74ece8100bc\\exec-c12312aa-586b-4983-9837-29aa45d28519.png"
+    },
+    {
+      "file": "prop_portal_swirl.png",
+      "width": 800,
+      "height": 800,
+      "transparent": true,
+      "generator": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Children's educational game for Indian Grade 2. Soft 2D cartoon, gentle cel shading, clean dark-brown outlines, rounded friendly shapes, warm saturated not neon colours, soft top-left light, no harsh shadows. Match the supplied game reference images: Pari, Aaru, Swiftie and courtyard, which are style guidance only. No text, letters, numbers, watermark or border.  Asset prop_portal_swirl.png. One round magical portal, spiral swirl of white gold soft pastel light with sparkles, brightest centre fading transparent at edges. Target 800x800. Entire subject inside canvas with 8% clear margin. Transparent background.",
+      "source": "C:\\Users\\ys330\\.codex\\generated_images\\01a17710-0699-72c1-a2a6-f74ece8100bc\\exec-b59d1fcc-43b8-4179-8c1d-d1eb61cca587.png"
+    },
+    {
+      "file": "prop_treasure_chest.png",
+      "width": 900,
+      "height": 760,
+      "transparent": true,
+      "generator": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Children's educational game for Indian Grade 2. Soft 2D cartoon, gentle cel shading, clean dark-brown outlines, rounded friendly shapes, warm saturated not neon colours, soft top-left light, no harsh shadows. Match the supplied game reference images: Pari, Aaru, Swiftie and courtyard, which are style guidance only. No text, letters, numbers, watermark or border.  Asset prop_treasure_chest.png. One open wooden treasure chest, gold bands and lock, overflowing gold coins colourful gems small crown, soft golden glow inside, a few coins in front, front three-quarter view. Target 900x760. Entire subject inside canvas with 8% clear margin. Transparent background.",
+      "source": "C:\\Users\\ys330\\.codex\\generated_images\\01a17710-0699-72c1-a2a6-f74ece8100bc\\exec-a9cb1fd3-00e4-4e17-9dd9-5a00e27fcfe0.png"
+    },
+    {
+      "file": "prop_parchment.png",
+      "width": 1400,
+      "height": 1000,
+      "transparent": true,
+      "generator": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Children's educational game for Indian Grade 2. Soft 2D cartoon, gentle cel shading, clean dark-brown outlines, rounded friendly shapes, warm saturated not neon colours, soft top-left light, no harsh shadows. Match the supplied game reference images: Pari, Aaru, Swiftie and courtyard, which are style guidance only. No text, letters, numbers, watermark or border.  Asset prop_parchment.png. One blank old cream-gold parchment scroll card, soft burnt edges thin ornate gold border slightly curled corners, completely EMPTY no writing, front view. Target 1400x1000. Entire subject inside canvas with 8% clear margin. Transparent background.",
+      "source": "C:\\Users\\ys330\\.codex\\generated_images\\01a17710-0699-72c1-a2a6-f74ece8100bc\\exec-b805a1d9-2c1a-451d-97a5-bbe08acff5d2.png"
+    },
+    {
+      "file": "sw_back.png",
+      "width": 600,
+      "height": 800,
+      "transparent": true,
+      "generator": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Children's educational game for Indian Grade 2. Soft 2D cartoon, gentle cel shading, clean dark-brown outlines, rounded friendly shapes, warm saturated not neon colours, soft top-left light, no harsh shadows. Match the supplied game reference images: Pari, Aaru, Swiftie and courtyard, which are style guidance only. No text, letters, numbers, watermark or border.  Asset sw_back.png. Swiftie mascot from reference, white eagle chick yellow hoodie blue shorts yellow webbed feet brown satchel, seen strictly FROM BEHIND standing looking up, back of hood visible, satchel strap across back, full body. No door. Target 600x800. Entire subject inside canvas with 8% clear margin. Transparent background.",
+      "source": "C:\\Users\\ys330\\.codex\\generated_images\\01a17710-0699-72c1-a2a6-f74ece8100bc\\exec-34816592-7a9c-40cb-8353-d59004251d6e.png"
+    }
+  ],
+  "scope": "Required priorities A-C. Optional colour variants and priority D not generated. Game code integration is pending as specified in ASSETS_TO_GENERATE.md."
+}
