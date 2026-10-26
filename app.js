@@ -3695,7 +3695,16 @@ SlideModules.SIGN_DRAG = {
     const place = (tile, viaReveal) => {
       endIntro(); state.locked = true; stopNudge();
       zone.classList.add("filled", smTokCls(d.answer).split(" ")[1]); zone.textContent = d.answer;
-      tile.classList.add("used"); tiles.forEach(t => t.classList.remove("pulse", "faded"));
+      tile.classList.add("used"); tile.classList.remove("pulse", "faded");
+      /* the other sign leaves the tray: it eases down a little, shrinks and fades out from however it looks now (a faded one
+         stays faded - no flash back to full colour), then stays hidden in its place so nothing in the layout moves */
+      tiles.forEach(t => {
+        if(t === tile) return;
+        t.classList.remove("pulse"); t.style.pointerEvents = "none";
+        const a = t.animate([{ opacity:getComputedStyle(t).opacity, transform:"none" }, { opacity:0, transform:"translateY(18px) scale(.86)" }],
+          { duration:520, delay:220, easing:"cubic-bezier(.4,0,.2,1)", fill:"forwards" });
+        a.onfinish = () => { t.style.visibility = "hidden"; };
+      });
       smEmitCorrect(slide, "sign_drag_correct", { revealed:!!viaReveal });
       smCelebrate(slide, alive, viaReveal ? d.eq_vo : d.cr_vo, smTokCues(viaReveal ? d.eq_vo : d.cr_vo, toks, full), viaReveal,
         () => { smUnlit(eq); eq.classList.add("glow"); });
