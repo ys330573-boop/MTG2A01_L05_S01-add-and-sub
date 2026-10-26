@@ -2905,3 +2905,15 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
 .sm-wrap-plate .sm-anim-box.has-prop .sm-anim-grid{top:35%;bottom:auto;}
 .sm-wrap-basket .sm-anim-box.has-prop .sm-anim-grid{top:30%;}
 .sm-pal-scene:not(.treasure) .sm-bubble{top:146px;}
+/* [read-along highlight, reference style] the spoken word / number turns orange (#E07800), grows a little and glows -
+   no yellow pill or blue band behind the text any more (the reference's .hl-o) */
+.sm-w{transition:color .15s,scale .15s,text-shadow .15s;}
+.sm-w.on{background:none;box-shadow:none;color:#E07800;scale:1.12;text-shadow:0 0 10px rgba(255,160,0,.65);}
+.sm-n.hl{background:none;box-shadow:none;color:#E07800;scale:1.15;text-shadow:0 0 10px rgba(255,160,0,.65);animation:none;}
+.sm-sent{transition:color .25s,text-shadow .25s;}
+.sm-sent.hl-sent{background:none;box-shadow:none;color:#E07800;text-shadow:0 0 8px rgba(255,160,0,.45);}
+.sm-tok.lit{background:none !important;box-shadow:none !important;color:#E07800 !important;transform:scale(1.2);text-shadow:0 0 10px rgba(255,160,0,.65);}
+.sm-card.lit,.sm-slot.lit,.sm-blank.lit{background:#FFF1D8 !important;border-color:#F5A524 !important;color:#E07800 !important;
+  box-shadow:0 4px 0 #F2C77E,0 0 10px rgba(255,160,0,.55) !important;text-shadow:0 0 8px rgba(255,160,0,.4);transform:scale(1.08);}
+.sm-we.final .sm-eq-cards.glow .sm-card.lit{background:var(--ui-ok-bg) !important;border-color:var(--ui-ok) !important;
+  box-shadow:0 4px 0 #A8E3B9,0 0 0 3px var(--ui-ok),0 0 12px rgba(0,177,50,.45) !important;}
