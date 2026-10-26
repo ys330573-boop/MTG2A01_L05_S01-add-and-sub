@@ -2942,3 +2942,16 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
 .sm-wrap-bus .sm-anim-grid .sm-grp.seated{position:absolute;inset:0;display:block;}
 .sm-wrap-bus .sm-grp.seated img.sm-person{position:absolute;height:auto;filter:none;}
 .sm-wrap-bus .sm-anim-front{position:absolute;inset:0;width:100%;height:auto;z-index:2;pointer-events:none;}
+/* [bangles] the SVG bangles hang on the stall's rods, each placed by the script (% of the stall picture); the rod piece inside
+   a bangle is hidden while it pops in and once it is lifted off; the kept ones glow softly */
+.sm-wrap-shop .sm-anim-box.has-prop .sm-anim-grid{left:0;top:0;width:100%;height:100%;z-index:1;}
+.sm-wrap-shop .sm-grp.hung{position:absolute;inset:0;display:block;}
+.sm-wrap-shop .sm-grp.hung svg.sm-bngl{position:absolute;display:block;height:auto;margin:0;overflow:visible;}
+.sm-bngl .bg-glow{opacity:0;transition:opacity .3s;} .sm-bngl.sm-keep{filter:none;} .sm-bngl.sm-keep .bg-glow{opacity:1;}
+.sm-bngl.pop .bg-rod{animation:smRodWait .35s steps(1,end) backwards;} @keyframes smRodWait{from{opacity:0;}to{opacity:1;}}
+.sm-bngl.off-rod .bg-rod{display:none;}
+/* [hint panel] one frame for every wrong-answer panel (bus, bangle stall, balloons, plate, basket, children): same size,
+   same place (a little below the middle, clear of the header), the scene centred inside it */
+.sm-anim-card{box-sizing:border-box;width:1040px;height:470px;min-width:0;max-width:none;min-height:0;margin-top:40px;padding:40px 48px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.sm-anim-card.sm-wrap-bus{margin-top:40px;}

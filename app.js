@@ -3138,7 +3138,7 @@ const SM_COLORS = ["#4EA3F0", "#F9695E", "#4EBE6A", "#FDC23C", "#9B7BE8", "#FF8F
 const SM_BANGLE = ["#E84393", "#F5A623", "#2DB36B", "#4E7CF0", "#D63031", "#9B59B6"];
 const SM_EMO = { bird:"🐦", person:"🧑", banana:"🍌", boy:"👦", girl:"👧" };
 /* [art] the generated illustrations (assets/Images/obj_*.webp). A missing file falls back to the old drawing. */
-const SM_IMG = { marble:"obj_marble", bird:"obj_bird_sit", bangle:"obj_bangle", balloon:"obj_balloon", laddoo:"obj_laddoo",
+const SM_IMG = { marble:"obj_marble", bird:"obj_bird_sit", balloon:"obj_balloon", laddoo:"obj_laddoo",
                  banana:"obj_banana", person:"obj_passenger", boy:"obj_boy", girl:"obj_girl" };
 const smArt = f => "assets/Images/" + f + ".webp";
 function smImgFail(img, kind, i){ const t = document.createElement("template"); t.innerHTML = smItemDrawn(kind, +i || 0);
@@ -3150,10 +3150,48 @@ function smItem(kind, i){
 }
 function smItemDrawn(kind, i){
   if(kind === "marble")  return `<i class="sm-it sm-marble" style="--c:${SM_COLORS[i % 6]}"></i>`;
-  if(kind === "bangle")  return `<i class="sm-it sm-bangle" style="--c:${SM_BANGLE[i % 6]}"></i>`;
+  if(kind === "bangle")  return smBangleSVG(i);
   if(kind === "balloon") return `<i class="sm-it sm-balloon" style="--c:${SM_COLORS[i % 6]}"></i>`;
   if(kind === "laddoo")  return `<i class="sm-it sm-laddoo"></i>`;
   return `<i class="sm-it sm-emo sm-${kind}">${SM_EMO[kind] || "●"}</i>`;
+}
+/* a bangle drawn in SVG, hanging on the stall's rod the way a real one does: tilted in perspective, the rod running through
+   its upper part. Its back half (the darker inside of the band) passes BEHIND the rod and its front half (red lacquer, gold
+   edges, little yellow flowers, a shine) crosses in front - the svg carries a piece of the rod between the two halves,
+   cut to the stall picture's own rod (same rows, same wood shading), so the real rod and the piece read as one.
+   Units are the stall picture's pixels (900 x 600); smBangleSpot places bangle i on its rod in % of the picture. */
+const SM_ROD = [[112, 148], [214, 250], [318, 353]];          // rod rows (top, bottom) in prop_bangle_stand
+function smBangleSpot(i){
+  const r = Math.floor(i / 20) % 3, k = i % 20, cx = 145 + 15.2 + k * 30.4, cy = (SM_ROD[r][0] + SM_ROD[r][1]) / 2;
+  return { left:(cx - 17) / 9, top:(cy - 40) / 6, width:34 / 9 };
+}
+function smBangleSVG(i){
+  if(!document.getElementById("smBangleDefs")) document.body.insertAdjacentHTML("beforeend",
+    `<svg id="smBangleDefs" width="0" height="0" style="position:absolute" aria-hidden="true"><defs>` +
+      `<linearGradient id="smBgBand" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#E3182F"/><stop offset=".5" stop-color="#FF5C61"/>` +
+        `<stop offset="1" stop-color="#9C0A1E"/></linearGradient>` +
+      `<linearGradient id="smBgGold" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#FFF2B8"/><stop offset=".5" stop-color="#E8B23A"/>` +
+        `<stop offset="1" stop-color="#9C6A0E"/></linearGradient>` +
+      `<linearGradient id="smBgRod" x1="0" x2="0" y1="0" y2="1"><stop offset="0.014" stop-color="#4E1C0A"/><stop offset="0.042" stop-color="#471400"/><stop offset="0.069" stop-color="#915620"/><stop offset="0.097" stop-color="#F6B66B"/><stop offset="0.125" stop-color="#F9B45A"/><stop offset="0.153" stop-color="#F6AC4D"/><stop offset="0.208" stop-color="#FBB053"/><stop offset="0.236" stop-color="#FCB358"/><stop offset="0.264" stop-color="#FBB156"/><stop offset="0.292" stop-color="#F5A74C"/><stop offset="0.319" stop-color="#EE9C42"/><stop offset="0.375" stop-color="#EC923E"/><stop offset="0.431" stop-color="#E48838"/><stop offset="0.486" stop-color="#DB7E32"/><stop offset="0.542" stop-color="#D47830"/><stop offset="0.569" stop-color="#CF7433"/><stop offset="0.597" stop-color="#C1682C"/><stop offset="0.625" stop-color="#B55D26"/><stop offset="0.681" stop-color="#AA5423"/><stop offset="0.736" stop-color="#A14E20"/><stop offset="0.819" stop-color="#A04E1F"/><stop offset="0.875" stop-color="#A35529"/><stop offset="0.903" stop-color="#944E2B"/><stop offset="0.931" stop-color="#5C1F02"/><stop offset="0.958" stop-color="#4A1602"/><stop offset="0.986" stop-color="#572006"/></linearGradient>` +
+    `</defs></svg>`);
+  // the ring: centre 13px below the rod's centre (the rod runs through its upper third), 19 x 92 band, tilted 6deg
+  const r = Math.floor((+i || 0) / 20) % 3, rt = SM_ROD[r][0] - ((SM_ROD[r][0] + SM_ROD[r][1]) / 2 - 40), rh = SM_ROD[r][1] - SM_ROD[r][0];
+  const CY = 53, RX = 8.6, RY = 45.5, W = 4.5, TILT = `rotate(6 17 ${CY})`;
+  const half = (rx, ry, side) => `M17 ${CY - ry}A${rx} ${ry} 0 0 ${side} 17 ${CY + ry}`;    // side 0 = left (back), 1 = right (front)
+  return `<svg class="sm-it sm-bngl" viewBox="0 0 34 106" aria-hidden="true">` +
+    `<ellipse class="bg-glow" cx="17" cy="${CY}" rx="${RX}" ry="${RY}" transform="${TILT}" fill="none" stroke="#FFC800" stroke-width="15" stroke-opacity=".5"/>` +
+    `<g transform="${TILT}" fill="none">` +
+      `<path d="${half(RX, RY, 0)}" stroke="#8A0B1D" stroke-width="${2 * W}"/>` +
+      `<path d="${half(RX + W, RY + W, 0)}" stroke="#B0801E" stroke-width="1.6"/><path d="${half(RX - W, RY - W, 0)}" stroke="#B0801E" stroke-width="1.4"/>` +
+    `</g>` +
+    `<rect class="bg-rod" x="2.5" y="${rt}" width="29" height="${rh}" fill="url(#smBgRod)"/>` +
+    `<g transform="${TILT}" fill="none" stroke-linecap="round">` +
+      `<path d="${half(RX, RY, 1)}" stroke="url(#smBgBand)" stroke-width="${2 * W}"/>` +
+      `<path d="${half(RX + W, RY + W, 1)}" stroke="url(#smBgGold)" stroke-width="2"/><path d="${half(RX - W, RY - W, 1)}" stroke="url(#smBgGold)" stroke-width="1.7"/>` +
+      `<path d="${half(RX, RY, 1)}" stroke="#FFE15A" stroke-width="3.8" stroke-dasharray=".01 9.5"/>` +
+      `<path d="M20.5 13 Q26.5 19 27.4 34" stroke="#fff" stroke-opacity=".8" stroke-width="1.6"/>` +
+    `</g>` +
+  `</svg>`;
 }
 function smGroup(kind, n, opt){
   opt = opt || {};
@@ -3343,6 +3381,10 @@ function smAnimate(cfg, alive, onDone){
   /* the bus: the passengers sit IN its five windows - two staggered rows of four per window, the back row a little smaller
      and higher, the front row's shoulders hidden by the window sill (the bus's front layer, with see-through glass, is drawn
      over them). The ones already aboard fill the rear windows; the new ones board into the front windows by the door. */
+  if(cfg.wrap === "shop" && items.length <= 60 && items[0] && items[0].classList.contains("sm-bngl")){
+    items[0].parentElement.classList.add("hung");
+    items.forEach((it, i) => { const p = smBangleSpot(i); it.style.left = p.left.toFixed(3) + "%"; it.style.top = p.top.toFixed(3) + "%"; it.style.width = p.width.toFixed(3) + "%"; });
+  }
   if(cfg.wrap === "bus" && items.length <= 40 && card.querySelector(".sm-anim-front")){
     const WIN = [[7.56, 20.22], [21.33, 34.22], [35.33, 48.44], [49.56, 62.67], [63.78, 77.56]], WT = 25.6, WB = 48.97, AR = 900 / 390;
     items[0].parentElement.classList.add("seated");
@@ -3391,6 +3433,7 @@ function smAnimate(cfg, alive, onDone){
       gone.slice().reverse().forEach((it, i) => setTimeout(() => {
         if(!alive()) return;
         const d = dst ? smDelta(it, dst) : { dx:300, dy:-120 };
+        it.classList.add("off-rod");                         // a bangle lifted off its rod leaves the rod piece behind
         arcOut(it, d, 80, 720);
         setTimeout(() => { if(alive()){ bump(dst); if(i % 2 === 0) sfxPop(i); } }, 600);
         badge.textContent = String(cfg.a - i - 1);
