@@ -4035,6 +4035,62 @@ SlideModules.STORY_FILL = {
     d.tray.forEach(v => { const t = smEl("div", "sm-tile num", smEsc(v)); t._v = v; tray.appendChild(t); });
     parch.appendChild(eqc); parch.appendChild(story); parch.appendChild(tray);
     wrap.appendChild(left); wrap.appendChild(parch); host.appendChild(wrap);
+    /* [flow] the gate scene around the puzzle (the puzzle, its VO and its checks are unchanged): Swiftie walks up to the gate →
+       its jewel glows and a rolled scroll floats out → the scroll glides to the middle and unrolls while the hall and the gate
+       blur behind it → (the puzzle) → a wax seal stamps the solved scroll, it rolls up and flies back into the jewel, the hall
+       comes back into focus → the gate opens. A tracker shows every gate of the palace (solved ✓ / this one / still to come).
+       Gates after the first run a quicker version; a tap during the arrival skips straight to the puzzle. */
+    const gates = CARD.slides.filter(s => s.type === "STORY_FILL"), gi = Math.max(0, gates.findIndex(s => s.id === slide.id));
+    const track = smEl("div", "sm-gates", gates.map((g, i) => `<i class="sm-gate c-${g.data.door} ${i < gi ? "done" : i === gi ? "now" : "todo"}"></i>`).join(""));
+    wrap.appendChild(track);
+    const markGateDone = () => { const g = track.children[gi]; if(g){ g.classList.remove("now"); g.classList.add("done", "pop"); } if(gi === gates.length - 1) track.classList.add("all"); };
+    { const L = left.offsetLeft, T = left.offsetTop; left.style.left = L + "px"; left.style.top = T + "px"; wrap.classList.add("staged"); }   // the gate keeps its place, the scroll centres
+    parch.classList.add("rolled", "away");
+    const sw = left.querySelector(".sm-door-sw"), glow = left.querySelector(".dr-glow"), hall = () => document.getElementById("smPalaceBg");
+    const rm = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches), quick = gi > 0;
+    let staging = true, ff = rm, cur = null, pend = null;
+    const dur = ms => ff ? 0 : Math.round(quick ? ms * .65 : ms);
+    const run = (el, kf, ms, ease, fn) => { const a = el.animate(kf, { duration:dur(ms), easing:ease }); cur = a; a.onfinish = () => { if(cur === a) cur = null; if(alive() && fn) fn(); }; };
+    const wait = (ms, fn) => { if(ff){ fn(); return; } const t = setTimeout(() => { pend = null; if(alive()) fn(); }, dur(ms)); pend = { t, fn }; };
+    const skip = () => { if(!staging || ff) return; ff = true; if(cur) cur.finish(); if(pend){ clearTimeout(pend.t); const f = pend.fn; pend = null; f(); } };
+    const toGem = () => { const g = smRect(glow), p = smRect(parch); return { dx:(g.x + g.w / 2) - (p.x + p.w / 2), dy:(g.y + g.h / 2) - (p.y + p.h / 2) }; };
+    const stageIn = (next) => {
+      wrap.addEventListener("pointerdown", skip);
+      const done = () => { staging = false; wrap.removeEventListener("pointerdown", skip); next(); };
+      // 1 · Swiftie walks up to the gate (from the near left, smaller as he goes in, a little bob in each step)
+      const kf = [];
+      for(let k = 0; k <= 8; k++){ const p = k / 8; kf.push({ transform:`translate(${(-210 * (1 - p)).toFixed(1)}px,${(64 * (1 - p) - (k % 2 ? 7 : 0)).toFixed(1)}px) scale(${(1.3 - .3 * p).toFixed(3)})`, opacity:k ? 1 : 0 }); }
+      run(sw, kf, 1400, "cubic-bezier(.3,.55,.4,1)", () => {
+        // 2 · the gate's jewel glows
+        wrap.classList.add("summon"); if(!ff) sfxSparkle();
+        wait(800, () => {
+          // 3 · a rolled scroll floats out of the jewel, glides to the middle and unrolls; the hall blurs behind it
+          parch.classList.remove("away"); const g = toGem();
+          wrap.classList.add("focus"); const h = hall(); if(h) h.classList.add("sm-focus"); if(!ff) sfxWhoosh();
+          run(parch, [
+            { transform:`translate(${g.dx.toFixed(1)}px,${g.dy.toFixed(1)}px) scale(.035,.14)`, opacity:0 },
+            { transform:`translate(${g.dx.toFixed(1)}px,${(g.dy - 34).toFixed(1)}px) scale(.06,.24)`, opacity:1, offset:.14 },
+            { transform:"translate(0px,0px) scale(.085,1)", opacity:1, offset:.56 },
+            { transform:"translate(0px,0px) scale(1,1)", opacity:1 }], 1350, "cubic-bezier(.45,.05,.3,1)", () => {
+            wrap.classList.remove("summon"); parch.classList.remove("rolled"); done();
+          });
+        });
+      });
+    };
+    // after the correct-response line: the seal, then the scroll rolls up and flies back into the jewel (the hall un-blurs)
+    const sealAndReturn = (then) => {
+      parch.appendChild(smEl("div", "sm-seal", "<i></i>")); sfxPop(9);
+      smLater(alive, rm ? 0 : 800, () => {
+        const g = toGem();
+        parch.classList.add("rolled"); wrap.classList.remove("focus"); const h = hall(); if(h) h.classList.remove("sm-focus"); sfxWhoosh();
+        const a = parch.animate([
+          { transform:"translate(0px,0px) scale(1,1)", opacity:1 },
+          { transform:"translate(0px,0px) scale(.085,1)", opacity:1, offset:.38 },
+          { transform:`translate(${g.dx.toFixed(1)}px,${(g.dy - 34).toFixed(1)}px) scale(.06,.24)`, opacity:1, offset:.84 },
+          { transform:`translate(${g.dx.toFixed(1)}px,${g.dy.toFixed(1)}px) scale(.03,.12)`, opacity:0 }], { duration:rm ? 0 : 1150, easing:"cubic-bezier(.55,0,.4,1)", fill:"forwards" });
+        a.onfinish = () => { if(!alive()) return; parch.classList.add("away"); a.cancel(); then(); };
+      });
+    };
     const blanks = [...story.querySelectorAll(".sm-blank")].sort((x, y) => x._i - y._i);
     const tiles = [...tray.children], tokEls = [...eqc.querySelectorAll(".sm-tok")];
     let active = 0, wrongOn = new Map(), revealedAny = false;
@@ -4055,15 +4111,18 @@ SlideModules.STORY_FILL = {
       smPlay(d.cr_vo, cues, () => {
         sents.forEach(x => x.classList.remove("hl-sent")); smUnlit(wrap);
         if(!alive()) return;
-        // the door opens → portal → Swiftie walks through
-        wrap.classList.add("charge"); sfxSparkle();
-        smLater(alive, 750, () => { wrap.classList.add("open"); sfxWhoosh(); });
-        smLater(alive, 1300, sfxSparkle);
-        smLater(alive, 3300, () => {
-          if(d.pass_vo){
-            const ban = smEl("div", "sm-pass", smEsc(smText(d.pass_vo))); parch.appendChild(ban);   // sits on the scroll where the used tiles were
-            smPlay(d.pass_vo, [], () => smLater(alive, 500, () => completeSlide(!revealedAny)));
-          } else completeSlide(!revealedAny);
+        // the scroll is sealed and flies back into the gate → the door opens → portal → Swiftie walks through
+        sealAndReturn(() => {
+          wrap.classList.add("charge"); sfxSparkle();
+          smLater(alive, 750, () => { wrap.classList.add("open"); sfxWhoosh(); markGateDone(); });
+          smLater(alive, 1300, sfxSparkle);
+          smLater(alive, 3300, () => {
+            if(d.pass_vo){
+              const ban = smEl("div", "sm-pass free", smEsc(smText(d.pass_vo))); wrap.appendChild(ban);   // in the open hall beside the gate
+              const gr = left.offsetLeft + left.offsetWidth; ban.style.left = Math.round(gr + (wrap.clientWidth - gr) / 2) + "px";
+              smPlay(d.pass_vo, [], () => smLater(alive, 500, () => completeSlide(!revealedAny)));
+            } else completeSlide(!revealedAny);
+          });
         });
       });
     };
@@ -4089,7 +4148,7 @@ SlideModules.STORY_FILL = {
     const endIntro = smOnce(() => { free(); sents.forEach(x => x.classList.remove("hl-sent")); blanks.forEach(b => b.classList.remove("pulse")); smUnlit(eqc); setSwMood("point"); markActive(); });
     let busyTap = false;
     blanks.forEach(b => b.addEventListener("click", () => {
-      if(state.locked || b._val) return;
+      if(state.locked || staging || b._val) return;
       endIntro();
       if(d.mode === "tap"){ active = blanks.indexOf(b); markActive(); }
       b.classList.add("ask"); setTimeout(() => b.classList.remove("ask"), 900);
@@ -4097,12 +4156,12 @@ SlideModules.STORY_FILL = {
     }));
     tiles.forEach(tile => {
       if(d.mode === "drag") smDraggable(tile, {
-        can:() => !state.locked && !tile.classList.contains("used"),
+        can:() => !state.locked && !staging && !tile.classList.contains("used"),
         drop:(z, t) => { if(!blanks.includes(z) || z._val) return false; endIntro();
           if(d.answers[z._i] === t._v){ place(z, t); return true; } miss(z, t, true); return false; }
       });
       tile.addEventListener("click", () => {
-        if(state.locked || busyTap || tile.classList.contains("used") || d.mode !== "tap") return;
+        if(state.locked || staging || busyTap || tile.classList.contains("used") || d.mode !== "tap") return;
         endIntro();
         const b = blanks[active]; if(!b || b._val) return;
         if(d.answers[b._i] === tile._v){ busyTap = true; tile.style.visibility = "hidden"; smFly(tile, b, 480, () => { busyTap = false; tile.style.visibility = ""; if(alive()) place(b, tile); }); }
@@ -4119,7 +4178,7 @@ SlideModules.STORY_FILL = {
     };
     setSwMood("talk");
     smSteps([
-      400,
+      stageIn, 250,
       { id:d.vo1, cues:() => smTokCues(d.vo1, tokEls, tokens), post:() => smUnlit(eqc), gap:300 },
       { id:d.vo2, cues:vo2Cues, post:() => { sents.forEach(x => x.classList.remove("hl-sent")); blanks.forEach(b => b.classList.remove("pulse")); } }
     ], alive, endIntro);
@@ -4133,6 +4192,7 @@ function clearHost(){
   document.body.classList.remove("is-end");   // r4: clear immersive end state when leaving celebration
   $("slideHost").innerHTML = "";
   document.querySelectorAll(".sm-anim-ov, .sm-flyer").forEach(e => e.remove());   // story-kit overlays never outlive their slide
+  const _hall = $("smPalaceBg"); if(_hall) _hall.classList.remove("sm-focus");      // the gate scene's blurred hall never outlives its slide
   $("hintBtn").classList.remove("show");
   $("hintBtn").disabled = false;
   setNavActive(false);

@@ -2963,3 +2963,43 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
   border-color:#D9DEE6;box-shadow:0 4px 0 #E3E7EE;transition-delay:0s;}
 .sm-stories:has(> .sm-story-opt.reading) > .sm-story-opt.reading{transition-delay:0s;}
 .sm-story-opt.correct,.sm-story-opt.faded,.sm-story-opt.reveal,.sm-story-opt.flash{transition-delay:0s;}   /* answer feedback stays instant */
+/* [gate flow] D1-D3: the gate keeps its place (taken out of the flow) and the scroll rests in the middle; while the puzzle is
+   open the gate side and the hall blur and dim behind it. The scroll's contents stay hidden while it is rolled. */
+.sm-doorwrap{position:relative;}
+.sm-doorwrap.staged .sm-door-side{position:absolute;margin:0;z-index:1;transition:filter .7s ease;}
+.sm-doorwrap.staged .sm-parch{z-index:2;}
+.sm-doorwrap.focus .sm-door-side{filter:blur(3px) brightness(.6) saturate(.85);}
+.sm-palace-bg{transition:filter .7s ease,transform .7s ease;}
+.sm-palace-bg.sm-focus{filter:blur(5px) brightness(.62);transform:scale(1.04);}
+.sm-parch.away{visibility:hidden;}
+.sm-parch.rolled{pointer-events:none;}
+.sm-parch > *{transition:opacity .3s ease;}
+.sm-parch.rolled > *{opacity:0;}
+/* the jewel answers: a glow swells and settles while the scroll gets ready to come out */
+.sm-doorwrap.summon .sm-door2 .dr-glow{animation:drSummon .9s ease-in-out forwards;}
+@keyframes drSummon{0%{opacity:0;scale:.5;}45%{opacity:.95;scale:1.15;}100%{opacity:.45;scale:.9;}}
+/* the wax seal stamped on the solved scroll, where the number cards were */
+.sm-seal{position:absolute;left:50%;bottom:56px;width:96px;height:96px;margin-left:-48px;z-index:3;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 36% 32%,#E8605B 0,#B3172A 46%,#7A0816 100%);
+  box-shadow:0 0 0 5px #9E1120,0 0 0 7px rgba(122,8,22,.35),0 8px 14px rgba(60,0,0,.45);animation:smSealStamp .55s cubic-bezier(.3,1.5,.5,1) backwards;}
+.sm-seal i{width:60px;height:60px;border-radius:50%;border:3px solid rgba(255,214,140,.8);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 2px 4px rgba(0,0,0,.35);}
+.sm-seal i::before{content:"★";color:#FFD27A;font-size:34px;line-height:1;text-shadow:0 1px 0 #7A0816;}
+@keyframes smSealStamp{0%{transform:scale(2.4) rotate(-18deg);opacity:0;}55%{transform:scale(.9) rotate(4deg);opacity:1;}100%{transform:scale(1) rotate(0);opacity:1;}}
+/* the gate tracker (top right): solved ✓ / this gate glowing / gates still to come */
+.sm-gates{position:absolute;top:10px;right:34px;z-index:3;display:flex;gap:14px;align-items:flex-end;padding:10px 16px 8px;background:rgba(40,16,50,.55);
+  border:2px solid rgba(255,216,115,.7);border-radius:16px;box-shadow:0 6px 16px rgba(0,0,0,.35);}
+.sm-gate{position:relative;display:block;width:30px;height:40px;border-radius:15px 15px 4px 4px;border:3px solid #E9B949;background:linear-gradient(#FF9BDC,#C2328F);
+  box-shadow:inset 0 -6px 0 rgba(0,0,0,.18);}
+.sm-gate.c-blue{background:linear-gradient(#9BD6FF,#2F78D6);} .sm-gate.c-green{background:linear-gradient(#9BF4C2,#1E9E5A);}
+.sm-gate.todo{filter:grayscale(1) brightness(.8);opacity:.55;}
+.sm-gate.now{animation:smGateNow 1.4s ease-in-out infinite;}
+@keyframes smGateNow{0%,100%{box-shadow:inset 0 -6px 0 rgba(0,0,0,.18),0 0 0 0 rgba(255,216,115,0);translate:0 0;}
+  50%{box-shadow:inset 0 -6px 0 rgba(0,0,0,.18),0 0 14px 4px rgba(255,216,115,.9);translate:0 -3px;}}
+.sm-gate.done::after{content:"✓";position:absolute;right:-10px;top:-10px;width:22px;height:22px;border-radius:50%;background:#00B132;color:#fff;
+  font:800 14px/20px var(--font-hi,sans-serif);text-align:center;border:2px solid #fff;}
+.sm-gate.done.pop::after{animation:smPop .45s cubic-bezier(.34,1.56,.64,1) backwards;}
+.sm-gates.all .sm-gate{animation:smGateAll .8s ease-in-out 2;}
+@keyframes smGateAll{0%,100%{translate:0 0;}50%{translate:0 -6px;}}
+/* the "gate passed" line, in the open hall beside the gate (the scroll has gone back into the gate) */
+.sm-pass.free{left:0;right:auto;top:44%;bottom:auto;margin:0;translate:-50% -50%;}
+@media (prefers-reduced-motion: reduce){ .sm-seal,.sm-gate.now,.sm-gates.all .sm-gate,.sm-doorwrap.summon .sm-door2 .dr-glow{animation:none;} }
