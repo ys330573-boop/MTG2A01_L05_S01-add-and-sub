@@ -3051,3 +3051,9 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
 .sm-doorwrap.staged .sm-ribbon{transition:opacity .5s ease;}
 .sm-doorwrap.staged.focus .sm-ribbon,.sm-doorwrap.staged.focus .sm-gates{opacity:0;}
 @media (prefers-reduced-motion: reduce){ .slide-host.pal-out,.slide-host.pal-in,.sm-doorwrap.staged .sm-ribbon,.stage.sm-palace .prompt-band{animation:none;} }
+/* [gate to gate] the portal light: the camera flies into the open gate's portal and this fills the screen, then fades
+   off the next hall (app.js smThroughPortal / mountSlideNow). The instruction band stays on top of it. */
+.sm-bloom{position:absolute;inset:0;z-index:35;pointer-events:none;opacity:0;
+  background:radial-gradient(circle at 50% 55%,#FFFFFF 0%,#FFF1FA 32%,var(--bloom,#F8C2E6) 78%,var(--bloom2,#E58BC8) 100%);}
+.sm-bloom.c-blue{--bloom:#CBE7FF;--bloom2:#8CC2F2;} .sm-bloom.c-green{--bloom:#CDF6DF;--bloom2:#8ADDB0;}
+.stage-inner:has(> .sm-bloom) .prompt-band{z-index:36;}

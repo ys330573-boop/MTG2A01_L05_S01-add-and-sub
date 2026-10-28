@@ -3967,6 +3967,7 @@ SlideModules.PICK_STORY = {
 /* [cinematic] the palace camera: the hall painting and a stage-sized layer of the scene (the far gate, Swiftie) move
    together, so a push-in frames the gate big in the middle of the screen with Swiftie at its foot. */
 const SM_CAM_GATE = { x:-219, y:-176, s:2 };
+const SM_CARPET_X = 333;   // Swiftie on the carpet's middle, just in front of the camera (his translate from the gate scene's resting spot)
 const SM_GATE_FOOT = { cx:443.5, bottom:397, h:74.88 };   // Swiftie at the gate's threshold (= the gate slides' .atgate spot)
 function smCamTf(c){ c = c || { x:0, y:0, s:1 }; return `translate(${c.x}px,${c.y}px) scale(${c.s})`; }
 // a 1333×750 layer at the stage's origin, inside `parent` (positioned and already in the page)
@@ -3975,12 +3976,25 @@ function smStageLayer(parent, cls){
   let x = 0, y = 0; for(let e = parent; e && e !== $("stage"); e = e.offsetParent){ x += e.offsetLeft; y += e.offsetTop; }
   L.style.left = -x + "px"; L.style.top = -y + "px"; return L;
 }
+// [gate to gate] a point of `el` in the hall painting (camera-free stage coordinates), seen through camera `c`
+function smHallPt(el, c, fy){ const r = smRect(el); return { x:(r.x + r.w / 2 - c.x) / c.s, y:(r.y + r.h * (fy == null ? .5 : fy) - c.y) / c.s }; }
+// the camera that shows hall point p at screen spot (sx, sy), zoomed s
+function smCamOn(p, s, sx, sy){ return { x:+(sx - s * p.x).toFixed(1), y:+(sy - s * p.y).toFixed(1), s }; }
+// through the open gate: the camera flies on into its portal (hall point p) while the portal light fills the screen.
+// The next page comes in under that light and mountSlideNow fades it away, so the journey only ever moves forward.
+function smThroughPortal(cam, p, door, ms, fn){
+  const L = smEl("div", "sm-bloom c-" + door); L.id = "smBloom"; $("stage").querySelector(".stage-inner").appendChild(L);
+  smCam(cam, smCamOn(p, 7, 666.5, 415), ms, "cubic-bezier(.5,0,.9,.4)");
+  const a = L.animate([{ opacity:0 }, { opacity:0, offset:.25 }, { opacity:1 }], { duration:ms, easing:"ease-in", fill:"forwards" });
+  a.onfinish = fn;
+}
 // move the camera (the hall + `layer`) to `to` (null = the whole hall); returns the running animations
 function smCam(layer, to, ms, ease){
   const tf = smCamTf(to), out = [];
   [$("smPalaceBg"), layer].forEach(el => { if(!el) return;
-    el.getAnimations().forEach(a => { if(!(window.CSSTransition && a instanceof CSSTransition)) a.cancel(); });   // a camera move cut short
-    const from = el.style.transform || smCamTf(null);
+    const run = el.getAnimations().filter(a => !(window.CSSTransition && a instanceof CSSTransition)), now = getComputedStyle(el).transform;
+    const from = run.length && now && now !== "none" ? now : el.style.transform || smCamTf(null);   // a camera move cut short goes on from where it is
+    run.forEach(a => a.cancel());
     el.style.transformOrigin = "0 0"; el.style.transform = tf;
     if(ms && from !== tf) out.push(el.animate([{ transform:from }, { transform:tf }], { duration:ms, easing:ease || "ease-in-out" }));
   });
@@ -3988,11 +4002,11 @@ function smCam(layer, to, ms, ease){
 }
 // walking away up the hall to (dx,dy), shrinking to s1: an even pace in depth (so it slows on screen as he gets
 // smaller), a little bob and sway in every step. Uses translate/scale/rotate so CSS can hold the end pose.
-function smWalkKf(dx, dy, s1, steps){
-  const kf = [], n = steps * 2;
+function smWalkKf(dx, dy, s1, steps, ox, oy){
+  const kf = [], n = steps * 2; ox = ox || 0; oy = oy || 0;
   for(let k = 0; k <= n; k++){
     const sc = 1 / (1 + (1 / s1 - 1) * k / n), p = (1 - sc) / (1 - s1), mid = k > 0 && k < n;
-    kf.push({ translate:`${(dx * p).toFixed(1)}px ${(dy * p - (mid && k % 2 ? 7 * sc : 0)).toFixed(1)}px`, scale:sc.toFixed(4), rotate:`${mid ? (k % 2 ? -2.5 : 2.5) : 0}deg` });
+    kf.push({ translate:`${(ox + (dx - ox) * p).toFixed(1)}px ${(oy + (dy - oy) * p - (mid && k % 2 ? 7 * sc : 0)).toFixed(1)}px`, scale:sc.toFixed(4), rotate:`${mid ? (k % 2 ? -2.5 : 2.5) : 0}deg` });
   }
   return kf;
 }
@@ -4138,7 +4152,7 @@ SlideModules.STORY_FILL = {
       // 1 · Swiftie walks up the carpet to the gate while the camera flies in after him (after the intro he is there already)
       const walkUp = (fn) => {
         if(arrived){ wait(350, fn); return; }
-        const ms = dur(3400), a = sw.animate(smWalkKf(333, -333, .48, 7), { duration:ms, easing:"cubic-bezier(.3,0,.7,1)", fill:"forwards" });
+        const ms = ff ? 0 : 3400, a = sw.animate(smWalkKf(333, -333, .48, 7, SM_CARPET_X, 12), { duration:ms, easing:"cubic-bezier(.3,0,.7,1)", fill:"forwards" });
         cur = [a, ...smCam(cam, SM_CAM_GATE, ms, "cubic-bezier(.45,0,.35,1)")];
         a.onfinish = () => { cur = null; wrap.classList.add("atgate"); a.cancel(); if(alive()) fn(); };
       };
@@ -4198,16 +4212,18 @@ SlideModules.STORY_FILL = {
           wrap.classList.add("charge"); sfxSparkle();
           smLater(alive, 750, () => { wrap.classList.add("open"); sfxWhoosh(); markGateDone(); });
           smLater(alive, 1300, sfxSparkle);
-          // Swiftie has stepped into the portal: the camera pulls back to the whole hall, then the "gate passed" line
+          // [gate to gate] Swiftie has stepped into the portal: the camera never pulls back. It eases on towards the portal
+          // while the "gate passed" line plays, then flies through it after him into the next hall (smThroughPortal).
           smLater(alive, 2950, () => {
-            smCam(cam, null, rm ? 0 : 1300, "cubic-bezier(.45,0,.35,1)");
-            smLater(alive, rm ? 0 : 1400, () => {
-              if(d.pass_vo){
-                const ban = smEl("div", "sm-pass free", smEsc(smText(d.pass_vo))); wrap.appendChild(ban);   // in the open hall beside the gate
-                const g = smRect(door), gr = g.x + g.w - smRect(wrap).x; ban.style.left = Math.round(gr + (wrap.clientWidth - gr) / 2) + "px";
-                smPlay(d.pass_vo, [], () => smLater(alive, 500, () => completeSlide(!revealedAny)));
-              } else completeSlide(!revealedAny);
-            });
+            const p = smHallPt(door, SM_CAM_GATE, .56), P = { x:SM_CAM_GATE.x + 2 * p.x, y:SM_CAM_GATE.y + 2 * p.y };
+            if(!rm) smCam(cam, smCamOn(p, 2.3, P.x + (666.5 - P.x) * .15, P.y + (415 - P.y) * .15), 7000, "cubic-bezier(.3,.1,.5,1)");
+            const on = () => smThroughPortal(cam, p, d.door, rm ? 0 : 1100, () => {
+              if(!alive()) return; const nx = CARD.slides[state.idx + 1];
+              window.__palThrough = nx && nx.layout === "palace" ? nx.id : null; completeSlide(!revealedAny); });
+            if(d.pass_vo){
+              wrap.appendChild(smEl("div", "sm-pass", smEsc(smText(d.pass_vo))));   // along the bottom, under the open gate
+              smPlay(d.pass_vo, [], () => smLater(alive, 300, on));
+            } else smLater(alive, rm ? 0 : 900, on);
           });
         });
       });
@@ -4297,7 +4313,7 @@ function mountSlide(idx){
   // [cinematic] palace pages never slide sideways over the painted hall (its gate stays where it stands): the old scene
   // fades out and the new one fades in - or, when the intro has just walked Swiftie up to this gate, it simply carries on
   if(host && host.childElementCount && cur && nx && nx.layout === "palace" && idx === state.idx + 1){
-    if(window.__palArrive === nx.id){ window.__palCut = true; mountSlideNow(idx); return; }
+    if(window.__palArrive === nx.id || window.__palThrough === nx.id){ window.__palCut = true; mountSlideNow(idx); return; }
     if(!reduce){
       host.classList.remove("q-in", "pal-in", "slide-in"); host.classList.add("pal-out");
       setTimeout(()=>{ if(t !== _mountTok) return; host.classList.remove("pal-out"); window.__palIn = true; mountSlideNow(idx); }, 320);
@@ -4384,6 +4400,8 @@ function mountSlideNow(idx){
   }
   mod.mount(mountHost, slide);
   // game-feel: animate the slide content in on every mount (a question that follows a question slides in: .q-in)
+  { const _bl = $("smBloom"); window.__palThrough = null;   // [gate to gate] the portal light fades off the new page
+    if(_bl){ _bl.removeAttribute("id"); const a = _bl.animate([{ opacity:1 }, { opacity:0 }], { duration:matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 900, easing:"ease-out", fill:"forwards" }); a.onfinish = () => _bl.remove(); } }
   { const _sh = $("slideHost"), qi = !!window.__qIn, pi = !!window.__palIn, pc = !!window.__palCut; window.__qIn = window.__palIn = window.__palCut = false;
     _sh.classList.remove("slide-in", "q-in", "pal-in"); void _sh.offsetWidth; if(!pc) _sh.classList.add(qi ? "q-in" : pi || slide.layout === "palace" ? "pal-in" : "slide-in"); }
 
