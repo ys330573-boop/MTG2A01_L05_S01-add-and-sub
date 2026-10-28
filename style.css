@@ -3033,17 +3033,21 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
 .slide-host.pal-in{animation:palIn .5s ease-out both;}
 @keyframes palOut{to{opacity:0;}}
 @keyframes palIn{from{opacity:0;}to{opacity:1;}}
-.sm-doorwrap.staged .sm-ribbon{animation:palIn .6s ease-out both;}
+.sm-doorwrap.staged .sm-ribbon{animation:palIn .6s ease-out backwards;}
 .stage.sm-palace:not(.sm-noheader) .prompt-band{animation:palIn .6s ease-out both;}
-/* the scroll: big and centred; everything sits well inside the painted paper (about 14-86% x 16-84% of the image),
-   the sentences as one block centred on the paper (each still reads from the left) */
-.sm-doorwrap.staged .sm-parch{box-sizing:border-box;width:1000px;height:650px;min-height:0;flex-shrink:0;padding:125px 177px 129px;gap:16px;justify-content:center;}
-.sm-doorwrap.staged .sm-parch .sm-eq-chip{font-size:48px;padding:4px 30px;}
-.sm-doorwrap.staged .sm-parch .sm-fill-story{width:fit-content;max-width:100%;font-size:34px;line-height:1.75;}
-.sm-doorwrap.staged .sm-parch .sm-blank{width:112px;height:60px;font-size:38px;}
-.sm-doorwrap.staged .sm-tray.parch{gap:30px;}
-.sm-doorwrap.staged .sm-tray.parch .sm-tile{width:128px;height:92px;font-size:54px;}
-.sm-doorwrap.staged .sm-parch .sm-seal{bottom:129px;}
-/* the gate tracker steps right so the big scroll never covers it */
-.sm-doorwrap.staged .sm-gates{right:-48px;}
+/* the scroll: wide and centred (about 134-1200 x 139-719 on the stage, as in the reference); everything sits well inside the
+   painted paper (about 14-86% x 16-84% of the image): the equation in a cream chip, each sentence centred, the number cards below */
+.sm-doorwrap.staged .sm-parch{box-sizing:border-box;width:1128px;height:686px;min-height:0;flex-shrink:0;top:-11px;padding:134px 186px;gap:12px;justify-content:center;}
+.sm-doorwrap.staged .sm-parch .sm-eq-chip{font-size:54px;padding:0 36px;background:#FCF3DF;border:3px solid #E2C27C;border-radius:20px;box-shadow:none;}
+.sm-doorwrap.staged .sm-parch .sm-fill-story{width:100%;text-align:center;font-size:37px;line-height:1.9;}
+.sm-doorwrap.staged .sm-parch .sm-fill-story .sm-sent{margin-inline:auto;}
+.sm-doorwrap.staged .sm-parch .sm-blank{width:106px;height:58px;margin:0 9px;font-size:38px;}
+.sm-doorwrap.staged .sm-tray.parch{gap:38px;}
+.sm-doorwrap.staged .sm-tray.parch .sm-tile{width:134px;height:88px;font-size:54px;}
+.sm-doorwrap.staged .sm-parch .sm-seal{bottom:134px;}
+/* the gate tracker steps right so the scroll never covers it; while the scroll is open the ribbon and the tracker step
+   aside (fade out) and come back as it rolls up, so the tracker ticks the gate in view */
+.sm-doorwrap.staged .sm-gates{right:-48px;transition:opacity .5s ease;}
+.sm-doorwrap.staged .sm-ribbon{transition:opacity .5s ease;}
+.sm-doorwrap.staged.focus .sm-ribbon,.sm-doorwrap.staged.focus .sm-gates{opacity:0;}
 @media (prefers-reduced-motion: reduce){ .slide-host.pal-out,.slide-host.pal-in,.sm-doorwrap.staged .sm-ribbon,.stage.sm-palace .prompt-band{animation:none;} }
