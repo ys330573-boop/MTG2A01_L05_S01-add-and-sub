@@ -3035,16 +3035,31 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
 @keyframes palIn{from{opacity:0;}to{opacity:1;}}
 .sm-doorwrap.staged .sm-ribbon{animation:palIn .6s ease-out backwards;}
 .stage.sm-palace:not(.sm-noheader) .prompt-band{animation:palIn .6s ease-out both;}
-/* the scroll: wide and centred (about 134-1200 x 139-719 on the stage, as in the reference); everything sits well inside the
-   painted paper (about 14-86% x 16-84% of the image): the equation in a cream chip, each sentence centred, the number cards below */
-.sm-doorwrap.staged .sm-parch{box-sizing:border-box;width:1128px;height:686px;min-height:0;flex-shrink:0;top:-11px;padding:134px 186px;gap:12px;justify-content:center;}
-.sm-doorwrap.staged .sm-parch .sm-eq-chip{font-size:54px;padding:0 36px;background:#FCF3DF;border:3px solid #E2C27C;border-radius:20px;box-shadow:none;}
-.sm-doorwrap.staged .sm-parch .sm-fill-story{width:100%;text-align:center;font-size:37px;line-height:1.9;}
+/* the puzzle panel (it replaced the painted scroll): a bright, rounded kids' panel in the gate's colour, the gate's jewel on
+   top and the equation in a coloured band; the story in navy; the number cards are the tutorial's white cards with the grey
+   rim; an empty box is a dashed box, and once its number is in, the box goes and the number reads on in the sentence */
+.sm-doorwrap.door-pink{--pan-rim:#F59BD7;--pan-ledge:#DE7CBF;--pan-band:#FFE1F4;--pan-tint:#FFF4FB;--pan-num:#C21C9B;}
+.sm-doorwrap.door-blue{--pan-rim:#8FC6F6;--pan-ledge:#6AA8E4;--pan-band:#DDEFFF;--pan-tint:#F3F9FF;--pan-num:#1C5FD1;}
+.sm-doorwrap.door-green{--pan-rim:#8ED9AE;--pan-ledge:#62BC88;--pan-band:#DCF7E7;--pan-tint:#F2FCF6;--pan-num:#128A4C;}
+.sm-doorwrap.staged .sm-parch{box-sizing:border-box;width:1000px;height:524px;min-height:0;flex-shrink:0;top:0;padding:22px 40px 30px;gap:0;justify-content:flex-start;
+  background:linear-gradient(var(--pan-band) 0 118px,var(--pan-rim) 118px 121px,#fff 121px);border:6px solid var(--pan-rim);border-radius:36px;
+  box-shadow:0 8px 0 var(--pan-ledge),0 22px 44px rgba(20,8,40,.45);filter:none;}
+.sm-doorwrap.staged .sm-parch::before{content:"";position:absolute;top:-19px;left:50%;width:34px;height:34px;transform:translateX(-50%) rotate(45deg);
+  background:linear-gradient(135deg,#FFFFFF,var(--door-l) 30%,var(--door-c) 70%);border:4px solid #FFD873;border-radius:6px;box-shadow:0 0 18px 4px var(--door-glow);}
+.sm-doorwrap.staged .sm-parch .sm-eq-chip{font-size:52px;padding:0 36px;background:#fff;border:3px solid var(--pan-rim);border-radius:20px;box-shadow:0 4px 0 var(--pan-ledge);color:var(--ui-ink);}
+.sm-doorwrap.staged .sm-parch .sm-fill-story{width:100%;margin-top:30px;text-align:center;font-size:36px;line-height:1.9;color:var(--ui-ink);}
 .sm-doorwrap.staged .sm-parch .sm-fill-story .sm-sent{margin-inline:auto;}
-.sm-doorwrap.staged .sm-parch .sm-blank{width:106px;height:58px;margin:0 9px;font-size:38px;}
-.sm-doorwrap.staged .sm-tray.parch{gap:38px;}
-.sm-doorwrap.staged .sm-tray.parch .sm-tile{width:134px;height:88px;font-size:54px;}
-.sm-doorwrap.staged .sm-parch .sm-seal{bottom:134px;}
+.sm-doorwrap.staged .sm-parch .sm-blank{width:106px;height:58px;margin:0 9px;font-size:38px;background:var(--pan-tint);border:3px dashed var(--pan-rim);border-radius:14px;}
+.sm-doorwrap.staged .sm-parch .sm-blank.active{border:3px solid var(--door-c);}
+.sm-doorwrap.staged .sm-parch .sm-blank.bad{border:3px solid var(--wrong);background:var(--wrong-bg);}
+.sm-doorwrap.staged .sm-parch .sm-blank.filled,.sm-doorwrap.staged .sm-parch .sm-blank.filled.lit{display:inline-block;vertical-align:baseline;width:auto;height:auto;margin:0;
+  background:transparent !important;border:none !important;box-shadow:none !important;font-size:inherit;line-height:inherit;font-weight:800;color:var(--pan-num) !important;}
+.sm-doorwrap.staged .sm-parch .sm-blank.filled.lit{color:#E07800 !important;text-shadow:0 0 8px rgba(255,160,0,.45);}
+.sm-doorwrap.staged .sm-tray.parch{margin-top:26px;gap:34px;padding:14px 30px;background:var(--pan-tint);border:3px solid var(--pan-rim);border-radius:24px;}
+.sm-doorwrap.staged .sm-tray.parch .sm-tile{width:120px;height:88px;font-size:54px;background:#fff;border:2.69px solid var(--ui-rim);box-shadow:0 4px 0 var(--ui-ledge);color:var(--ui-ink);}
+.sm-doorwrap.staged .sm-tray.parch .sm-tile:hover{box-shadow:0 6px 0 var(--ui-ledge);}
+.sm-doorwrap.staged .sm-tray.parch .sm-tile.pulse,.sm-doorwrap.staged .sm-tray.parch .sm-tile.reveal{border:3px solid var(--ui-ok);box-shadow:0 4px 0 var(--ui-ledge),0 0 0 6px rgba(0,177,50,.28);}
+.sm-doorwrap.staged .sm-parch .sm-seal{bottom:53px;}
 /* the gate tracker steps right so the scroll never covers it; while the scroll is open the ribbon and the tracker step
    aside (fade out) and come back as it rolls up, so the tracker ticks the gate in view */
 .sm-doorwrap.staged .sm-gates{right:-48px;transition:opacity .5s ease;}
