@@ -2969,8 +2969,8 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
 .sm-doorwrap.staged .sm-door-side{position:absolute;margin:0;z-index:1;transition:filter .7s ease;}
 .sm-doorwrap.staged .sm-parch{z-index:2;}
 .sm-doorwrap.focus .sm-door-side{filter:blur(3px) brightness(.6) saturate(.85);}
-.sm-palace-bg{transition:filter .7s ease,transform .7s ease;}
-.sm-palace-bg.sm-focus{filter:blur(5px) brightness(.62);transform:scale(1.04);}
+.sm-palace-bg{transition:filter .7s ease;}   /* its transform is the palace camera (app.js smCam) */
+.sm-palace-bg.sm-focus{filter:blur(5px) brightness(.62);}
 .sm-parch.away{visibility:hidden;}
 .sm-parch.rolled{pointer-events:none;}
 .sm-parch > *{transition:opacity .3s ease;}
@@ -3003,3 +3003,47 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
 /* the "gate passed" line, in the open hall beside the gate (the scroll has gone back into the gate) */
 .sm-pass.free{left:0;right:auto;top:44%;bottom:auto;margin:0;translate:-50% -50%;}
 @media (prefers-reduced-motion: reduce){ .sm-seal,.sm-gate.now,.sm-gates.all .sm-gate,.sm-doorwrap.summon .sm-door2 .dr-glow{animation:none;} }
+/* [gate placement] the gate stands far away in the archway at the end of the red carpet; the gate side spans the stage
+   (app.js sets its offset) so the ribbon, the gate and Swiftie sit at stage spots. Swiftie waits at the near left and,
+   when the gate opens, walks up the carpet into it, getting smaller with the distance. */
+.sm-doorwrap.staged .sm-door-side{width:1333px;height:750px;padding:0;display:block;pointer-events:none;}
+.sm-doorwrap.staged .sm-ribbon{position:absolute;left:154px;top:158px;margin:0;}
+.sm-doorwrap.staged .sm-door2{position:absolute;left:378px;top:223px;transform-origin:0 0;scale:.43;}
+.sm-doorwrap.staged .sm-door-sw{left:52px;top:574px;bottom:auto;height:156px;transform-origin:50% 100%;}
+@media (prefers-reduced-motion: reduce){ .sm-doorwrap.staged.open .sm-door-sw{animation:none;opacity:0;} }
+/* [cinematic] the camera layer (app.js smCam): the far gate and Swiftie, moving with the hall painting */
+.sm-cam{position:absolute;width:1333px;height:750px;pointer-events:none;}
+.sm-doorwrap.staged .sm-cam{left:0;top:0;}
+.sm-cam > .sm-door2{position:absolute;left:378px;top:223px;transform-origin:0 0;scale:.43;}
+/* Swiftie at the gate's threshold (where the walk up the carpet ends) */
+.sm-doorwrap.atgate .sm-door-sw{translate:333px -333px;scale:.48;}
+/* the gate opens: he steps on into the portal */
+.sm-doorwrap.staged.open .sm-door-sw{animation:swIntoGate 1.3s ease-in .85s forwards;}
+@keyframes swIntoGate{
+  0%{translate:333px -333px;scale:.48;rotate:0deg;opacity:1;} 25%{translate:333px -337px;scale:.46;rotate:-2deg;}
+  50%{translate:334px -340px;scale:.43;rotate:2deg;opacity:1;} 75%{translate:334px -343px;scale:.4;rotate:-1deg;opacity:.6;}
+  100%{translate:334px -345px;scale:.37;rotate:0deg;opacity:0;}}
+/* the intro: the first gate already stands at the end of the carpet; Swiftie turns to it (mirrored, pointing that way)
+   and his back view walks up to it */
+.sm-pal-scene.to-gate .sm-pal-sw{left:80px;scale:-1 1;}
+.sm-pal-scene.to-gate .sm-bubble{left:575px;top:262px;width:600px;}
+.sm-pal-swb{position:absolute;transform-origin:50% 100%;filter:drop-shadow(0 10px 14px rgba(0,0,0,.5));}
+/* palace pages change with a fade (no sideways slide over the hall); the ribbon and the prompt band fade in */
+.slide-host.pal-out{animation:palOut .32s ease-in forwards;}
+.slide-host.pal-in{animation:palIn .5s ease-out both;}
+@keyframes palOut{to{opacity:0;}}
+@keyframes palIn{from{opacity:0;}to{opacity:1;}}
+.sm-doorwrap.staged .sm-ribbon{animation:palIn .6s ease-out both;}
+.stage.sm-palace:not(.sm-noheader) .prompt-band{animation:palIn .6s ease-out both;}
+/* the scroll: big and centred; everything sits well inside the painted paper (about 14-86% x 16-84% of the image),
+   the sentences as one block centred on the paper (each still reads from the left) */
+.sm-doorwrap.staged .sm-parch{box-sizing:border-box;width:1000px;height:650px;min-height:0;flex-shrink:0;padding:125px 177px 129px;gap:16px;justify-content:center;}
+.sm-doorwrap.staged .sm-parch .sm-eq-chip{font-size:48px;padding:4px 30px;}
+.sm-doorwrap.staged .sm-parch .sm-fill-story{width:fit-content;max-width:100%;font-size:34px;line-height:1.75;}
+.sm-doorwrap.staged .sm-parch .sm-blank{width:112px;height:60px;font-size:38px;}
+.sm-doorwrap.staged .sm-tray.parch{gap:30px;}
+.sm-doorwrap.staged .sm-tray.parch .sm-tile{width:128px;height:92px;font-size:54px;}
+.sm-doorwrap.staged .sm-parch .sm-seal{bottom:129px;}
+/* the gate tracker steps right so the big scroll never covers it */
+.sm-doorwrap.staged .sm-gates{right:-48px;}
+@media (prefers-reduced-motion: reduce){ .slide-host.pal-out,.slide-host.pal-in,.sm-doorwrap.staged .sm-ribbon,.stage.sm-palace .prompt-band{animation:none;} }

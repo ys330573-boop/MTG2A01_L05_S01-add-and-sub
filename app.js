@@ -3964,6 +3964,39 @@ SlideModules.PICK_STORY = {
   }
 };
 
+/* [cinematic] the palace camera: the hall painting and a stage-sized layer of the scene (the far gate, Swiftie) move
+   together, so a push-in frames the gate big in the middle of the screen with Swiftie at its foot. */
+const SM_CAM_GATE = { x:-219, y:-176, s:2 };
+const SM_GATE_FOOT = { cx:443.5, bottom:397, h:74.88 };   // Swiftie at the gate's threshold (= the gate slides' .atgate spot)
+function smCamTf(c){ c = c || { x:0, y:0, s:1 }; return `translate(${c.x}px,${c.y}px) scale(${c.s})`; }
+// a 1333×750 layer at the stage's origin, inside `parent` (positioned and already in the page)
+function smStageLayer(parent, cls){
+  const L = smEl("div", cls); parent.appendChild(L);
+  let x = 0, y = 0; for(let e = parent; e && e !== $("stage"); e = e.offsetParent){ x += e.offsetLeft; y += e.offsetTop; }
+  L.style.left = -x + "px"; L.style.top = -y + "px"; return L;
+}
+// move the camera (the hall + `layer`) to `to` (null = the whole hall); returns the running animations
+function smCam(layer, to, ms, ease){
+  const tf = smCamTf(to), out = [];
+  [$("smPalaceBg"), layer].forEach(el => { if(!el) return;
+    el.getAnimations().forEach(a => { if(!(window.CSSTransition && a instanceof CSSTransition)) a.cancel(); });   // a camera move cut short
+    const from = el.style.transform || smCamTf(null);
+    el.style.transformOrigin = "0 0"; el.style.transform = tf;
+    if(ms && from !== tf) out.push(el.animate([{ transform:from }, { transform:tf }], { duration:ms, easing:ease || "ease-in-out" }));
+  });
+  return out;
+}
+// walking away up the hall to (dx,dy), shrinking to s1: an even pace in depth (so it slows on screen as he gets
+// smaller), a little bob and sway in every step. Uses translate/scale/rotate so CSS can hold the end pose.
+function smWalkKf(dx, dy, s1, steps){
+  const kf = [], n = steps * 2;
+  for(let k = 0; k <= n; k++){
+    const sc = 1 / (1 + (1 / s1 - 1) * k / n), p = (1 - sc) / (1 - s1), mid = k > 0 && k < n;
+    kf.push({ translate:`${(dx * p).toFixed(1)}px ${(dy * p - (mid && k % 2 ? 7 * sc : 0)).toFixed(1)}px`, scale:sc.toFixed(4), rotate:`${mid ? (k % 2 ? -2.5 : 2.5) : 0}deg` });
+  }
+  return kf;
+}
+
 SlideModules.PALACE_SCENE = {
   // STORY BEAT for the "रहस्यमयी महल" adventure (storyboard panels 1 and 7–8): palace backdrop, Swiftie
   // with a speech bubble that matches the VO, आगे after the line. data:{kind:"intro"|"treasure", title?, vo}
@@ -3999,9 +4032,47 @@ SlideModules.PALACE_SCENE = {
         confettiCannon(); burstStars();
       });
     }
+    /* [cinematic] the intro leads straight into the first gate: that gate already stands at the end of the carpet; when
+       Swiftie has finished his line he turns round and walks up to it while the camera flies in after him, and the gate
+       slide carries on from there (no आगे). */
+    const nx = CARD.slides[state.idx + 1], toGate = d.kind === "intro" && nx && nx.type === "STORY_FILL" ? nx : null;
+    let cam = null;
+    if(toGate){ $("navBtn").style.display = "none"; sc.classList.add("to-gate"); cam = smStageLayer(sc, "sm-cam"); cam.innerHTML = smDoorHTML(toGate.data.door); }
+    smCam(cam, null, 0);
+    const walkToGate = () => {
+      const rm = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches), T = ms => rm ? 0 : ms;
+      const front = sc.querySelector(".sm-pal-sw"), bub = sc.querySelector(".sm-bubble"), rib = sc.querySelector(".sm-ribbon");
+      const fade = (el, ms) => el && el.animate([{ opacity:1 }, { opacity:0 }], { duration:T(ms), easing:"ease-in", fill:"forwards" });
+      fade(bub, 320);
+      front.getAnimations().forEach(a => a.cancel());   // stop the idle float where it is
+      // the back view, the same size and spot as the front pose (pointing pose: figure .883 of the box tall, feet at .934,
+      // mirrored centre .536 · back view: figure .846 tall, feet at .929, centre .58, box 3:4)
+      const f = smRect(front), H = f.h * .883 / .846, W = H * .75, cx = f.x + f.w * .536, bottom = f.y + f.h * .934;
+      const back = smEl("img", "sm-pal-swb"); back.src = smArt("sw_back"); back.alt = "";
+      back.style.cssText = `left:${(cx - W * .58).toFixed(1)}px;top:${(bottom - H * .929).toFixed(1)}px;height:${H.toFixed(1)}px;scale:0 1;`;
+      cam.appendChild(back);
+      // 1 · he turns round: the front pose folds to its edge, the back view unfolds from it
+      front.animate([{ scale:"-1 1" }, { scale:"0 1" }], { duration:T(190), easing:"ease-in", fill:"forwards" }).onfinish = () => {
+        if(!alive()) return;
+        front.style.visibility = "hidden";
+        back.animate([{ scale:"0 1" }, { scale:"1 1" }], { duration:T(190), easing:"ease-out", fill:"forwards" }).onfinish = () => {
+          if(!alive()) return;
+          back.style.scale = "1 1";
+          smLater(alive, T(300), () => {
+            // 2 · he walks slowly up the carpet to the gate; the camera flies in after him until the gate fills the middle
+            const ms = T(4800), top = parseFloat(back.style.top);
+            const dx = SM_GATE_FOOT.cx - (parseFloat(back.style.left) + W / 2), dy = SM_GATE_FOOT.bottom - (top + H);
+            fade(rib, 700);
+            const a = back.animate(smWalkKf(dx, dy, SM_GATE_FOOT.h / H, 9), { duration:ms, easing:"cubic-bezier(.3,0,.7,1)", fill:"forwards" });
+            smCam(cam, SM_CAM_GATE, ms, "cubic-bezier(.45,0,.35,1)");
+            a.onfinish = () => { if(!alive()) return; window.__palArrive = toGate.id; completeSlide(true); };
+          });
+        };
+      };
+    };
     const free = smReplay((done) => smPlay(d.vo, [], done));
     setSwMood(d.kind === "treasure" ? "celebrate" : "talk");
-    smSteps([500, { id:d.vo }], alive, () => { free(); setNavActive(true); });
+    smSteps([500, { id:d.vo }], alive, () => { free(); if(toGate) walkToGate(); else setNavActive(true); });
   }
 };
 
@@ -4044,23 +4115,34 @@ SlideModules.STORY_FILL = {
     const track = smEl("div", "sm-gates", gates.map((g, i) => `<i class="sm-gate c-${g.data.door} ${i < gi ? "done" : i === gi ? "now" : "todo"}"></i>`).join(""));
     wrap.appendChild(track);
     const markGateDone = () => { const g = track.children[gi]; if(g){ g.classList.remove("now"); g.classList.add("done", "pop"); } if(gi === gates.length - 1) track.classList.add("all"); };
-    { const L = left.offsetLeft, T = left.offsetTop; left.style.left = L + "px"; left.style.top = T + "px"; wrap.classList.add("staged"); }   // the gate keeps its place, the scroll centres
+    // the gate side spans the whole stage (its ribbon, the far gate at the end of the carpet and Swiftie sit at stage spots); the scroll centres
+    { let x = 0, y = 0; for(let e = wrap; e && e !== $("stage"); e = e.offsetParent){ x += e.offsetLeft; y += e.offsetTop; }
+      left.style.left = -x + "px"; left.style.top = -y + "px"; wrap.classList.add("staged"); }
     parch.classList.add("rolled", "away");
-    const sw = left.querySelector(".sm-door-sw"), glow = left.querySelector(".dr-glow"), hall = () => document.getElementById("smPalaceBg");
+    const sw = left.querySelector(".sm-door-sw"), door = left.querySelector(".sm-door2"), glow = left.querySelector(".dr-glow"), hall = () => document.getElementById("smPalaceBg");
+    // [cinematic] the gate and Swiftie sit in the camera layer (the ribbon stays put); after the intro Swiftie is already
+    // at the gate with the camera in close, else he starts at the near left with the whole hall in view
+    const cam = smEl("div", "sm-cam"); left.appendChild(cam); cam.appendChild(door); cam.appendChild(sw);
+    const arrived = window.__palArrive === slide.id; window.__palArrive = null;
+    smCam(cam, arrived ? SM_CAM_GATE : null, 0); if(arrived) wrap.classList.add("atgate");
     const rm = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches), quick = gi > 0;
     let staging = true, ff = rm, cur = null, pend = null;
     const dur = ms => ff ? 0 : Math.round(quick ? ms * .65 : ms);
     const run = (el, kf, ms, ease, fn) => { const a = el.animate(kf, { duration:dur(ms), easing:ease }); cur = a; a.onfinish = () => { if(cur === a) cur = null; if(alive() && fn) fn(); }; };
     const wait = (ms, fn) => { if(ff){ fn(); return; } const t = setTimeout(() => { pend = null; if(alive()) fn(); }, dur(ms)); pend = { t, fn }; };
-    const skip = () => { if(!staging || ff) return; ff = true; if(cur) cur.finish(); if(pend){ clearTimeout(pend.t); const f = pend.fn; pend = null; f(); } };
+    const skip = () => { if(!staging || ff) return; ff = true; if(cur) [].concat(cur).forEach(a => a.finish()); if(pend){ clearTimeout(pend.t); const f = pend.fn; pend = null; f(); } };
     const toGem = () => { const g = smRect(glow), p = smRect(parch); return { dx:(g.x + g.w / 2) - (p.x + p.w / 2), dy:(g.y + g.h / 2) - (p.y + p.h / 2) }; };
     const stageIn = (next) => {
       wrap.addEventListener("pointerdown", skip);
       const done = () => { staging = false; wrap.removeEventListener("pointerdown", skip); next(); };
-      // 1 · Swiftie walks up to the gate (from the near left, smaller as he goes in, a little bob in each step)
-      const kf = [];
-      for(let k = 0; k <= 8; k++){ const p = k / 8; kf.push({ transform:`translate(${(-210 * (1 - p)).toFixed(1)}px,${(64 * (1 - p) - (k % 2 ? 7 : 0)).toFixed(1)}px) scale(${(1.3 - .3 * p).toFixed(3)})`, opacity:k ? 1 : 0 }); }
-      run(sw, kf, 1400, "cubic-bezier(.3,.55,.4,1)", () => {
+      // 1 · Swiftie walks up the carpet to the gate while the camera flies in after him (after the intro he is there already)
+      const walkUp = (fn) => {
+        if(arrived){ wait(350, fn); return; }
+        const ms = dur(3400), a = sw.animate(smWalkKf(333, -333, .48, 7), { duration:ms, easing:"cubic-bezier(.3,0,.7,1)", fill:"forwards" });
+        cur = [a, ...smCam(cam, SM_CAM_GATE, ms, "cubic-bezier(.45,0,.35,1)")];
+        a.onfinish = () => { cur = null; wrap.classList.add("atgate"); a.cancel(); if(alive()) fn(); };
+      };
+      walkUp(() => {
         // 2 · the gate's jewel glows
         wrap.classList.add("summon"); if(!ff) sfxSparkle();
         wait(800, () => {
@@ -4116,12 +4198,16 @@ SlideModules.STORY_FILL = {
           wrap.classList.add("charge"); sfxSparkle();
           smLater(alive, 750, () => { wrap.classList.add("open"); sfxWhoosh(); markGateDone(); });
           smLater(alive, 1300, sfxSparkle);
-          smLater(alive, 3300, () => {
-            if(d.pass_vo){
-              const ban = smEl("div", "sm-pass free", smEsc(smText(d.pass_vo))); wrap.appendChild(ban);   // in the open hall beside the gate
-              const gr = left.offsetLeft + left.offsetWidth; ban.style.left = Math.round(gr + (wrap.clientWidth - gr) / 2) + "px";
-              smPlay(d.pass_vo, [], () => smLater(alive, 500, () => completeSlide(!revealedAny)));
-            } else completeSlide(!revealedAny);
+          // Swiftie has stepped into the portal: the camera pulls back to the whole hall, then the "gate passed" line
+          smLater(alive, 2950, () => {
+            smCam(cam, null, rm ? 0 : 1300, "cubic-bezier(.45,0,.35,1)");
+            smLater(alive, rm ? 0 : 1400, () => {
+              if(d.pass_vo){
+                const ban = smEl("div", "sm-pass free", smEsc(smText(d.pass_vo))); wrap.appendChild(ban);   // in the open hall beside the gate
+                const g = smRect(door), gr = g.x + g.w - smRect(wrap).x; ban.style.left = Math.round(gr + (wrap.clientWidth - gr) / 2) + "px";
+                smPlay(d.pass_vo, [], () => smLater(alive, 500, () => completeSlide(!revealedAny)));
+              } else completeSlide(!revealedAny);
+            });
           });
         });
       });
@@ -4208,6 +4294,16 @@ function mountSlide(idx){
   const cur = CARD.slides[state.idx], nx = CARD.slides[idx], host = $("slideHost");
   const q = s => s && (s.phase === "guided" || s.phase === "practice") && s.type !== "CELEBRATION";
   const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // [cinematic] palace pages never slide sideways over the painted hall (its gate stays where it stands): the old scene
+  // fades out and the new one fades in - or, when the intro has just walked Swiftie up to this gate, it simply carries on
+  if(host && host.childElementCount && cur && nx && nx.layout === "palace" && idx === state.idx + 1){
+    if(window.__palArrive === nx.id){ window.__palCut = true; mountSlideNow(idx); return; }
+    if(!reduce){
+      host.classList.remove("q-in", "pal-in", "slide-in"); host.classList.add("pal-out");
+      setTimeout(()=>{ if(t !== _mountTok) return; host.classList.remove("pal-out"); window.__palIn = true; mountSlideNow(idx); }, 320);
+      return;
+    }
+  }
   if(host && host.childElementCount && cur && q(cur) && q(nx) && idx === state.idx + 1 && cur.phase === nx.phase && !reduce){
     host.classList.remove("q-in"); host.classList.add("q-out"); sfxSwish();
     setTimeout(()=>{ if(t !== _mountTok) return; host.classList.remove("q-out"); window.__qIn = true; mountSlideNow(idx); }, 340);
@@ -4288,7 +4384,8 @@ function mountSlideNow(idx){
   }
   mod.mount(mountHost, slide);
   // game-feel: animate the slide content in on every mount (a question that follows a question slides in: .q-in)
-  { const _sh = $("slideHost"), qi = !!window.__qIn; window.__qIn = false; _sh.classList.remove("slide-in", "q-in"); void _sh.offsetWidth; _sh.classList.add(qi ? "q-in" : "slide-in"); }
+  { const _sh = $("slideHost"), qi = !!window.__qIn, pi = !!window.__palIn, pc = !!window.__palCut; window.__qIn = window.__palIn = window.__palCut = false;
+    _sh.classList.remove("slide-in", "q-in", "pal-in"); void _sh.offsetWidth; if(!pc) _sh.classList.add(qi ? "q-in" : pi || slide.layout === "palace" ? "pal-in" : "slide-in"); }
 
   // vertically ink-centre every Devanagari glyph once the slide has laid out
   requestAnimationFrame(()=> centerAllGlyphs($("slideHost")));
