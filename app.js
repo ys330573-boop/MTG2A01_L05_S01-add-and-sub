@@ -3326,7 +3326,7 @@ function smBirdsHTML(n, opt){
 function smFlyBirds(birds, stagger){
   sfxFlap();
   birds.forEach((el, i) => setTimeout(() => {
-    /* [ui] as T1's marbles: a grey, faded bird stays on the wire in the spot this one leaves (laid down as it takes off) */
+    /* [ui] the outline of a bird stays on the wire in the spot this one leaves (laid down as it takes off) */
     if(el.parentElement && !el._ghost){
       const g = el.cloneNode(true); g.className = "sm-bird sm-bird-ghost"; g.removeAttribute("style"); g.setAttribute("aria-hidden", "true");
       g.style.left = el.offsetLeft + "px"; g.style.top = el.offsetTop + "px"; el.parentElement.insertBefore(g, el); el._ghost = g;
@@ -3642,6 +3642,7 @@ SlideModules.WORKED_EXAMPLE = {
           }
         }, cues:() => [{ at:smAt(S[5], String(d.result)) || smDur(S[5]) - 1000, fn:() => {
             cards[4].classList.add("flip"); smLater(alive, 220, () => { cards[4].textContent = String(d.result); cards[4].classList.add("ans"); }); sfxPop(9);
+            scene.querySelectorAll(".sm-bird-ghost").forEach(g => g.classList.add("gone"));   // the flown birds' outlines go with the answer
           } }], gap:500 },
       (next) => {
         /* [ui] ONE smooth move: while the pictures fade, every card travels straight from where it stands to its place in
@@ -3750,8 +3751,13 @@ SlideModules.SIGN_DRAG = {
     const zone = eq.querySelector(".sm-zone"), tiles = [...tray.children], right = tiles.find(t => t.textContent === d.answer);
     const toks = [...eq.children], full = d.eq.map(t => t === null ? d.answer : t);
     let revealed = false, busyHint = false;
+    /* [ui] while the word problem is read, the number sentence and the sign cards wait hidden (their places kept, so
+       nothing moves); they come in - the sentence, then the cards - as the instruction VO starts */
+    eq.classList.add("sm-hold"); tray.classList.add("sm-hold");
+    const showWork = smOnce(() => [eq, tray].forEach((el, k) => { el.classList.remove("sm-hold");
+      el.animate([{ opacity:0, translate:"0 18px" }, { opacity:1, translate:"0 0" }], { duration:460, delay:k * 160, easing:"cubic-bezier(.3,.8,.25,1)", fill:"backwards" }); }));
     const free = smReplay((done) => smPlay(d.story_vo, smKaraoke(story, d.story_vo), () => { smKaraokeClear(story); done(); }));
-    const endIntro = smOnce(() => { free(); smKaraokeClear(story); setSwMood("point"); startNudge(slide, zone); });
+    const endIntro = smOnce(() => { showWork(); free(); smKaraokeClear(story); setSwMood("point"); startNudge(slide, zone); });
     const place = (tile, viaReveal) => {
       endIntro(); state.locked = true; stopNudge();
       zone.classList.add("filled", smTokCls(d.answer).split(" ")[1]); zone.textContent = d.answer;
@@ -3787,7 +3793,7 @@ SlideModules.SIGN_DRAG = {
       tap:(t) => { if(state.locked || busyHint) return; if(revealed && t === right){ state.locked = true; t.style.visibility = "hidden"; smFly(t, zone, 520, () => { t.style.visibility = ""; place(t, true); }); } }
     }));
     setSwMood("talk");
-    smSteps([{ id:d.story_vo, cues:() => smKaraoke(story, d.story_vo), post:() => smKaraokeClear(story), gap:350 }, { id:d.q_vo }],
+    smSteps([{ id:d.story_vo, cues:() => smKaraoke(story, d.story_vo), post:() => smKaraokeClear(story), gap:350 }, { id:d.q_vo, pre:showWork }],
       alive, endIntro);
   }
 };

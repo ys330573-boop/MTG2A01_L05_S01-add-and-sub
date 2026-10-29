@@ -3089,3 +3089,12 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
   box-shadow:0 4px 0 var(--ui-panel-ledge);pointer-events:none;animation:wePanelIn .6s cubic-bezier(.3,.8,.25,1) .35s backwards;}
 @keyframes wePanelIn{from{opacity:0;transform:scale(.94);}to{opacity:1;transform:none;}}
 @media (prefers-reduced-motion: reduce){ .sm-we-panel{animation:none;} }
+/* [T2] a bird that flew away leaves its OUTLINE on the wire (a white shape edged in blue-grey), not a grey copy; the
+   outlines fade away when the answer (the birds left) is shown */
+.sm-birds img.sm-bird-ghost{opacity:1;animation:none;transition:opacity .6s ease;
+  filter:brightness(0) invert(1) drop-shadow(2px 0 0 #7E95B5) drop-shadow(-2px 0 0 #7E95B5) drop-shadow(0 2px 0 #7E95B5) drop-shadow(0 -2px 0 #7E95B5);}
+.sm-birds .sm-bird-ghost.gone{opacity:0;}
+/* [G1/G2] held back while the word problem is read (app.js SIGN_DRAG): hidden, its place kept */
+.sm-hold{visibility:hidden;}
+/* [G1/G2] the + / − cards are the size of the empty box they go into (and of the number cards beside it) */
+.stage.sm-page .sm-tray-signs .sm-tile.sign{width:122px;height:100px;font-size:64px;border-radius:18px;}
