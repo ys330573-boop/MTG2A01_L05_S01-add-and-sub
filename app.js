@@ -392,7 +392,7 @@ const state = {
 /* ---------- 5. NUDGE ----------
    target may be a CSS selector OR an element. Used ONLY for flow guidance
    (e.g. the "listen" button / prompt) — never to point at the correct answer. */
-function startNudge(slide, target){
+function startNudge(slide, target, from){   // from: a drag nudge (see nudgeDrag)
   clearTimeout(state.nudgeTimer);
   if(!target) return;
   const ms = (CARD.scaffold_rules.nudge_timeout_ms || {})[slide.phase];
@@ -402,13 +402,14 @@ function startNudge(slide, target){
     const el = (typeof target === "string") ? document.querySelector(target) : target;
     if(!el) return;
     if(!placeNudge(el)) return;
+    if(from) nudgeDrag(typeof from === "string" ? document.querySelector(from) : from, el);
     state.nudgeUsed = true;
     state.scaffoldLevel = Math.max(state.scaffoldLevel, 1);
     SwiftPAL.emit("nudge_invoked", { slide_id: slide.id, phase: slide.phase });
   }, ms);
 }
 function stopNudge(){
-  clearTimeout(state.nudgeTimer);
+  clearTimeout(state.nudgeTimer); nudgeDragStop();
   $("nudgeHand").classList.remove("show");
 }
 /* [ui: reference shell] the nudge hand = the FLN kit's hand (assets/nudge_hand_new.svg in an 86x108 box, fingertip at
@@ -418,10 +419,12 @@ const NH = { W:86, H:108, TIP_X:34.2, TIP_Y:15.8, GAP:8 };
 function placeNudge(el){
   const nh = $("nudgeHand"), host = document.querySelector(".slide-stage");
   if(!el || !nh || !host || !el.getBoundingClientRect) return false;
+  nudgeDragStop();
   const r = el.getBoundingClientRect(), sw = host.getBoundingClientRect();
   const scale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--scale")) || 1;
   const w = r.width / scale, h = r.height / scale, cx = (r.left - sw.left) / scale + w / 2;
-  const tipY = (r.top - sw.top) / scale + h - Math.min(h * 0.35, 26);
+  // an empty box to drop into (.sm-zone): the fingertip in its middle, so the hand reads as "put it HERE"; else the lower part
+  const tipY = (r.top - sw.top) / scale + (el.classList && el.classList.contains("sm-zone") ? h / 2 : h - Math.min(h * 0.35, 26));
   const stageW = sw.width / scale, stageH = sw.height / scale;
   nh.style.left = Math.max(0, Math.min(stageW - NH.W, cx - NH.TIP_X)) + "px";
   nh.style.top = Math.max(0, Math.min(stageH - NH.H, tipY - NH.TIP_Y)) + "px";
@@ -430,6 +433,21 @@ function placeNudge(el){
   nh.classList.add("show");
   return true;
 }
+/* the nudge as a DRAG demo (G1/G2): the fingertip presses at `from` (between the sign cards), glides up into the drop box
+   (where placeNudge put it) and taps there, on a loop. No card travels with it, so it shows how, never which. The glide
+   is on the hand box, the fade on its picture, so a hidden hand is hidden whatever the loop is doing. */
+function nudgeDrag(from, to){
+  const nh = $("nudgeHand"), img = nh && nh.querySelector("img");
+  if(!from || !to || !img || (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches)) return;
+  const scale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--scale")) || 1;
+  const a = from.getBoundingClientRect(), b = to.getBoundingClientRect();
+  const dx = (((a.left + a.width / 2) - (b.left + b.width / 2)) / scale).toFixed(1), dy = (((a.top + a.height / 2) - (b.top + b.height / 2)) / scale).toFixed(1);
+  const at = `${dx}px ${dy}px`, T = { duration:2800, iterations:Infinity };
+  nh._drag = [
+    nh.animate([{ translate:at, offset:0 }, { translate:at, offset:.28, easing:"cubic-bezier(.45,0,.3,1)" }, { translate:"0px 0px", offset:.68 }, { translate:"0px 0px", offset:1 }], T),
+    img.animate([{ opacity:0, offset:0 }, { opacity:1, offset:.1 }, { opacity:1, offset:.88 }, { opacity:0, offset:1 }], T)];
+}
+function nudgeDragStop(){ const nh = $("nudgeHand"); if(nh && nh._drag){ nh._drag.forEach(a => a.cancel()); nh._drag = null; } }
 /* Show the hand-nudge immediately on a specific element (INTRO uses it to guide tapping each letter). */
 function pointNudgeAt(el){ if(el) placeNudge(el); }
 
@@ -3757,7 +3775,7 @@ SlideModules.SIGN_DRAG = {
     const showWork = smOnce(() => [eq, tray].forEach((el, k) => { el.classList.remove("sm-hold");
       el.animate([{ opacity:0, translate:"0 18px" }, { opacity:1, translate:"0 0" }], { duration:460, delay:k * 160, easing:"cubic-bezier(.3,.8,.25,1)", fill:"backwards" }); }));
     const free = smReplay((done) => smPlay(d.story_vo, smKaraoke(story, d.story_vo), () => { smKaraokeClear(story); done(); }));
-    const endIntro = smOnce(() => { showWork(); free(); smKaraokeClear(story); setSwMood("point"); startNudge(slide, zone); });
+    const endIntro = smOnce(() => { showWork(); free(); smKaraokeClear(story); setSwMood("point"); startNudge(slide, zone, tray); });   // idle: the drag demo, cards → box
     const place = (tile, viaReveal) => {
       endIntro(); state.locked = true; stopNudge();
       zone.classList.add("filled", smTokCls(d.answer).split(" ")[1]); zone.textContent = d.answer;
