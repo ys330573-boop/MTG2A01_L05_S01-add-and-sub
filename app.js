@@ -3366,6 +3366,7 @@ function smAnimate(cfg, alive, onDone){
   stage.classList.add("blurred");
   const close = () => { ov.classList.add("out"); stage.classList.remove("blurred"); setTimeout(() => ov.remove(), 260); if(onDone) onDone(); };
   const total = cfg.type === "remove" ? cfg.a : cfg.a + cfg.b;
+  if(cfg.bundles && cfg.type === "remove"){ smBangleBundles(cfg, card, alive, close); return; }
   if(cfg.type === "merge"){
     card.innerHTML =
       `<div class="sm-anim-row">` +
@@ -3494,6 +3495,65 @@ function smAnimate(cfg, alive, onDone){
       });
     });
   }
+}
+
+/* [G2 hint] the bangles in bundles of ten (data.anim.bundles): big glass bangles stacked on the upright poles of a stall,
+   one colour a bundle (6 x 10 = 60). Selling 36: whole bundles lift off their poles and drop into the bag one at a time
+   (60 -> 50 -> 40 -> 30), then single bangles come off the next bundle's top (-> 24); the count shows every step. Few
+   things move, each is easy to follow, and the tens and the ones stay in sight. Each bangle carries a piece of its pole
+   between its back and front halves, so the pole runs THROUGH the rings. */
+function smBangleBundles(cfg, card, alive, close){
+  const B = cfg.bundles, nb = Math.ceil(cfg.a / B), COL = ["#E3182F", "#FF3E9A", "#16A35A", "#1C6FE0", "#FF8A00", "#8A3FD1"];
+  const ring = (c, i) => `<svg class="sm-bk-it" viewBox="0 0 110 40" style="top:${(B - 1 - i) * 12}px" aria-hidden="true">` +
+    `<path d="M9 20A46 13 0 0 1 101 20" fill="none" stroke="${c}" stroke-width="8" style="filter:brightness(.62)"/>` +
+    `<rect class="bk-pole" x="50" y="5" width="10" height="28"/>` +
+    `<path d="M9 20A46 13 0 0 0 101 20" fill="none" stroke="${c}" stroke-width="8"/>` +
+    `<path d="M5 20A50 17 0 0 0 105 20M13 20A42 9 0 0 0 97 20" fill="none" stroke="#F5C542" stroke-width="1.8"/>` +
+    `<path d="M9 20A46 13 0 0 0 101 20" fill="none" stroke="#FFE680" stroke-width="3.4" stroke-linecap="round" stroke-dasharray=".01 11"/>` +
+    `<path d="M24 29Q40 33.5 56 33.6" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="2" stroke-linecap="round"/></svg>`;
+  let bundles = "";
+  for(let k = 0; k < nb; k++){
+    const n = Math.min(B, cfg.a - k * B); let rings = "";
+    for(let i = 0; i < n; i++) rings += ring(COL[k % COL.length], i);
+    bundles += `<div class="sm-bk"><i class="sm-bk-pole"></i><div class="sm-bk-stack">${rings}</div></div>`;
+  }
+  const bag = cfg.to ? `<div class="sm-anim-dst"><img src="${smArt("prop_shopping_bag")}" alt="" draggable="false"></div>` : "";
+  card.classList.add("sm-bk-card");
+  card.innerHTML = `<div class="sm-bk-count">${cfg.a}</div><div class="sm-anim-scene"><div class="sm-bstand">${bundles}</div>${bag}</div>`;
+  const count = card.querySelector(".sm-bk-count"), dst = card.querySelector(".sm-anim-dst img") || card.querySelector(".sm-bstand");
+  const stacks = [...card.querySelectorAll(".sm-bk-stack")];
+  const set = (v) => { count.textContent = String(v); count.animate([{ scale:"1" }, { scale:"1.18" }, { scale:"1" }], { duration:300, easing:"ease-out" }); };
+  const bump = () => dst.animate([{ scale:"1" }, { scale:"1.1 .92", offset:.35 }, { scale:".97 1.04", offset:.7 }, { scale:"1" }], { duration:320, easing:"ease-out" });
+  const into = (el, lift, ms) => { const d = smDelta(el, dst);
+    return el.animate([{ transform:"translate(0,0) scale(1)", opacity:1 }, { transform:`translate(0,${-lift}px) scale(1.04)`, opacity:1, offset:.3 },
+      { transform:`translate(${d.dx * .55}px,${d.dy * .55 - lift - 40}px) scale(.8)`, opacity:1, offset:.65 },
+      { transform:`translate(${d.dx}px,${d.dy + 10}px) scale(.3)`, opacity:0 }], { duration:ms, easing:"ease-in-out", fill:"forwards" }); };
+  const jingle = () => [0, 60, 130].forEach((t, j) => setTimeout(() => sfxMarble(j * 3), t));
+  // the bundles come onto the stall one by one
+  stacks.forEach((st, k) => { st.parentElement.style.visibility = "hidden";
+    setTimeout(() => { if(!alive()) return; st.parentElement.style.visibility = "";
+      st.parentElement.animate([{ opacity:0, translate:"0 -26px" }, { opacity:1, translate:"0 0" }], { duration:380, easing:"cubic-bezier(.3,1.4,.5,1)" }); sfxMarble(k); }, 150 + k * 200); });
+  const whole = Math.floor(cfg.b / B), ones = cfg.b - whole * B, BUN = 1050, ONE = 360;
+  smLater(alive, 150 + nb * 200 + 700, () => {
+    let v = cfg.a;
+    // whole bundles first, from the end nearest the bag
+    for(let w = 0; w < whole; w++) setTimeout(() => {
+      if(!alive()) return; const st = stacks[nb - 1 - w];
+      st.classList.add("off"); jingle(); into(st, 64, 950);
+      setTimeout(() => { if(!alive()) return; bump(); v -= B; set(v); sfxPop(w); }, 880);
+    }, w * BUN);
+    // then single bangles off the top of the next bundle
+    const from = stacks[nb - 1 - whole], top = from ? [...from.children].reverse() : [];
+    for(let o = 0; o < ones && o < top.length; o++) setTimeout(() => {
+      if(!alive()) return; const it = top[o];
+      it.classList.add("off"); sfxMarble(o); into(it, 52, 640);
+      setTimeout(() => { if(!alive()) return; bump(); v -= 1; set(v); }, 590);
+    }, whole * BUN + 150 + o * ONE);
+    smLater(alive, whole * BUN + 150 + ones * ONE + 800, () => {
+      card.querySelector(".sm-bstand").classList.add("kept"); count.classList.add("down"); sfxCorrect();
+      smLater(alive, 2200, close);
+    });
+  });
 }
 
 /* ---------- shared slide chrome for the activity pages ---------- */
@@ -3852,8 +3912,17 @@ SlideModules.PICK_SENTENCE = {
     const free = smReplay((done) => smPlay(d.story_vo, smKaraoke(story, d.story_vo), () => { smKaraokeClear(story); done(); }));
     const endIntro = smOnce(() => { free(); smKaraokeClear(story); setSwMood("point"); });
     const win = (cell) => {
-      state.locked = true; stopNudge(); cell.classList.add("correct");
+      state.locked = true; stopNudge(); cell.classList.remove("reveal"); cell.classList.add("correct");
       cells.forEach(c => { if(c !== cell) c.classList.add("faded"); });
+      /* [ui] the other sentences leave (their places kept, so nothing jumps), then the right one glides up to the middle
+         just under the word problem and grows, while its sentence is read */
+      cells.forEach(c => { if(c === cell) return; c.style.pointerEvents = "none";
+        c.animate([{ opacity:getComputedStyle(c).opacity, transform:"none" }, { opacity:0, transform:"translateY(16px) scale(.88)" }],
+          { duration:380, easing:"cubic-bezier(.4,0,.2,1)", fill:"forwards" }).onfinish = () => { c.style.visibility = "hidden"; }; });
+      { const sc = smScale(), r = cell.getBoundingClientRect(), sb = story.getBoundingClientRect(), g = grid.getBoundingClientRect(), K = 1.35;
+        const dx = ((g.left + g.width / 2) - (r.left + r.width / 2)) / sc, dy = (sb.bottom / sc + 56 + r.height / sc * K / 2) - (r.top + r.height / 2) / sc;
+        cell.animate([{ transform:"translate(0px,0px) scale(1)" }, { transform:`translate(${dx.toFixed(1)}px,${dy.toFixed(1)}px) scale(${K})` }],
+          { duration:750, delay:260, easing:"cubic-bezier(.3,.8,.25,1)", fill:"forwards" }); }
       smEmitCorrect(slide, "sentence_pick_correct", { revealed });
       const id = revealed ? d.eq_vo : d.cr_vo, tokEls = [...cell.querySelectorAll(".sm-tok")];
       smCelebrate(slide, alive, id, smTokCues(id, tokEls, smParseEq(cell._o.eq)), revealed, () => smUnlit(cell));
