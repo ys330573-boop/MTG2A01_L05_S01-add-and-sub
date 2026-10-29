@@ -213,6 +213,7 @@
         "anim": {
           "type": "add",
           "kind": "balloon",
+          "handover": true,
           "a": 42,
           "b": 11,
           "from": "👵",

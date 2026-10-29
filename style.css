@@ -3120,3 +3120,14 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
 .sm-bk-card .sm-anim-dst img{height:190px;}
 /* [G3/G4] the word problem sits higher, close under the instruction band (as G1/G2) */
 .slide-host:has(> .sm-pick3) > .sm-story-card{translate:0 -80px;}
+/* [G3 hint] Dadi hands Golu her balloons (app.js smBalloonGift): the two people on a 1000 x 420 stage shown at .8, each bunch
+   swaying a little from the hand that holds it; the count turns green when the balloons have changed hands */
+.sm-gift-card{padding-top:92px;}
+.sm-gift{position:relative;flex-shrink:0;width:1000px;height:420px;transform:scale(.8);transform-origin:50% 0;margin:0 -100px -84px;}
+.sm-gift > img{position:absolute;width:auto;filter:drop-shadow(0 8px 10px rgba(40,30,20,.18));}
+.sm-gift-bunch{position:absolute;z-index:2;}
+.sm-gift-bunch svg{display:block;overflow:visible;animation:giftSway 2.6s ease-in-out infinite;}
+.sm-gift-bunch.d svg{animation-delay:-1.3s;}
+@keyframes giftSway{0%,100%{rotate:-2deg;}50%{rotate:2deg;}}
+.sm-bk-count.up{background:var(--ui-ok);box-shadow:0 4px 0 #0B8A2A;}
+@media (prefers-reduced-motion: reduce){ .sm-gift-bunch svg{animation:none;} }

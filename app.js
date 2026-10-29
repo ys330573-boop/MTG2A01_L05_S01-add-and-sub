@@ -3367,6 +3367,7 @@ function smAnimate(cfg, alive, onDone){
   const close = () => { ov.classList.add("out"); stage.classList.remove("blurred"); setTimeout(() => ov.remove(), 260); if(onDone) onDone(); };
   const total = cfg.type === "remove" ? cfg.a : cfg.a + cfg.b;
   if(cfg.bundles && cfg.type === "remove"){ smBangleBundles(cfg, card, alive, close); return; }
+  if(cfg.handover && cfg.type === "add"){ smBalloonGift(cfg, card, alive, close); return; }
   if(cfg.type === "merge"){
     card.innerHTML =
       `<div class="sm-anim-row">` +
@@ -3552,6 +3553,71 @@ function smBangleBundles(cfg, card, alive, close){
     smLater(alive, whole * BUN + 150 + ones * ONE + 800, () => {
       card.querySelector(".sm-bstand").classList.add("kept"); count.classList.add("down"); sfxCorrect();
       smLater(alive, 2200, close);
+    });
+  });
+}
+
+/* [G3 hint] the balloons change hands, as in the story: Golu (left) holds his bunch up in his raised fist, Dadi (right)
+   holds hers in her open hand. Dadi walks over, lifts her bunch and passes it across; it settles beside his, its strings
+   now in his fist, and the count climbs as it travels (42 -> 53). Each bunch is one svg - balloons and their strings
+   meeting at the hand - so a bunch always moves whole: nothing drops, doubles or comes loose. Scene units: 1000 x 420
+   (shown at .8 to fit the hint card). */
+function smBalloonGift(cfg, card, alive, close){
+  const COL = ["#FF4D6D", "#FFB703", "#3A86FF", "#2EC4B6", "#8338EC", "#FB5607", "#FF66C4"];
+  const bunch = (n, side, c0) => {            // side "r": the strings meet at the bunch's bottom-right (held to its right), "l": bottom-left
+    const w = Math.round(Math.sqrt(n * 1.5)), seq = [w - 2, w - 1, w, w, w - 1, w - 2, w - 3, w - 4], rows = []; let left = n;
+    for(let i = 0; left > 0; i++){ const k = Math.min(Math.max(seq[i % seq.length], 1), left); rows.push(k); left -= k; }
+    const DX = 27, DY = 22, RX = 13, RY = 16, mx = Math.max(...rows), W = mx * DX + 8, ay = 18 + (rows.length - 1) * DY + RY + 48, H = ay + 4;
+    const ax = side === "r" ? W - 4 : 4;
+    let strings = "", balls = "", i = 0;
+    rows.forEach((k, r) => { for(let j = 0; j < k; j++, i++){
+      const x = (W - k * DX) / 2 + DX / 2 + j * DX, y = 18 + r * DY, c = COL[(i + c0) % COL.length];
+      strings += `<path d="M${x.toFixed(1)} ${y + RY}Q${((x + ax) / 2 + 5).toFixed(1)} ${((y + RY + ay) / 2 + 8).toFixed(1)} ${ax} ${ay}"/>`;
+      balls += `<g><ellipse cx="${x.toFixed(1)}" cy="${y}" rx="${RX}" ry="${RY}" fill="${c}"/><path d="M${(x - 3).toFixed(1)} ${y + RY + 3}L${x.toFixed(1)} ${y + RY - 1}L${(x + 3).toFixed(1)} ${y + RY + 3}Z" fill="${c}"/>` +
+        `<ellipse cx="${(x - 4.5).toFixed(1)}" cy="${y - 6}" rx="3.6" ry="5.4" fill="#fff" fill-opacity=".5"/></g>`;
+    } });
+    return { W, H, ax, ay, html:`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" style="transform-origin:${ax}px ${ay}px" aria-hidden="true">` +
+      `<g fill="none" stroke="#8E98A6" stroke-width="1.3" stroke-opacity=".85">${strings}</g>${balls}</svg>` };
+  };
+  // the people and the spots where their hands are (fractions of each picture)
+  const G = { h:280, w:280 * 356 / 600, left:90, hand:[.933, .14] }, D = { h:300, w:300 * 500 / 700, hand:[.122, .376] };
+  G.top = 420 - G.h; D.top = 420 - D.h; D.left = 1000 - 90 - D.w;
+  const fist = { x:G.left + G.w * G.hand[0], y:G.top + G.h * G.hand[1] }, palm = { x:D.left + D.w * D.hand[0], y:D.top + D.h * D.hand[1] };
+  const bg = bunch(cfg.a, "r", 0), bd = bunch(cfg.b, "l", 3);
+  card.classList.add("sm-bk-card", "sm-gift-card");
+  card.innerHTML = `<div class="sm-bk-count">${cfg.a}</div><div class="sm-gift">` +
+    `<img class="sm-gift-golu" src="${smArt("char_golu_boy")}" alt="" draggable="false" style="left:${G.left}px;top:${G.top}px;height:${G.h}px">` +
+    `<img class="sm-gift-dadi" src="${smArt("char_dadi")}" alt="" draggable="false" style="left:${D.left.toFixed(1)}px;top:${D.top}px;height:${D.h}px">` +
+    `<div class="sm-gift-bunch g" style="left:${(fist.x - bg.ax).toFixed(1)}px;top:${(fist.y - bg.ay).toFixed(1)}px">${bg.html}</div>` +
+    `<div class="sm-gift-bunch d" style="left:${(palm.x - bd.ax).toFixed(1)}px;top:${(palm.y - bd.ay).toFixed(1)}px">${bd.html}</div></div>`;
+  const $q = s => card.querySelector(s), golu = $q(".sm-gift-golu"), dadi = $q(".sm-gift-dadi"), mine = $q(".sm-gift-bunch.g"), hers = $q(".sm-gift-bunch.d");
+  const count = $q(".sm-bk-count");
+  const set = v => { count.textContent = String(v); count.animate([{ scale:"1" }, { scale:"1.16" }, { scale:"1" }], { duration:240, easing:"ease-out" }); };
+  // everyone comes in: the two people, then each bunch rises up from its hand
+  [golu, dadi].forEach((el, k) => el.animate([{ opacity:0, transform:"translateY(14px)" }, { opacity:1, transform:"none" }], { duration:420, delay:k * 120, easing:"ease-out", fill:"backwards" }));
+  [mine, hers].forEach((el, k) => el.firstChild.animate([{ scale:".2", opacity:0 }, { scale:"1.05", opacity:1, offset:.7 }, { scale:"1", opacity:1 }],
+    { duration:520, delay:380 + k * 140, easing:"ease-out", fill:"backwards" }));
+  const WALK = -300, STEPS = 8, walk = [];
+  for(let k = 0; k <= STEPS; k++) walk.push({ translate:`${(WALK * k / STEPS).toFixed(1)}px ${k % 2 && k < STEPS ? -6 : 0}px` });
+  smLater(alive, 1250, () => {
+    // Dadi walks over to Golu, her balloons with her
+    const T = { duration:1350, easing:"ease-in-out", fill:"forwards" };
+    dadi.animate(walk.map((f, k) => Object.assign({ rotate:`${k % 2 && k < STEPS ? -2 : 0}deg` }, f)), T);
+    const wa = hers.animate(walk, T);
+    smLater(alive, 1500, () => {
+      // she lifts her bunch and hands it across: it travels in a gentle arc and settles beside his, strings in his fist
+      const ex = (fist.x - palm.x).toFixed(1), ey = (fist.y - palm.y).toFixed(1), from = `${WALK}px 0px`;
+      const ta = hers.animate([{ translate:from }, { translate:`${WALK}px -12px`, offset:.18 },
+        { translate:`${((+ex + WALK) / 2).toFixed(1)}px ${(+ey - 34).toFixed(1)}px`, offset:.62 }, { translate:`${ex}px ${ey}px` }],
+        { duration:1150, easing:"cubic-bezier(.4,0,.3,1)", fill:"forwards" });
+      wa.cancel(); sfxWhoosh();
+      for(let i = 1; i <= cfg.b; i++) smLater(alive, 180 + (i - 1) * Math.round(900 / cfg.b), () => { set(cfg.a + i); sfxPop(i); });
+      ta.onfinish = () => {
+        if(!alive()) return;
+        // Golu bounces with joy, both bunches with him
+        [golu, mine, hers].forEach(el => el.animate([{ transform:"none" }, { transform:"translateY(-16px)", offset:.4 }, { transform:"none" }], { duration:520, easing:"ease-out" }));
+        smLater(alive, 600, () => { count.classList.add("up"); sfxCorrect(); smLater(alive, 2200, close); });
+      };
     });
   });
 }
