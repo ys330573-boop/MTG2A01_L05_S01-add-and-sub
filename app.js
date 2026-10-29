@@ -3446,6 +3446,25 @@ function smAnimate(cfg, alive, onDone){
     more.forEach(it => it.classList.add("hide"));
     const t = smPopIn(base, 20, sfxPop);
     smLater(alive, t + 700, () => {
+      const bus = cfg.wrap === "bus" && !src && card.querySelector(".sm-anim-prop");
+      if(bus){
+        /* [G1] no bus stop: the new passengers board one by one (as T1's marbles come in) - each steps up at the door and
+           walks inside, behind the windows, to its seat; a pop and the count going up as each one sits down */
+        const b = bus.getBoundingClientRect(), sc = smScale(), STEP = 180, WALK = 650;
+        more.forEach((it, i) => setTimeout(() => {
+          if(!alive()) return;
+          const r = it.getBoundingClientRect(), dx = (((b.left + b.width * .845) - (r.left + r.width / 2)) / sc).toFixed(1);
+          it.classList.remove("hide"); it.classList.add("sm-new");
+          it.animate([
+            { transform:`translate(${dx}px,16px) scale(.8)`, opacity:0 },
+            { transform:`translate(${dx}px,0px) scale(1)`, opacity:1, offset:.2 },
+            { transform:"translate(0px,-3px) scale(1.07)", opacity:1, offset:.86 },
+            { transform:"translate(0px,0px) scale(1)", opacity:1 }], { duration:WALK, easing:"cubic-bezier(.4,0,.3,1)", fill:"both" });
+          setTimeout(() => { if(alive()){ badge.textContent = String(cfg.a + i + 1); sfxPop(i); } }, WALK * .86);
+        }, i * STEP));
+        smLater(alive, more.length * STEP + WALK + 400, () => { badge.classList.add("up"); sfxCorrect(); smLater(alive, 2000, close); });
+        return;
+      }
       const ds = more.map(it => src ? smDelta(it, src) : { dx:260, dy:0 });
       more.forEach((it, i) => setTimeout(() => {
         if(!alive()) return;
