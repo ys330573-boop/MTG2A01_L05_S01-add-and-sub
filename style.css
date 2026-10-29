@@ -3098,3 +3098,5 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
 .sm-hold{visibility:hidden;}
 /* [G1/G2] the + / − cards are the size of the empty box they go into (and of the number cards beside it) */
 .stage.sm-page .sm-tray-signs .sm-tile.sign{width:122px;height:100px;font-size:64px;border-radius:18px;}
+/* [G1/G2] the word-problem panel sits a little higher (closer under the instruction band); the sentence and cards stay */
+.slide-host:has(> .sm-tray-signs) > .sm-story-card{translate:0 -30px;}
