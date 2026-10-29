@@ -3650,9 +3650,15 @@ SlideModules.WORKED_EXAMPLE = {
         const sc = smScale(), host = wrap.getBoundingClientRect(), sb = story.getBoundingClientRect(), K = 1.3, GAP = 14 * K;
         const rs = cards.map(c => c.getBoundingClientRect());
         const ws = cards.map(c => c.offsetWidth * K), total = ws.reduce((x, y) => x + y, 0) + GAP * (cards.length - 1);
-        const cy = ((sb.bottom + host.bottom) / 2 - host.top) / sc + host.top / sc;
         let x = (host.left + host.width / 2) / sc - total / 2;
         wrap.classList.add("final");
+        /* [ui] the title of what is left on the screen, in the space the pictures leave, just above the centred row
+           (data.final_title, else "जोड़ / घटाव का संख्या वाक्य" from the sign) */
+        const add = d.op === "+", ttl = smEl("div", "sm-we-title " + (add ? "add" : "sub"), smEsc(d.final_title || (add ? "जोड़ का संख्या वाक्य" : "घटाव का संख्या वाक्य")));
+        wrap.appendChild(ttl);
+        // the title and the row are centred together in the open space under the story
+        const rowH = cards[0].offsetHeight * K, TG = 30, cy = (sb.bottom + host.bottom) / 2 / sc + (ttl.offsetHeight + TG) / 2;
+        ttl.style.top = (cy - host.top / sc - rowH / 2 - TG).toFixed(1) + "px";
         cards.forEach((c, i) => {
           const tx = x + ws[i] / 2; x += ws[i] + GAP;
           const cx0 = (rs[i].left + rs[i].width / 2) / sc, cy0 = (rs[i].top + rs[i].height / 2) / sc;
