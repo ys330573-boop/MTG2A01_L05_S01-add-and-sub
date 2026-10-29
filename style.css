@@ -3079,3 +3079,6 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
 .sg-content,.sg-content.has-hero{margin-bottom:40px;max-width:1000px;}
 .sg-content .sg-title,.sg-content .sg-title.compact{top:0;font-size:132px;line-height:1.15;font-weight:800;color:#012F76;letter-spacing:1px;
   text-shadow:0 6px 0 #CFE3F7;}
+/* [T1] no arrow between the two children's marbles and the combined box. It stays in the layout (invisible) because
+   the "=" card is lined up under its spot, so nothing else moves. */
+.sm-we-arrow{visibility:hidden !important;}
