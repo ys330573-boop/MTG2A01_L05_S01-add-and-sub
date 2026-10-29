@@ -3082,12 +3082,10 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
 /* [T1] no arrow between the two children's marbles and the combined box. It stays in the layout (invisible) because
    the "=" card is lined up under its spot, so nothing else moves. */
 .sm-we-arrow{visibility:hidden !important;}
-/* [T1/T2] when the pictures fade and the number sentence moves to the middle, its title rises in above it: navy, with a
-   short bar in the sign's colour (+ teal / − purple) under it */
+/* [T1/T2] the finished number sentence sits on a panel (the card tray's look: pale blue, blue rim, soft ledge) that
+   grows in under the cards as they arrive */
 .sm-we{position:relative;}
-.sm-we-title{position:absolute;left:0;right:0;translate:0 -100%;text-align:center;font-family:"Baloo 2","Noto Sans Devanagari",sans-serif;
-  font-weight:800;font-size:52px;line-height:1.15;color:var(--ui-ink);pointer-events:none;animation:weTitleIn .7s cubic-bezier(.3,.8,.25,1) .25s backwards;}
-.sm-we-title::after{content:"";display:block;width:120px;height:8px;margin:8px auto 0;border-radius:4px;background:var(--sm-add);}
-.sm-we-title.sub::after{background:var(--sm-sub);}
-@keyframes weTitleIn{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:none;}}
-@media (prefers-reduced-motion: reduce){ .sm-we-title{animation:none;} }
+.sm-we-panel{position:absolute;box-sizing:border-box;background:var(--ui-q-bg);border:3px solid var(--ui-panel-rim);border-radius:26px;
+  box-shadow:0 4px 0 var(--ui-panel-ledge);pointer-events:none;animation:wePanelIn .6s cubic-bezier(.3,.8,.25,1) .35s backwards;}
+@keyframes wePanelIn{from{opacity:0;transform:scale(.94);}to{opacity:1;transform:none;}}
+@media (prefers-reduced-motion: reduce){ .sm-we-panel{animation:none;} }
