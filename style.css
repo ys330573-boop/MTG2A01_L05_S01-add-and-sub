@@ -3072,3 +3072,10 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
   background:radial-gradient(circle at 50% 55%,#FFFFFF 0%,#FFF1FA 32%,var(--bloom,#F8C2E6) 78%,var(--bloom2,#E58BC8) 100%);}
 .sm-bloom.c-blue{--bloom:#CBE7FF;--bloom2:#8CC2F2;} .sm-bloom.c-green{--bloom:#CDF6DF;--bloom2:#8ADDB0;}
 .stage-inner:has(> .sm-bloom) .prompt-band{z-index:36;}
+/* [cover] the first screen shows only the title: no courtyard picture, no children, no room effects - a clean card
+   (the same white frame) with a soft sky-white fill and the title big in the middle; Swiftie, the 🔊 and ▶ stay */
+.sg-card::before{background:linear-gradient(180deg,#FFFFFF 0%,#EAF5FF 100%) !important;}
+.sg-fx{display:none;}
+.sg-content,.sg-content.has-hero{margin-bottom:40px;max-width:1000px;}
+.sg-content .sg-title,.sg-content .sg-title.compact{top:0;font-size:132px;line-height:1.15;font-weight:800;color:#012F76;letter-spacing:1px;
+  text-shadow:0 6px 0 #CFE3F7;}

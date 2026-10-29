@@ -3209,6 +3209,18 @@ function smPopIn(items, stagger, sound){
 }
 const sfxPop    = (i) => _tone([620 + (i % 10) * 34], "sine", 0.07, 0.05);
 const sfxClink  = (i) => _tone([1500 + (i % 5) * 60, 2100], "triangle", 0.09, 0.035);
+/* a glass marble set down (T1): a bright glassy "tik" - three inharmonic partials with a fast decay over a tiny noise
+   click - its pitch a little different for every marble, so a group popping in sounds like marbles clattering into a pile */
+function sfxMarble(i){ const c = _ac(); if(!c) return; try{
+  const t0 = c.currentTime + Math.random() * .012, f = 1900 + ((i * 37) % 9) * 85 + Math.random() * 110;
+  [[1, .15, .10], [2.32, .06, .055], [3.93, .03, .032]].forEach(([m, v, d]) => {
+    const o = c.createOscillator(), g = c.createGain(); o.type = "sine"; o.frequency.value = f * m;
+    g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(v, t0 + .003); g.gain.exponentialRampToValueAtTime(0.0001, t0 + d);
+    o.connect(g).connect(c.destination); o.start(t0); o.stop(t0 + d + .02); });
+  const n = Math.floor(c.sampleRate * .01), buf = c.createBuffer(1, n, c.sampleRate), ch = buf.getChannelData(0);
+  for(let k = 0; k < n; k++) ch[k] = (Math.random() * 2 - 1) * (1 - k / n);
+  const src = c.createBufferSource(), hp = c.createBiquadFilter(), g = c.createGain(); src.buffer = buf; hp.type = "highpass"; hp.frequency.value = 3200; g.gain.value = .09;
+  src.connect(hp).connect(g).connect(c.destination); src.start(t0); }catch(e){} }
 const sfxFlap   = ()  => _tone([700, 980, 1250, 1500], "sine", 0.32, 0.05);
 const sfxWhoosh = ()  => _tone([300, 420, 560, 760, 980], "triangle", 0.38, 0.05);
 const sfxSparkle= ()  => _tone([1320, 1760, 2090, 2640], "sine", 0.6, 0.06);
@@ -3577,7 +3589,7 @@ SlideModules.WORKED_EXAMPLE = {
       story.classList.remove("sm-story-big"); story.classList.add("sm-story-top"); story.style.transform = "";
       smLater(alive, 820, ()=>{ story.style.transition = ""; wrap.classList.remove("settling"); align(); next(); });
     };
-    const popGroup = (box) => smPopIn([...box.querySelectorAll(".sm-it, .sm-bird")], 45, sfxClink);
+    const popGroup = (box) => smPopIn([...box.querySelectorAll(".sm-it, .sm-bird")], 45, d.scene === "marbles" ? sfxMarble : sfxClink);   // Pari's / Aaru's marbles clatter in
     /* data.lead_vo: the story is READ on this same screen first (the big card, each word lit as it is spoken),
        then the card zooms up and the worked example follows - story read + worked example in one slide */
     const readFirst = d.lead_vo ? [
@@ -4814,7 +4826,7 @@ function boot(){
   // god-mode visual theme (opt-in via CARD.theme) — warms the whole stage; scoped CSS under .thm-*
   if(CARD.theme) $("stage").classList.add("thm-" + CARD.theme);
   // banner title = skill name only (strip "(भाग…)" and the ": letters" list)
-  $("sgTitle").textContent = (CARD.title.hi || "").split(/[:：(]/)[0].trim();
+  $("sgTitle").textContent = CARD.landing_title || (CARD.title.hi || "").split(/[:：(]/)[0].trim();   // the cover's own title, when the card gives one
   // VISUAL-FIRST landing hero: SHOW the concept, not just the title text
   (function(){ const hero = CARD.landing_hero, el = $("sgHero"); if(!hero || !el) return;
     if(hero.kind === "concept_strip") el.innerHTML = (hero.cells || []).map(c => `<div class="sg-acell">${conceptTileHTML(c)}</div>`).join("");
