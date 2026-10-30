@@ -3149,3 +3149,6 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
 .sm-bp-av{width:124px;height:124px;}
 /* no 10 / 1 chips under the balloons: the bundles and singles speak for themselves (the totals stay on top) */
 .sm-bp-it b{display:none;}
+/* no totals on the panels either: just the people and their balloons */
+.sm-bp-lbl{display:none;}
+.sm-bp-panel{padding-top:40px;}
