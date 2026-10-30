@@ -4072,6 +4072,10 @@ SlideModules.BUILD_SENTENCE = {
     const tray = smEl("div", "sm-tray");
     d.tray.forEach(t => { const el = smEl("div", "sm-tile " + smTokCls(t), smEsc(t)); el._v = t; tray.appendChild(el); });
     host.appendChild(story); host.appendChild(eq); host.appendChild(tray);
+    // [ui] the word-problem panel sits a little higher, its top on one line under the instruction band whether the
+    // story is one line or two (layout offsets, so the page's entrance transform doesn't skew it)
+    let top = 0; for(let e = story; e && e !== $("stage"); e = e.offsetParent) top += e.offsetTop;
+    story.style.translate = `0 ${-Math.min(50, Math.max(0, top - 167))}px`;
     const tiles = [...tray.children], isOp = (v) => v === "+" || v === "−";
     const comm = d.commutative || [], wrongBy = new Map(), wrongKind = new Map();
     let revealedAny = false, idleT = null, busy = false;
@@ -4100,6 +4104,9 @@ SlideModules.BUILD_SENTENCE = {
         const full = d.eq.map(t => typeof t === "object" ? slots.find(s => s._i === d.eq.indexOf(t))._val : t);
         const rev = comm.length && full[comm[0]] !== slots.find(s => s._i === comm[0])._spec.accept[0];
         const id = (rev && d.cr_vo_rev) ? d.cr_vo_rev : d.cr_vo;
+        // [ui] the sentence is built: the card tray has done its job and goes (fades and sinks; its place kept)
+        tray.animate([{ opacity:1, translate:"0 0" }, { opacity:0, translate:"0 30px" }], { duration:450, easing:"ease-in", fill:"forwards" })
+          .onfinish = () => { if(alive()) tray.style.visibility = "hidden"; };
         smEmitCorrect(slide, "sentence_build_correct", { revealed:revealedAny, order:full.join(" ") });
         smCelebrate(slide, alive, id, smTokCues(id, [...eq.children], full), revealedAny, () => { smUnlit(eq); eq.classList.add("glow"); });
       } else armIdle();
@@ -4130,8 +4137,13 @@ SlideModules.BUILD_SENTENCE = {
       }
       else if(kind === "wrong_num" && n >= 2 && fb.wrong_num && fb.wrong_num[z._i]) smPlay(fb.wrong_num[z._i], [], () => {});
     };
+    /* [ui] while the word problem is read, the sentence and the card tray wait hidden (their places kept); they come in
+       - the sentence, then the tray - as the instruction VO starts (as G1/G2) */
+    eq.classList.add("sm-hold"); tray.classList.add("sm-hold");
+    const showWork = smOnce(() => [eq, tray].forEach((el, k) => { el.classList.remove("sm-hold");
+      el.animate([{ opacity:0, translate:"0 18px" }, { opacity:1, translate:"0 0" }], { duration:460, delay:k * 160, easing:"cubic-bezier(.3,.8,.25,1)", fill:"backwards" }); }));
     const free = smReplay((done) => smPlay(d.story_vo, smKaraoke(story, d.story_vo), () => { smKaraokeClear(story); done(); }));
-    const endIntro = smOnce(() => { free(); smKaraokeClear(story); setSwMood("point"); armIdle(); });
+    const endIntro = smOnce(() => { showWork(); free(); smKaraokeClear(story); setSwMood("point"); armIdle(); });
     tiles.forEach(tile => smDraggable(tile, {
       can:() => !state.locked && !busy && !tile.classList.contains("used"),
       start:() => { clearTimeout(idleT); slots.forEach(s => s.classList.remove("idle")); },
@@ -4144,7 +4156,7 @@ SlideModules.BUILD_SENTENCE = {
       tap:() => armIdle()
     }));
     setSwMood("talk");
-    smSteps([{ id:d.story_vo, cues:() => smKaraoke(story, d.story_vo), post:() => smKaraokeClear(story), gap:350 }, { id:d.q_vo }],
+    smSteps([{ id:d.story_vo, cues:() => smKaraoke(story, d.story_vo), post:() => smKaraokeClear(story), gap:350 }, { id:d.q_vo, pre:showWork }],
       alive, endIntro);
   }
 };
