@@ -3152,3 +3152,20 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
 /* no totals on the panels either: just the people and their balloons */
 .sm-bp-lbl{display:none;}
 .sm-bp-panel{padding-top:40px;}
+/* [G4 hint] the panels with ten-frames (app.js smLaddooFrames): a wider card, the colours set per side (Dadi blue,
+   the children pink), each frame 2 x 5 cells in the side's colour, a laddoo sitting in a cell; what stays with Dadi glows */
+.sm-anim-card.sm-tf-card{width:1240px;}
+.sm-bp-side.blue{--c:#2F80ED;--c2:#5AA9F0;--t:#E3F0FF;--ink:#0B3D8C;}
+.sm-bp-side.pink{--c:#C2338F;--c2:#E77DC0;--t:#FCE4F3;--ink:#7A1457;}
+.sm-tf-card .sm-bp-av{width:140px;height:140px;}
+.sm-tf-card .sm-bp-row{gap:12px;}
+.sm-tf{display:grid;grid-template-columns:repeat(5,30px);grid-auto-rows:30px;gap:2px;padding:0;background:var(--c2);border:2px solid var(--c2);border-radius:8px;overflow:hidden;}
+.sm-tf i{display:flex;align-items:center;justify-content:center;background:#fff;}
+.sm-tf-it{width:26px;height:26px;object-fit:contain;display:block;}
+.sm-tf-it.slot{visibility:hidden;}
+.sm-tf-it.pop{animation:smPop .35s cubic-bezier(.34,1.56,.64,1) backwards;}
+.sm-bp-panel.kept .sm-tf-it{filter:drop-shadow(0 0 4px rgba(255,190,0,.95));transition:filter .4s;}
+/* bigger: 44px cells, Dadi's four frames as two rows of two (the children's two frames one row of the same width) */
+.sm-tf{grid-template-columns:repeat(5,44px);grid-auto-rows:44px;}
+.sm-tf-it{width:38px;height:38px;}
+.sm-tf-card .sm-bp-row{display:grid;grid-template-columns:repeat(2,auto);gap:12px;}

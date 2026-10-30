@@ -3366,6 +3366,7 @@ function smAnimate(cfg, alive, onDone){
   stage.classList.add("blurred");
   const close = () => { ov.classList.add("out"); stage.classList.remove("blurred"); setTimeout(() => ov.remove(), 260); if(onDone) onDone(); };
   const total = cfg.type === "remove" ? cfg.a : cfg.a + cfg.b;
+  if(cfg.frames && cfg.type === "remove"){ smLaddooFrames(cfg, card, alive, close); return; }
   if(cfg.bundles && cfg.type === "remove"){ smBangleBundles(cfg, card, alive, close); return; }
   if(cfg.handover && cfg.type === "add"){ smBalloonGift(cfg, card, alive, close); return; }
   if(cfg.type === "merge"){
@@ -3609,6 +3610,50 @@ function smBalloonGift(cfg, card, alive, close){
         };
     }, i * 700));
     smLater(alive, moves.length * 700 + 950 + 400, () => { lbl.classList.add("up"); sfxCorrect(); smLater(alive, 2200, close); });
+  });
+}
+
+/* [G4 hint] the G3 panel look with ten-frames: Dadi's panel (blue) holds her laddoos in rows of ten-frames, the
+   children's panel (pink) the empty frames they will fill. Her laddoos pop in one by one; then the children's share
+   travels over, last laddoo first, each into the next empty cell on their side, leaving an empty cell on hers - what
+   stays with Dadi is whole ten-frames you can see at a glance (35 - 15: two full frames = 20). */
+function smLaddooFrames(cfg, card, alive, close){
+  const F = 10, frames = (n, slots) => {
+    let html = "";
+    for(let f = 0; f < Math.ceil(n / F); f++){
+      let cells = "";
+      for(let i = 0; i < F; i++){ const k = f * F + i;
+        cells += `<i>${k < n ? `<img class="sm-tf-it${slots ? " slot" : ""}" src="${smArt("obj_laddoo")}" alt="" draggable="false">` : ""}</i>`; }
+      html += `<div class="sm-tf">${cells}</div>`;
+    }
+    return html;
+  };
+  const side = (k, color, name, row) => `<div class="sm-bp-side ${k} ${color}"><div class="sm-bp-av"><img src="${smArt("av_" + k)}" alt="" draggable="false"><span>${name}</span></div>` +
+    `<div class="sm-bp-panel"><div class="sm-bp-row">${row}</div></div></div>`;
+  card.classList.add("sm-bp-card", "sm-tf-card");
+  card.innerHTML = `<div class="sm-bp">${side("dadi", "blue", "दादी", frames(cfg.a))}${side("kids", "pink", "बच्चे", frames(cfg.b, true))}</div>`;
+  const $$ = s => [...card.querySelectorAll(s)], mine = $$(".dadi .sm-tf-it"), slots = $$(".kids .sm-tf-it.slot");
+  $$(".sm-bp-side").forEach((el, k) => el.animate([{ opacity:0, transform:"translateY(14px)" }, { opacity:1, transform:"none" }], { duration:420, delay:k * 140, easing:"ease-out", fill:"backwards" }));
+  mine.forEach(it => it.style.visibility = "hidden");
+  smLater(alive, 400, () => { mine.forEach(it => it.style.visibility = ""); smPopIn(mine, 55, sfxPop); });
+  const STEP = 140, FLY = 700;
+  smLater(alive, 400 + mine.length * 55 + 900, () => {
+    // the children's share goes over, last laddoo first, each into the next empty cell on their side
+    const box = smRect(card), gone = mine.slice(cfg.a - cfg.b).reverse(); sfxWhoosh();
+    gone.forEach((el, i) => setTimeout(() => {
+      if(!alive() || !slots[i]) return;
+      const a = smRect(el), z = smRect(slots[i]), fly = el.cloneNode(true);
+      fly.classList.add("sm-bp-fly"); fly.style.left = (a.x - box.x) + "px"; fly.style.top = (a.y - box.y) + "px";
+      fly.style.width = a.w + "px"; fly.style.height = a.h + "px"; card.appendChild(fly); el.style.visibility = "hidden";
+      const dx = z.x - a.x, dy = z.y - a.y;
+      fly.animate([{ transform:"translate(0,0)" }, { transform:`translate(${dx * .5}px,${dy * .5 - 60}px) scale(1.15)`, offset:.5 }, { transform:`translate(${dx}px,${dy}px)` }],
+        { duration:FLY, easing:"cubic-bezier(.45,.05,.3,1)", fill:"forwards" }).onfinish = () => {
+          if(!alive()) return; fly.remove(); slots[i].classList.remove("slot"); slots[i].classList.add("pop"); if(i % 2 === 0) sfxPop(i);
+        };
+    }, i * STEP));
+    smLater(alive, gone.length * STEP + FLY + 400, () => {
+      card.querySelector(".dadi .sm-bp-panel").classList.add("kept"); sfxCorrect(); smLater(alive, 2200, close);
+    });
   });
 }
 
