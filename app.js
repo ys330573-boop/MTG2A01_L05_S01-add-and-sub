@@ -4173,17 +4173,21 @@ SlideModules.PICK_STORY = {
     const row = smEl("div", "sm-stories");
     const list = d.stories.slice(); if(Math.random() < 0.5) list.reverse();
     list.forEach(s => {
-      const c = smEl("button", "sm-story-opt", `<span class="sm-story-txt">${smStoryHTML(s.vo)}</span><span class="sm-say" role="button" aria-label="सुनो">🔊</span>`);
+      const c = smEl("button", "sm-story-opt", `<span class="sm-story-txt">${smStoryHTML(s.vo)}</span>`);
       c.type = "button"; c._s = s; row.appendChild(c);
     });
     host.appendChild(eqc); host.appendChild(row);
     const cards = [...row.children], right = cards.find(c => c._s.correct), tokEls = [...eqc.querySelectorAll(".sm-tok")];
     let revealed = false;
-    const readCard = (c, done) => { cards.forEach(x => x.classList.toggle("reading", x === c)); smPlay(c._s.vo, smKaraoke(c, c._s.vo), () => { c.classList.remove("reading"); smKaraokeClear(c); if(done) done(); }); };
+    /* [ui] each story card waits hidden (its place kept) and comes in as its own VO starts */
+    cards.forEach(c => c.classList.add("sm-hold"));
+    const showCard = (c) => { if(!c.classList.contains("sm-hold")) return; c.classList.remove("sm-hold");
+      c.animate([{ opacity:0, transform:"translateY(22px) scale(.92)" }, { opacity:1, transform:"translateY(-4px) scale(1.02)", offset:.7 }, { opacity:1, transform:"none" }],
+        { duration:460, easing:"cubic-bezier(.3,.8,.25,1)" }); sfxPop(4 + cards.indexOf(c) * 3); };
+    const readCard = (c, done) => { showCard(c); cards.forEach(x => x.classList.toggle("reading", x === c)); smPlay(c._s.vo, smKaraoke(c, c._s.vo), () => { c.classList.remove("reading"); smKaraokeClear(c); if(done) done(); }); };
     const free = smReplay((done) => smPlay(d.q_vo, [], done));
-    const endIntro = smOnce(() => { free(); eqc.classList.remove("lit"); cards.forEach(x => { x.classList.remove("reading"); smKaraokeClear(x); }); setSwMood("point"); });
+    const endIntro = smOnce(() => { cards.forEach(showCard); free(); eqc.classList.remove("lit"); cards.forEach(x => { x.classList.remove("reading"); smKaraokeClear(x); }); setSwMood("point"); });
     cards.forEach(c => {
-      c.querySelector(".sm-say").addEventListener("click", (e) => { e.stopPropagation(); if(state.locked) return; endIntro(); readCard(c); });
       c.onclick = () => {
         if(state.locked) return;
         endIntro();
