@@ -4010,8 +4010,14 @@ SlideModules.PICK_SENTENCE = {
     host.appendChild(story); host.appendChild(grid);
     const cells = [...grid.children], right = cells.find(c => c._o.correct);
     let revealed = false, busy = false;
+    /* [ui] the sentences wait (hidden, their places kept) while the word problem is read; when it is done they come in
+       one by one, each with a pop */
+    cells.forEach(c => c.classList.add("sm-hold"));
+    const showOpts = smOnce(() => cells.forEach((c, i) => setTimeout(() => { if(!alive()) return; c.classList.remove("sm-hold");
+      c.animate([{ opacity:0, transform:"translateY(22px) scale(.9)" }, { opacity:1, transform:"translateY(-4px) scale(1.03)", offset:.7 }, { opacity:1, transform:"none" }],
+        { duration:420, easing:"cubic-bezier(.3,.8,.25,1)" }); sfxPop(3 + i * 3); }, i * 380)));
     const free = smReplay((done) => smPlay(d.story_vo, smKaraoke(story, d.story_vo), () => { smKaraokeClear(story); done(); }));
-    const endIntro = smOnce(() => { free(); smKaraokeClear(story); setSwMood("point"); });
+    const endIntro = smOnce(() => { showOpts(); free(); smKaraokeClear(story); setSwMood("point"); });
     const win = (cell) => {
       state.locked = true; stopNudge(); cell.classList.remove("reveal"); cell.classList.add("correct");
       cells.forEach(c => { if(c !== cell) c.classList.add("faded"); });
@@ -4043,7 +4049,7 @@ SlideModules.PICK_SENTENCE = {
       }
     });
     setSwMood("talk");
-    smSteps([{ id:d.story_vo, cues:() => smKaraoke(story, d.story_vo), post:() => smKaraokeClear(story), gap:350 }, { id:d.q_vo }],
+    smSteps([{ id:d.story_vo, cues:() => smKaraoke(story, d.story_vo), post:() => smKaraokeClear(story), gap:350 }, { id:d.q_vo, pre:showOpts }],
       alive, endIntro);
   }
 };
