@@ -3120,14 +3120,32 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
 .sm-bk-card .sm-anim-dst img{height:190px;}
 /* [G3/G4] the word problem sits higher, close under the instruction band (as G1/G2) */
 .slide-host:has(> .sm-pick3) > .sm-story-card{translate:0 -80px;}
-/* [G3 hint] Dadi hands Golu her balloons (app.js smBalloonGift): the two people on a 1000 x 420 stage shown at .8, each bunch
-   swaying a little from the hand that holds it; the count turns green when the balloons have changed hands */
-.sm-gift-card{padding-top:92px;}
-.sm-gift{position:relative;flex-shrink:0;width:1000px;height:420px;transform:scale(.8);transform-origin:50% 0;margin:0 -100px -84px;}
-.sm-gift > img{position:absolute;width:auto;filter:drop-shadow(0 8px 10px rgba(40,30,20,.18));}
-.sm-gift-bunch{position:absolute;z-index:2;}
-.sm-gift-bunch svg{display:block;overflow:visible;animation:giftSway 2.6s ease-in-out infinite;}
-.sm-gift-bunch.d svg{animation-delay:-1.3s;}
-@keyframes giftSway{0%,100%{rotate:-2deg;}50%{rotate:2deg;}}
-.sm-bk-count.up{background:var(--ui-ok);box-shadow:0 4px 0 #0B8A2A;}
-@media (prefers-reduced-motion: reduce){ .sm-gift-bunch svg{animation:none;} }
+/* [G3 hint] T1-style balloon panels (app.js smBalloonGift): a round portrait with a name pill over each panel, the count
+   on top, balloons in bundles of ten (a bow) and singles with a 10 / 1 chip under each. Golu blue, Dadi pink. A place kept
+   for a coming balloon is invisible (it holds the row still); a moved-away one stays as a faded copy. */
+.sm-bp-card{justify-content:center;}
+.sm-bp{display:flex;align-items:flex-end;justify-content:center;gap:26px;}
+.sm-bp-side{display:flex;flex-direction:column;align-items:center;--c:#2F80ED;--c2:#5AA9F0;--t:#E3F0FF;--ink:#0B3D8C;}
+.sm-bp-side.dadi{--c:#B23CC9;--c2:#D27AE6;--t:#F6E4FB;--ink:#5B1A78;}
+.sm-bp-av{position:relative;z-index:2;width:112px;height:112px;margin-bottom:-22px;border-radius:50%;border:5px solid var(--c2);background:var(--t);box-shadow:0 4px 10px rgba(0,47,118,.18);}
+.sm-bp-av img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;}
+.sm-bp-av span{position:absolute;left:50%;bottom:-14px;translate:-50% 0;padding:0 18px;border-radius:999px;background:var(--c);border:3px solid #fff;color:#fff;
+  font-weight:800;font-size:22px;line-height:32px;white-space:nowrap;}
+.sm-bp-panel{display:flex;flex-direction:column;align-items:center;gap:12px;min-width:230px;padding:34px 18px 16px;border:4px solid var(--c2);border-radius:26px;background:#FBFCFF;
+  box-shadow:0 4px 0 color-mix(in srgb,var(--c2) 45%,#fff);}
+.sm-bp-lbl{padding:2px 24px;border-radius:999px;background:var(--t);color:var(--ink);font-weight:800;font-size:30px;line-height:42px;white-space:nowrap;transition:background .3s,color .3s;}
+.sm-bp-lbl.up{background:var(--ui-ok-bg);color:#0B7A2C;box-shadow:0 0 0 3px var(--ui-ok);}
+.sm-bp-row{display:flex;align-items:flex-end;gap:10px;}
+.sm-bp-it{display:flex;flex-direction:column;align-items:center;gap:6px;}
+.sm-bp-it svg{display:block;overflow:visible;}
+.sm-bp-it b{min-width:40px;padding:0 10px;border-radius:999px;background:var(--t);color:var(--ink);font-size:22px;line-height:32px;text-align:center;}
+.sm-bp-it.slot{visibility:hidden;}
+.sm-bp-it.ghost{opacity:.28;filter:grayscale(1);transition:opacity .4s,filter .4s;}
+.sm-bp-it.pop{animation:smPop .4s cubic-bezier(.34,1.56,.64,1) backwards;}
+.sm-bp-fly{position:absolute;z-index:5;margin:0;pointer-events:none;}
+/* the balloons and portraits a size up, to fill the hint card */
+.sm-bp{gap:20px;} .sm-bp-row{gap:8px;}
+.sm-bp-it.ten svg{width:92px;height:126px;} .sm-bp-it.one svg{width:41px;height:126px;}
+.sm-bp-av{width:124px;height:124px;}
+/* no 10 / 1 chips under the balloons: the bundles and singles speak for themselves (the totals stay on top) */
+.sm-bp-it b{display:none;}

@@ -3557,68 +3557,58 @@ function smBangleBundles(cfg, card, alive, close){
   });
 }
 
-/* [G3 hint] the balloons change hands, as in the story: Golu (left) holds his bunch up in his raised fist, Dadi (right)
-   holds hers in her open hand. Dadi walks over, lifts her bunch and passes it across; it settles beside his, its strings
-   now in his fist, and the count climbs as it travels (42 -> 53). Each bunch is one svg - balloons and their strings
-   meeting at the hand - so a bunch always moves whole: nothing drops, doubles or comes loose. Scene units: 1000 x 420
-   (shown at .8 to fit the hint card). */
+/* [G3 hint] T1's look for the balloons: Golu's panel (blue) and Dadi's (pink), each under a round portrait with a name
+   pill, the count on top ("42 गुब्बारे") and the balloons in bundles of ten tied with a bow plus single balloons, a 10 / 1
+   chip under each. The bundles pop in one by one (as T1's marbles), then Dadi's bundle and her single balloon travel over
+   into the places waiting in Golu's panel - a faded copy stays behind in hers, as in T1 - and his count goes 42 -> 52 -> 53. */
 function smBalloonGift(cfg, card, alive, close){
-  const COL = ["#FF4D6D", "#FFB703", "#3A86FF", "#2EC4B6", "#8338EC", "#FB5607", "#FF66C4"];
-  const bunch = (n, side, c0) => {            // side "r": the strings meet at the bunch's bottom-right (held to its right), "l": bottom-left
-    const w = Math.round(Math.sqrt(n * 1.5)), seq = [w - 2, w - 1, w, w, w - 1, w - 2, w - 3, w - 4], rows = []; let left = n;
-    for(let i = 0; left > 0; i++){ const k = Math.min(Math.max(seq[i % seq.length], 1), left); rows.push(k); left -= k; }
-    const DX = 27, DY = 22, RX = 13, RY = 16, mx = Math.max(...rows), W = mx * DX + 8, ay = 18 + (rows.length - 1) * DY + RY + 48, H = ay + 4;
-    const ax = side === "r" ? W - 4 : 4;
-    let strings = "", balls = "", i = 0;
-    rows.forEach((k, r) => { for(let j = 0; j < k; j++, i++){
-      const x = (W - k * DX) / 2 + DX / 2 + j * DX, y = 18 + r * DY, c = COL[(i + c0) % COL.length];
-      strings += `<path d="M${x.toFixed(1)} ${y + RY}Q${((x + ax) / 2 + 5).toFixed(1)} ${((y + RY + ay) / 2 + 8).toFixed(1)} ${ax} ${ay}"/>`;
-      balls += `<g><ellipse cx="${x.toFixed(1)}" cy="${y}" rx="${RX}" ry="${RY}" fill="${c}"/><path d="M${(x - 3).toFixed(1)} ${y + RY + 3}L${x.toFixed(1)} ${y + RY - 1}L${(x + 3).toFixed(1)} ${y + RY + 3}Z" fill="${c}"/>` +
-        `<ellipse cx="${(x - 4.5).toFixed(1)}" cy="${y - 6}" rx="3.6" ry="5.4" fill="#fff" fill-opacity=".5"/></g>`;
-    } });
-    return { W, H, ax, ay, html:`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" style="transform-origin:${ax}px ${ay}px" aria-hidden="true">` +
-      `<g fill="none" stroke="#8E98A6" stroke-width="1.3" stroke-opacity=".85">${strings}</g>${balls}</svg>` };
+  const COL = ["#FF3B4E", "#2F7BF5", "#2DBE60", "#FFC21A", "#FF8A1F", "#FF5DB1", "#9B4DFF", "#21C1C9", "#E8392F", "#4A63F0"];
+  const bundleSVG = () => {
+    const pos = [[20, 18], [38, 14], [56, 18], [13, 36], [31, 33], [49, 33], [66, 37], [21, 53], [39, 51], [57, 53]];
+    const strings = pos.map(([x, y]) => `<path d="M${x} ${y + 13}Q${(x + 38) / 2} ${(y + 13 + 88) / 2 + 6} 38 88"/>`).join("");
+    const balls = pos.map(([x, y], i) => `<ellipse cx="${x}" cy="${y}" rx="11" ry="13.5" fill="${COL[i]}"/><ellipse cx="${x - 3.5}" cy="${y - 5}" rx="3" ry="4.4" fill="#fff" fill-opacity=".5"/>`).join("");
+    return `<svg viewBox="0 0 76 104" width="76" height="104" aria-hidden="true"><g fill="none" stroke="#8E98A6" stroke-width="1.1">${strings}</g>${balls}` +
+      `<path d="M38 88L27 81L28 95ZM38 88L49 81L48 95Z" fill="#E0222F"/><circle cx="38" cy="88" r="3.6" fill="#B5121D"/>` +
+      `<path d="M37 91L32 103M39 91L44 103" stroke="#E0222F" stroke-width="2.4" stroke-linecap="round"/></svg>`;
   };
-  // the people and the spots where their hands are (fractions of each picture)
-  const G = { h:280, w:280 * 356 / 600, left:90, hand:[.933, .14] }, D = { h:300, w:300 * 500 / 700, hand:[.122, .376] };
-  G.top = 420 - G.h; D.top = 420 - D.h; D.left = 1000 - 90 - D.w;
-  const fist = { x:G.left + G.w * G.hand[0], y:G.top + G.h * G.hand[1] }, palm = { x:D.left + D.w * D.hand[0], y:D.top + D.h * D.hand[1] };
-  const bg = bunch(cfg.a, "r", 0), bd = bunch(cfg.b, "l", 3);
-  card.classList.add("sm-bk-card", "sm-gift-card");
-  card.innerHTML = `<div class="sm-bk-count">${cfg.a}</div><div class="sm-gift">` +
-    `<img class="sm-gift-golu" src="${smArt("char_golu_boy")}" alt="" draggable="false" style="left:${G.left}px;top:${G.top}px;height:${G.h}px">` +
-    `<img class="sm-gift-dadi" src="${smArt("char_dadi")}" alt="" draggable="false" style="left:${D.left.toFixed(1)}px;top:${D.top}px;height:${D.h}px">` +
-    `<div class="sm-gift-bunch g" style="left:${(fist.x - bg.ax).toFixed(1)}px;top:${(fist.y - bg.ay).toFixed(1)}px">${bg.html}</div>` +
-    `<div class="sm-gift-bunch d" style="left:${(palm.x - bd.ax).toFixed(1)}px;top:${(palm.y - bd.ay).toFixed(1)}px">${bd.html}</div></div>`;
-  const $q = s => card.querySelector(s), golu = $q(".sm-gift-golu"), dadi = $q(".sm-gift-dadi"), mine = $q(".sm-gift-bunch.g"), hers = $q(".sm-gift-bunch.d");
-  const count = $q(".sm-bk-count");
-  const set = v => { count.textContent = String(v); count.animate([{ scale:"1" }, { scale:"1.16" }, { scale:"1" }], { duration:240, easing:"ease-out" }); };
-  // everyone comes in: the two people, then each bunch rises up from its hand
-  [golu, dadi].forEach((el, k) => el.animate([{ opacity:0, transform:"translateY(14px)" }, { opacity:1, transform:"none" }], { duration:420, delay:k * 120, easing:"ease-out", fill:"backwards" }));
-  [mine, hers].forEach((el, k) => el.firstChild.animate([{ scale:".2", opacity:0 }, { scale:"1.05", opacity:1, offset:.7 }, { scale:"1", opacity:1 }],
-    { duration:520, delay:380 + k * 140, easing:"ease-out", fill:"backwards" }));
-  const WALK = -300, STEPS = 8, walk = [];
-  for(let k = 0; k <= STEPS; k++) walk.push({ translate:`${(WALK * k / STEPS).toFixed(1)}px ${k % 2 && k < STEPS ? -6 : 0}px` });
-  smLater(alive, 1250, () => {
-    // Dadi walks over to Golu, her balloons with her
-    const T = { duration:1350, easing:"ease-in-out", fill:"forwards" };
-    dadi.animate(walk.map((f, k) => Object.assign({ rotate:`${k % 2 && k < STEPS ? -2 : 0}deg` }, f)), T);
-    const wa = hers.animate(walk, T);
-    smLater(alive, 1500, () => {
-      // she lifts her bunch and hands it across: it travels in a gentle arc and settles beside his, strings in his fist
-      const ex = (fist.x - palm.x).toFixed(1), ey = (fist.y - palm.y).toFixed(1), from = `${WALK}px 0px`;
-      const ta = hers.animate([{ translate:from }, { translate:`${WALK}px -12px`, offset:.18 },
-        { translate:`${((+ex + WALK) / 2).toFixed(1)}px ${(+ey - 34).toFixed(1)}px`, offset:.62 }, { translate:`${ex}px ${ey}px` }],
-        { duration:1150, easing:"cubic-bezier(.4,0,.3,1)", fill:"forwards" });
-      wa.cancel(); sfxWhoosh();
-      for(let i = 1; i <= cfg.b; i++) smLater(alive, 180 + (i - 1) * Math.round(900 / cfg.b), () => { set(cfg.a + i); sfxPop(i); });
-      ta.onfinish = () => {
-        if(!alive()) return;
-        // Golu bounces with joy, both bunches with him
-        [golu, mine, hers].forEach(el => el.animate([{ transform:"none" }, { transform:"translateY(-16px)", offset:.4 }, { transform:"none" }], { duration:520, easing:"ease-out" }));
-        smLater(alive, 600, () => { count.classList.add("up"); sfxCorrect(); smLater(alive, 2200, close); });
-      };
-    });
+  const singleSVG = (c) => `<svg viewBox="0 0 34 104" width="34" height="104" aria-hidden="true"><path d="M17 44Q11 58 18 70T16 100" fill="none" stroke="#8E98A6" stroke-width="1.3"/>` +
+    `<ellipse cx="17" cy="26" rx="14" ry="17" fill="${c}"/><path d="M14 44L17 41L20 44Z" fill="${c}"/><ellipse cx="12.5" cy="19" rx="3.6" ry="5.4" fill="#fff" fill-opacity=".5"/></svg>`;
+  const item = (tens, c, cls) => `<div class="sm-bp-it ${tens ? "ten" : "one"} ${cls || ""}">${tens ? bundleSVG() : singleSVG(c)}<b>${tens ? 10 : 1}</b></div>`;
+  const split = n => ({ t:Math.floor(n / 10), o:n % 10 });
+  const g = split(cfg.a), d = split(cfg.b), sum = split(cfg.a + cfg.b);
+  // Golu's row has places kept for what is coming: his bundles, the new bundles, his singles, the new singles
+  let gRow = "", dRow = "";
+  for(let i = 0; i < sum.t; i++) gRow += item(true, null, i < g.t ? "" : "slot");
+  for(let i = 0; i < sum.o; i++) gRow += item(false, COL[(i * 3 + 1) % COL.length], i < g.o ? "" : "slot");
+  for(let i = 0; i < d.t; i++) dRow += item(true);
+  for(let i = 0; i < d.o; i++) dRow += item(false, COL[(i * 3 + 6) % COL.length]);
+  const side = (k, name, n, row) => `<div class="sm-bp-side ${k}"><div class="sm-bp-av"><img src="${smArt("av_" + k)}" alt="" draggable="false"><span>${name}</span></div>` +
+    `<div class="sm-bp-panel"><div class="sm-bp-lbl">${n} गुब्बारे</div><div class="sm-bp-row">${row}</div></div></div>`;
+  card.classList.add("sm-bp-card");
+  card.innerHTML = `<div class="sm-bp">${side("golu", "गोलू", cfg.a, gRow)}${side("dadi", "दादी", cfg.b, dRow)}</div>`;
+  const $$ = s => [...card.querySelectorAll(s)], lbl = card.querySelector(".golu .sm-bp-lbl");
+  const shown = $$(".sm-bp-it:not(.slot)"), slotsT = $$(".golu .sm-bp-it.ten.slot"), slotsO = $$(".golu .sm-bp-it.one.slot");
+  const givT = $$(".dadi .sm-bp-it.ten"), givO = $$(".dadi .sm-bp-it.one");
+  const set = (v) => { lbl.textContent = v + " गुब्बारे"; lbl.animate([{ scale:"1" }, { scale:"1.12" }, { scale:"1" }], { duration:300, easing:"ease-out" }); };
+  $$(".sm-bp-side").forEach((el, k) => el.animate([{ opacity:0, transform:"translateY(14px)" }, { opacity:1, transform:"none" }], { duration:420, delay:k * 140, easing:"ease-out", fill:"backwards" }));
+  const t = smPopIn(shown, 170, sfxMarble);
+  smLater(alive, 450 + t + 650, () => {
+    // Dadi's balloons go over to Golu, one piece at a time: a copy flies along an arc, lands in its waiting place in his
+    // panel and shows there; her own stays behind, faded
+    const box = smRect(card), moves = givT.map((el, i) => [el, slotsT[i], 10]).concat(givO.map((el, i) => [el, slotsO[i], 1])).filter(m => m[1]);
+    let v = cfg.a; sfxWhoosh();
+    moves.forEach(([el, to, add], i) => setTimeout(() => {
+      if(!alive()) return;
+      const a = smRect(el), z = smRect(to), fly = el.cloneNode(true);
+      fly.classList.add("sm-bp-fly"); fly.style.left = (a.x - box.x) + "px"; fly.style.top = (a.y - box.y) + "px"; card.appendChild(fly);
+      el.classList.add("ghost");
+      const dx = z.x - a.x, dy = z.y - a.y;
+      fly.animate([{ transform:"translate(0,0)" }, { transform:`translate(${dx * .5}px,${dy * .5 - 70}px) scale(1.08)`, offset:.5 }, { transform:`translate(${dx}px,${dy}px)` }],
+        { duration:950, easing:"cubic-bezier(.45,.05,.3,1)", fill:"forwards" }).onfinish = () => {
+          if(!alive()) return; fly.remove(); to.classList.remove("slot"); to.classList.add("pop"); v += add; set(v); sfxPop(i + 4);
+        };
+    }, i * 700));
+    smLater(alive, moves.length * 700 + 950 + 400, () => { lbl.classList.add("up"); sfxCorrect(); smLater(alive, 2200, close); });
   });
 }
 
