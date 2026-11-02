@@ -3171,3 +3171,8 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
 .sm-tf-card .sm-bp-row{display:grid;grid-template-columns:repeat(2,auto);gap:12px;}
 /* [P3/P4] the number sentence sits a little higher (closer under the instruction band); the story cards stay */
 .slide-host:has(> .sm-stories) > .sm-eq-inline{translate:0 -50px;}
+/* [T1] no name tags under Pari's and Aaru's pictures */
+.sm-we .sm-photo .nm{display:none;}
+/* [T1/T2] the equation cards stay still while the VO reads them: a lit card only changes colour (no grow / lift), in the
+   columns and in the finished row (whose own move is the inline transform, left as it is) */
+.sm-we .sm-eq-cards .sm-card.lit,.sm-we.final .sm-eq-cards .sm-card[style*='translate'].lit{transform:none;scale:none;}
