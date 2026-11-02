@@ -3795,8 +3795,7 @@ SlideModules.WORKED_EXAMPLE = {
       { id:d.story_vo, cues:() => smKaraoke(story, d.story_vo), post:() => smKaraokeClear(story), gap:600 }
     ] : [];
     const steps = readFirst.concat([
-      zoomOut,
-      { id:S[0], gap:350 },
+      { id:S[0], pre:() => zoomOut(() => {}), gap:350 },   // the card glides up as "आइए, इस कहानी के लिए…" starts (in sync, not before it)
       { id:S[1], pre:() => {
           num(a) && num(a).classList.add("hl");
           if(d.scene === "marbles"){ show(photo(0)); show(scene.querySelector(".ba")); popGroup(scene.querySelector(".ba")); }
