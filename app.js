@@ -3743,6 +3743,7 @@ SlideModules.WORKED_EXAMPLE = {
         `<div class="sm-we-col cc"><div class="sm-we-box bt off">${smGroup("marble", a + b, { cls:"slots" })}</div></div>`;
     } else {
       scene.innerHTML = smBirdsHTML(a, { hide:true });
+      scene.classList.add("waiting");   // [ui] the wire waits (hidden, its place kept) until the story is told again (S[1])
     }
     const tokens = [String(a), d.op, String(b), "=", "?"];
     const eq = smEl("div", "sm-eq-cards", tokens.map((t, i) => `<span class="sm-card ${smTokCls(t)} off" data-i="${i}">${smEsc(t)}</span>`).join(""));
@@ -3799,7 +3800,7 @@ SlideModules.WORKED_EXAMPLE = {
       { id:S[1], pre:() => {
           num(a) && num(a).classList.add("hl");
           if(d.scene === "marbles"){ show(photo(0)); show(scene.querySelector(".ba")); popGroup(scene.querySelector(".ba")); }
-          else { sfxFlap(); popGroup(scene); }
+          else { scene.classList.remove("waiting"); smLater(alive, 350, () => { sfxFlap(); popGroup(scene); }); }   // the wire fades in, then the birds land
         }, cues:() => [{ at:smAt(S[1], String(a)) || 400, fn:() => { show(cards[0]); sfxPop(3); } }], gap:400 },
       { id:S[2], pre:() => {
           num(b) && num(b).classList.add("hl");

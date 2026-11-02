@@ -3176,3 +3176,5 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
 /* [T1/T2] the equation cards stay still while the VO reads them: a lit card only changes colour (no grow / lift), in the
    columns and in the finished row (whose own move is the inline transform, left as it is) */
 .sm-we .sm-eq-cards .sm-card.lit,.sm-we.final .sm-eq-cards .sm-card[style*='translate'].lit{transform:none;scale:none;}
+/* [T2] the wire scene stays hidden after the story card settles (app.js WORKED_EXAMPLE .waiting); it fades in with the next VO */
+.sm-we .sm-we-scene.waiting{opacity:0;}
