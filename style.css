@@ -3260,3 +3260,6 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
 .stage.sm-page .sm-story-opt.faded{opacity:.4;filter:grayscale(.8);}
 .stage.sm-page .sm-story-opt.correct{border:5px solid var(--ui-ok);background:var(--ui-ok-bg);box-shadow:0 4px 0 #A8E3B9,0 0 6px var(--ui-ok),0 0 14px rgba(0,177,50,.45);
   animation:smRight .45s cubic-bezier(.3,1.6,.5,1) both;}
+/* [G1/G2 tap] the sign cards are tapped, not dragged */
+.sm-tray-signs .sm-tile.sign{cursor:pointer;touch-action:manipulation;}
+.sm-tray-signs .sm-tile.sign:active{scale:.96;}

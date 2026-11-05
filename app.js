@@ -4120,7 +4120,7 @@ SlideModules.SIGN_DRAG = {
         { duration:440, easing:"cubic-bezier(.3,.8,.25,1)" }); sfxPop(4 + tiles.indexOf(t) * 3); };
     if(oneByOne) tiles.forEach(t => t.classList.add("sm-hold"));
     const free = smReplay((done) => smPlay(d.story_vo, smKaraoke(story, d.story_vo), () => { smKaraokeClear(story); done(); }));
-    const endIntro = smOnce(() => { showWork(); tiles.forEach(showTile); free(); smKaraokeClear(story); setSwMood("point"); startNudge(slide, zone, tray); });   // idle: the drag demo, cards → box
+    const endIntro = smOnce(() => { showWork(); tiles.forEach(showTile); free(); smKaraokeClear(story); setSwMood("point"); startNudge(slide, tray); });   // idle: the hand taps at the sign cards
     const place = (tile, viaReveal) => {
       endIntro(); state.locked = true; stopNudge();
       zone.classList.add("filled", smTokCls(d.answer).split(" ")[1]); zone.textContent = d.answer;
@@ -4151,10 +4151,22 @@ SlideModules.SIGN_DRAG = {
         SwiftPAL.emit("answer_revealed", { slide_id:slide.id, phase:slide.phase, attempts:state.attempts });
       }
     };
-    tiles.forEach(tile => smDraggable(tile, {
-      can:() => !state.locked && !busyHint && !tile.classList.contains("faded"),
-      drop:(z, t) => { if(z !== zone) return false; if(t === right){ place(t, revealed); return true; } wrong(t); return false; },
-      tap:(t) => { if(state.locked || busyHint) return; if(revealed && t === right){ state.locked = true; t.style.visibility = "hidden"; smFly(t, zone, 520, () => { t.style.visibility = ""; place(t, true); }); } }
+    /* [G1/G2 tap] the child taps a sign card (no dragging): the right one flies into the box; a wrong one goes to the
+       box, shakes there and springs back to the tray, and the usual wrong-answer feedback / hint runs */
+    let flying = false;
+    tiles.forEach(tile => tile.addEventListener("click", () => {
+      if(state.locked || busyHint || flying || tile.classList.contains("faded")) return;
+      if(tile === right){
+        state.locked = true; tile.style.visibility = "hidden";
+        smFly(tile, zone, 480, () => { tile.style.visibility = ""; place(tile, revealed); });
+        return;
+      }
+      flying = true; sfxWhoosh();
+      const { dx, dy } = smDelta(tile, zone), at = `translate(${dx.toFixed(1)}px,${dy.toFixed(1)}px)`;
+      tile.style.zIndex = "50";
+      tile.animate([{ transform:"none" }, { transform:at + " scale(1.05)", offset:.38 }, { transform:at + " translateX(-12px)", offset:.48 },
+                    { transform:at + " translateX(10px)", offset:.58 }, { transform:at, offset:.66 }, { transform:"none" }],
+        { duration:900, easing:"cubic-bezier(.4,0,.3,1)" }).onfinish = () => { tile.style.zIndex = ""; flying = false; if(alive()) wrong(tile); };
     }));
     setSwMood("talk");
     smSteps([{ id:d.story_vo, cues:() => smKaraoke(story, d.story_vo), post:() => smKaraokeClear(story), gap:350 },
