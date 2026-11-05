@@ -3763,7 +3763,7 @@ function smBananaBasket(cfg, card, alive, close, sync){
     rows += `<div class="sm-bb-row">${its}</div>`;
   }
   card.classList.add("sm-bb-card");
-  card.innerHTML = `<div class="sm-bb"><div class="sm-bb-basket"><img class="sm-bb-prop" src="${smArt("prop_basket_top")}" alt="" draggable="false"><div class="sm-bb-rows">${rows}</div></div>` +
+  card.innerHTML = `<div class="sm-bb"><div class="sm-bb-basket"><div class="sm-bb-rows">${rows}</div></div>` +
     `<div class="sm-bb-mk"><img src="${smArt("char_monkey")}" alt="" draggable="false"></div></div>`;
   const all = [...card.querySelectorAll(".sm-bb-it")], scene = card.querySelector(".sm-bb"), basket = card.querySelector(".sm-bb-basket");
   const mk = card.querySelector(".sm-bb-mk"), mkImg = mk.querySelector("img"), HAND = { x:.46, y:.5 }, MOUTH = { x:.54, y:.44 };
