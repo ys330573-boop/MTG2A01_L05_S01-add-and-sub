@@ -3178,3 +3178,5 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
 .sm-we .sm-eq-cards .sm-card.lit,.sm-we.final .sm-eq-cards .sm-card[style*='translate'].lit{transform:none;scale:none;}
 /* [T2] the wire scene stays hidden after the story card settles (app.js WORKED_EXAMPLE .waiting); it fades in with the next VO */
 .sm-we .sm-we-scene.waiting{opacity:0;}
+/* [G1 hint] the 24 already aboard glow as the hint VO says "24 सवारियाँ" */
+.sm-wrap-bus .sm-grp.seated img.sm-person.sm-keep{filter:drop-shadow(0 0 4px #FFC800) drop-shadow(0 0 2px #FFC800);}

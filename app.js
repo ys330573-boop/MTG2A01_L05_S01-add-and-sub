@@ -3358,7 +3358,7 @@ function smFlyBirds(birds, stagger){
 
 /* ---------- hint animation overlay (WA "play the animation of …") ----------
    cfg: {type:"add"|"remove"|"merge", kind, a, b, kindB?, from?, to?, wrap?, labelA?, labelB?} */
-function smAnimate(cfg, alive, onDone){
+function smAnimate(cfg, alive, onDone, sync){
   const stage = $("stage");
   const ov = smEl("div", "sm-anim-ov"), card = smEl("div", "sm-anim-card sm-wrap-" + (cfg.wrap || "plain"));
   const badge = smEl("div", "sm-anim-count", String(cfg.a));
@@ -3448,26 +3448,18 @@ function smAnimate(cfg, alive, onDone){
     const base = items.slice(0, cfg.a), more = items.slice(cfg.a), src = endImg(".sm-anim-src");
     more.forEach(it => it.classList.add("hide"));
     const t = smPopIn(base, 20, sfxPop);
+    const bus = cfg.wrap === "bus" && !src && card.querySelector(".sm-anim-prop");
+    if(bus && sync){
+      /* [G1 hint] in step with the hint VO: the 24 aboard glow as it says "24 सवारियाँ", then everything holds still
+         until it says "16 सवारियाँ" - only then do the new ones board (fallback: board anyway if that cue never comes) */
+      sync.a = () => { if(alive()) base.forEach((it, i) => { it.classList.add("sm-keep");
+        it.animate([{ scale:"1" }, { scale:"1.18" }, { scale:"1" }], { duration:420, delay:i * 12, easing:"ease-out" }); }); };
+      sync.b = smOnce(() => smLater(alive, 0, () => board(bus)));
+      smLater(alive, 12000, sync.b);
+      return;
+    }
     smLater(alive, t + 700, () => {
-      const bus = cfg.wrap === "bus" && !src && card.querySelector(".sm-anim-prop");
-      if(bus){
-        /* [G1] no bus stop: the new passengers board one by one (as T1's marbles come in) - each steps up at the door and
-           walks inside, behind the windows, to its seat; a pop and the count going up as each one sits down */
-        const b = bus.getBoundingClientRect(), sc = smScale(), STEP = 180, WALK = 650;
-        more.forEach((it, i) => setTimeout(() => {
-          if(!alive()) return;
-          const r = it.getBoundingClientRect(), dx = (((b.left + b.width * .845) - (r.left + r.width / 2)) / sc).toFixed(1);
-          it.classList.remove("hide"); it.classList.add("sm-new");
-          it.animate([
-            { transform:`translate(${dx}px,16px) scale(.8)`, opacity:0 },
-            { transform:`translate(${dx}px,0px) scale(1)`, opacity:1, offset:.2 },
-            { transform:"translate(0px,-3px) scale(1.07)", opacity:1, offset:.86 },
-            { transform:"translate(0px,0px) scale(1)", opacity:1 }], { duration:WALK, easing:"cubic-bezier(.4,0,.3,1)", fill:"both" });
-          setTimeout(() => { if(alive()){ badge.textContent = String(cfg.a + i + 1); sfxPop(i); } }, WALK * .86);
-        }, i * STEP));
-        smLater(alive, more.length * STEP + WALK + 400, () => { badge.classList.add("up"); sfxCorrect(); smLater(alive, 2000, close); });
-        return;
-      }
+      if(bus){ board(bus); return; }
       const ds = more.map(it => src ? smDelta(it, src) : { dx:260, dy:0 });
       more.forEach((it, i) => setTimeout(() => {
         if(!alive()) return;
@@ -3478,6 +3470,23 @@ function smAnimate(cfg, alive, onDone){
       }, i * 150));
       smLater(alive, more.length * 150 + 750, () => { badge.classList.add("up"); sfxCorrect(); smLater(alive, 2000, close); });
     });
+    function board(bus){
+      /* [G1] no bus stop: the new passengers board one by one (as T1's marbles come in) - each steps up at the door and
+         walks inside, behind the windows, to its seat; a pop and the count going up as each one sits down */
+      const b = bus.getBoundingClientRect(), sc = smScale(), STEP = 180, WALK = 650;
+      more.forEach((it, i) => setTimeout(() => {
+        if(!alive()) return;
+        const r = it.getBoundingClientRect(), dx = (((b.left + b.width * .845) - (r.left + r.width / 2)) / sc).toFixed(1);
+        it.classList.remove("hide"); it.classList.add("sm-new");
+        it.animate([
+          { transform:`translate(${dx}px,16px) scale(.8)`, opacity:0 },
+          { transform:`translate(${dx}px,0px) scale(1)`, opacity:1, offset:.2 },
+          { transform:"translate(0px,-3px) scale(1.07)", opacity:1, offset:.86 },
+          { transform:"translate(0px,0px) scale(1)", opacity:1 }], { duration:WALK, easing:"cubic-bezier(.4,0,.3,1)", fill:"both" });
+        setTimeout(() => { if(alive()){ badge.textContent = String(cfg.a + i + 1); sfxPop(i); } }, WALK * .86);
+      }, i * STEP));
+      smLater(alive, more.length * STEP + WALK + 400, () => { badge.classList.add("up"); sfxCorrect(); smLater(alive, 2000, close); });
+    }
   } else {
     const keep = items.slice(0, cfg.a - cfg.b), gone = items.slice(cfg.a - cfg.b), dst = endImg(".sm-anim-dst");
     const t = smPopIn(items, 18, sfxPop);
@@ -3977,8 +3986,9 @@ SlideModules.SIGN_DRAG = {
       endIntro(); stopNudge(); smWrong(slide);
       if(state.attempts === 1){
         state.scaffoldLevel = 2; busyHint = true;
-        smAnimate(d.anim, alive, () => { busyHint = false; });
-        smPlay(d.wa1_vo, smNumCues(story, d.wa1_vo), () => {});
+        const sync = {}, a = smAt(d.wa1_vo, String(d.anim.a)), b = smAt(d.wa1_vo, String(d.anim.b), Math.max(0, smFind(d.wa1_vo, String(d.anim.a))));
+        smAnimate(d.anim, alive, () => { busyHint = false; }, sync);
+        smPlay(d.wa1_vo, smNumCues(story, d.wa1_vo).concat([{ at:a, fn:() => sync.a && sync.a() }, { at:b, fn:() => sync.b && sync.b() }]), () => {});
       } else {
         revealed = true; state.scaffoldLevel = 3; stopAudio();
         smWiggle(tile, 430); tiles.forEach(t => { if(t !== right) t.classList.add("faded"); }); right.classList.add("pulse");
