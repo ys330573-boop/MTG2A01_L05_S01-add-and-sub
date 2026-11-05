@@ -3193,3 +3193,8 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
 .sm-eat-img{position:absolute;inset:14px;width:calc(100% - 28px);height:calc(100% - 28px);object-fit:contain;transform-origin:50% 100%;display:block;}
 .sm-eat-crumb{position:absolute;width:7px;height:7px;margin:-3px 0 0 -3px;border-radius:50%;background:#F2A425;box-shadow:inset -1px -1px 0 #C97412;pointer-events:none;z-index:3;}
 .sm-tf-it.gone,.sm-bp-panel.kept .sm-tf-it.gone{filter:grayscale(1) brightness(.92);opacity:.45;transition:opacity .3s,filter .3s;}
+/* [G4 hint VO] the part the VO is talking about lights up: Dadi's panel on "35", the children's picture on "बच्चों" */
+.sm-tf-card .sm-bp-panel,.sm-eat{transition:box-shadow .3s,border-color .3s;}
+.sm-tf-card .sm-bp-panel.lit{box-shadow:0 0 0 6px rgba(255,200,0,.45),0 0 26px rgba(255,190,0,.6);border-color:#FFB800;}
+.sm-tf-card .sm-bp-panel.lit .sm-tf-it{filter:drop-shadow(0 0 4px rgba(255,190,0,.95));}
+.sm-eat.lit{box-shadow:0 0 0 6px rgba(255,200,0,.45),0 0 26px rgba(255,190,0,.6);border-color:#FFB800;}

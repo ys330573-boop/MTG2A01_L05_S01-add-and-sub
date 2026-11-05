@@ -3366,7 +3366,7 @@ function smAnimate(cfg, alive, onDone, sync){
   stage.classList.add("blurred");
   const close = () => { ov.classList.add("out"); stage.classList.remove("blurred"); setTimeout(() => ov.remove(), 260); if(onDone) onDone(); };
   const total = cfg.type === "remove" ? cfg.a : cfg.a + cfg.b;
-  if(cfg.frames && cfg.type === "remove"){ smLaddooFrames(cfg, card, alive, close); return; }
+  if(cfg.frames && cfg.type === "remove"){ smLaddooFrames(cfg, card, alive, close, sync); return; }
   if(cfg.bundles && cfg.type === "remove"){ smBangleBundles(cfg, card, alive, close, sync); return; }
   if(cfg.handover && cfg.type === "add"){ smBalloonGift(cfg, card, alive, close, sync); return; }
   if(cfg.type === "merge"){
@@ -3676,7 +3676,7 @@ function smBalloonGift(cfg, card, alive, close, sync){
    children's panel (pink) the empty frames they will fill. Her laddoos pop in one by one; then the children's share
    travels over, last laddoo first, each into the next empty cell on their side, leaving an empty cell on hers - what
    stays with Dadi is whole ten-frames you can see at a glance (35 - 15: two full frames = 20). */
-function smLaddooFrames(cfg, card, alive, close){
+function smLaddooFrames(cfg, card, alive, close, sync){
   const F = 10, frames = (n, slots) => {
     let html = "";
     for(let f = 0; f < Math.ceil(n / F); f++){
@@ -3709,10 +3709,17 @@ function smLaddooFrames(cfg, card, alive, close){
   };
   $$(".sm-bp-side").forEach((el, k) => el.animate([{ opacity:0, transform:"translateY(14px)" }, { opacity:1, transform:"none" }], { duration:420, delay:k * 140, easing:"ease-out", fill:"backwards" }));
   mine.forEach(it => it.style.visibility = "hidden");
-  smLater(alive, 400, () => { mine.forEach(it => it.style.visibility = ""); smPopIn(mine, 55, sfxPop); });
-  const STEP = 260, FLY = 720;
-  smLater(alive, 400 + mine.length * 55 + 900, () => {
+  const POP = sync ? 22 : 55;
+  smLater(alive, 400, () => { mine.forEach(it => it.style.visibility = ""); smPopIn(mine, POP, sfxPop); });
+  const STEP = sync ? 220 : 260, FLY = 720, dadiPanel = card.querySelector(".dadi .sm-bp-panel");
+  /* [G4 hint VO] with the hint VO ("पहले 35 लड्डू थे। फिर बच्चों ने 15 लड्डू खा लिए। तो लड्डू बढ़े या कम हुए?"):
+     Dadi's panel lights up on "35", the children's picture on "बच्चों", the laddoos go over on "15", and the card
+     closes only once both the eating and the VO are over */
+  let ate = false, voOver = !sync;
+  const tryClose = () => { if(ate && voOver) smLater(alive, 1600, close); };
+  const share = smOnce(() => smLater(alive, 0, () => {
     // the children's share goes over, last laddoo first, into the two bowls in turn
+    dadiPanel.classList.remove("lit"); eat.classList.remove("lit");
     const box = smRect(card), gone = mine.slice(cfg.a - cfg.b).reverse(); sfxWhoosh();
     gone.forEach((el, i) => setTimeout(() => {
       if(!alive()) return;
@@ -3727,9 +3734,19 @@ function smLaddooFrames(cfg, card, alive, close){
         };
     }, i * STEP));
     smLater(alive, gone.length * STEP + FLY + 400, () => {
-      card.querySelector(".dadi .sm-bp-panel").classList.add("kept"); sfxCorrect(); smLater(alive, 2200, close);
+      dadiPanel.classList.add("kept"); sfxCorrect();
+      if(sync){ ate = true; tryClose(); } else smLater(alive, 2200, close);
     });
-  });
+  }));
+  if(sync){
+    sync.dadi = () => { if(!alive()) return; dadiPanel.classList.add("lit");
+      mine.forEach((it, i) => it.animate([{ scale:"1" }, { scale:"1.18" }, { scale:"1" }], { duration:380, delay:i * 10, easing:"ease-out" })); };
+    sync.kids = () => { if(!alive()) return; dadiPanel.classList.remove("lit"); eat.classList.add("lit");
+      eat.animate([{ scale:"1" }, { scale:"1.05" }, { scale:"1" }], { duration:420, easing:"ease-out" }); };
+    sync.give = share;
+    sync.end = smOnce(() => { voOver = true; tryClose(); });
+    smLater(alive, 9000, share); smLater(alive, 16000, sync.end);   // fallbacks if a cue never fires
+  } else smLater(alive, 400 + mine.length * 55 + 900, share);
 }
 
 /* ---------- shared slide chrome for the activity pages ---------- */
@@ -4132,6 +4149,14 @@ SlideModules.PICK_SENTENCE = {
           const sync = {}, i42 = smFind(d.wa1_vo, String(d.anim.a)), at = (w, from) => { const j = smWords(d.wa1_vo).findIndex((x, k) => k >= (from || 0) && smNorm(x.w) === w); return j < 0 ? null : smWords(d.wa1_vo)[j].ms; };
           smAnimate(d.anim, alive, () => { busy = false; }, sync);
           smPlay(d.wa1_vo, [{ at:at("दादी", Math.max(0, i42)), fn:() => sync.dadi && sync.dadi() }, { at:smAt(d.wa1_vo, String(d.anim.b), Math.max(0, i42 + 1)), fn:() => sync.give && sync.give() }],
+            () => sync.end && sync.end());
+        } else if(d.anim && d.anim.frames && d.wa1_vo){
+          // [G4] the laddoo hint plays WITH its VO: Dadi's laddoos light on "35", the children on "बच्चों", the eating on "15"
+          const sync = {}, i35 = smFind(d.wa1_vo, String(d.anim.a)), at = (w, from) => { const j = smWords(d.wa1_vo).findIndex((x, k) => k >= (from || 0) && smNorm(x.w).startsWith(w)); return j < 0 ? null : smWords(d.wa1_vo)[j].ms; };
+          smAnimate(d.anim, alive, () => { busy = false; }, sync);
+          smPlay(d.wa1_vo, [{ at:smAt(d.wa1_vo, String(d.anim.a)), fn:() => sync.dadi && sync.dadi() },
+              { at:at("बच्च", Math.max(0, i35)), fn:() => sync.kids && sync.kids() },
+              { at:smAt(d.wa1_vo, String(d.anim.b), Math.max(0, i35 + 1)), fn:() => sync.give && sync.give() }],
             () => sync.end && sync.end());
         } else smAnimate(d.anim, alive, () => { busy = false; }); }
       else {
