@@ -3397,7 +3397,7 @@ function smAnimate(cfg, alive, onDone, sync){
      the bus stop), the bangle stand (bangles hang on its rods; the sold ones fly into the shopping bag), Dadi handing
      balloons up into the sky, the plate (laddoos hop over to the children eating), the basket (bananas to the monkey). */
   const PROP = { "🚏":"prop_bus_stop", "🛍️":"prop_shopping_bag", "👵":"char_dadi", "😋":"char_kids_eating", "🐒":"char_monkey" };
-  const WRAP = { bus:"prop_bus", shop:"prop_bangle_stand", plate:"prop_plate", basket:"prop_basket" };
+  const WRAP = { bus:"prop_bus", shop:"prop_bangle_stand", plate:"prop_plate", basket:"prop_basket_top" };
   const COLS = { bus:20, shop:20 };
   const ends = (e, cls) => !e ? "" : `<div class="${cls}">` + (PROP[e] ? `<img src="${smArt(PROP[e])}" alt="" draggable="false" onerror="this.replaceWith('${e}')">` : e) + `</div>`;
   const n = cfg.type === "add" ? cfg.a + cfg.b : cfg.a;

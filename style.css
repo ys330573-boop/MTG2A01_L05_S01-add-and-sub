@@ -3198,3 +3198,10 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
 .sm-tf-card .sm-bp-panel.lit{box-shadow:0 0 0 6px rgba(255,200,0,.45),0 0 26px rgba(255,190,0,.6);border-color:#FFB800;}
 .sm-tf-card .sm-bp-panel.lit .sm-tf-it{filter:drop-shadow(0 0 4px rgba(255,190,0,.95));}
 .sm-eat.lit{box-shadow:0 0 0 6px rgba(255,200,0,.45),0 0 26px rgba(255,190,0,.6);border-color:#FFB800;}
+/* [P1 hint] the basket seen from the top (prop_basket_top): the bananas lie on its floor in rows of ten, each row
+   split 5 | 5, so 27 reads at a glance as ten, ten and seven */
+.sm-wrap-basket .sm-anim-box.has-prop .sm-anim-prop{width:700px;}
+.sm-wrap-basket .sm-anim-box.has-prop .sm-anim-grid{left:12%;right:12%;top:17%;bottom:17%;align-items:center;}
+.sm-wrap-basket .sm-anim-box.has-prop .sm-anim-grid .sm-grp{grid-template-columns:repeat(5,46px) 22px repeat(5,46px);gap:24px 2px;}
+.sm-wrap-basket .sm-anim-box.has-prop .sm-anim-grid .sm-it:nth-child(10n+6){grid-column-start:7;}
+.sm-wrap-basket .sm-anim-box.has-prop img.sm-banana{width:46px;height:46px;margin-top:0;filter:drop-shadow(0 3px 2px rgba(90,55,10,.35));}
