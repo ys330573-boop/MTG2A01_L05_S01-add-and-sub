@@ -3205,3 +3205,21 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
 .sm-wrap-basket .sm-anim-box.has-prop .sm-anim-grid .sm-grp{grid-template-columns:repeat(5,46px) 22px repeat(5,46px);gap:24px 2px;}
 .sm-wrap-basket .sm-anim-box.has-prop .sm-anim-grid .sm-it:nth-child(10n+6){grid-column-start:7;}
 .sm-wrap-basket .sm-anim-box.has-prop img.sm-banana{width:46px;height:46px;margin-top:0;filter:drop-shadow(0 3px 2px rgba(90,55,10,.35));}
+/* [P1 hint] the top-down basket (app.js smBananaBasket): the bananas stand upright, big and close, in rows of ten
+   (each row a soft band - the ten - split 5 | 5); the ones the monkey takes leave a grey banana; the monkey hops in
+   from the right, munches (bits of peel fall), and hops away; the bananas left glow */
+.sm-anim-card.sm-bb-card{width:1120px;overflow:hidden;}
+.sm-bb{display:flex;align-items:center;justify-content:center;gap:24px;}
+.sm-bb-basket{position:relative;width:720px;flex:none;}
+.sm-bb-prop{display:block;width:100%;height:auto;filter:drop-shadow(0 10px 12px rgba(40,30,20,.2));transition:filter .35s;}
+.sm-bb-basket.lit .sm-bb-prop{filter:drop-shadow(0 0 16px rgba(255,190,0,.85)) drop-shadow(0 10px 12px rgba(40,30,20,.2));}
+.sm-bb-rows{position:absolute;inset:16% 13% 15%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;}
+.sm-bb-row{display:grid;grid-template-columns:repeat(5,44px) 18px repeat(5,44px);grid-auto-rows:70px;column-gap:2px;padding:0 12px;border-radius:16px;background:rgba(255,250,232,.55);box-shadow:inset 0 0 0 2px rgba(160,110,40,.18);}
+.sm-bb-it:nth-child(6){grid-column-start:7;}
+.sm-bb-it{width:68px;height:68px;justify-self:center;align-self:center;rotate:-62deg;object-fit:contain;filter:drop-shadow(1px 2px 1px rgba(90,55,10,.35));transition:opacity .3s,filter .3s;}
+.sm-bb-it.gone{filter:grayscale(1) brightness(1.05);opacity:.4;}
+.sm-bb.kept .sm-bb-it:not(.gone){filter:drop-shadow(0 0 5px rgba(255,190,0,.95)) drop-shadow(0 0 2px rgba(255,190,0,.95));}
+.sm-bb-fly{position:absolute;z-index:5;margin:0;pointer-events:none;}
+.sm-bb-mk{position:relative;width:230px;flex:none;}
+.sm-bb-mk img{display:block;width:100%;height:auto;transform-origin:50% 100%;filter:drop-shadow(0 8px 10px rgba(40,30,20,.18));}
+.sm-bb-bit{position:absolute;width:12px;height:6px;margin:-3px 0 0 -6px;border-radius:6px;background:#F7D23C;box-shadow:inset 0 -2px 0 #D9A91A;pointer-events:none;z-index:3;}

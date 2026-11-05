@@ -3367,6 +3367,7 @@ function smAnimate(cfg, alive, onDone, sync){
   const close = () => { ov.classList.add("out"); stage.classList.remove("blurred"); setTimeout(() => ov.remove(), 260); if(onDone) onDone(); };
   const total = cfg.type === "remove" ? cfg.a : cfg.a + cfg.b;
   if(cfg.frames && cfg.type === "remove"){ smLaddooFrames(cfg, card, alive, close, sync); return; }
+  if(cfg.wrap === "basket" && cfg.type === "remove"){ smBananaBasket(cfg, card, alive, close, sync); return; }
   if(cfg.bundles && cfg.type === "remove"){ smBangleBundles(cfg, card, alive, close, sync); return; }
   if(cfg.handover && cfg.type === "add"){ smBalloonGift(cfg, card, alive, close, sync); return; }
   if(cfg.type === "merge"){
@@ -3747,6 +3748,70 @@ function smLaddooFrames(cfg, card, alive, close, sync){
     sync.end = smOnce(() => { voOver = true; tryClose(); });
     smLater(alive, 9000, share); smLater(alive, 16000, sync.end);   // fallbacks if a cue never fires
   } else smLater(alive, 400 + mine.length * 55 + 900, share);
+}
+
+/* [P1 hint] the top-down basket: the bananas stand upright in rows of ten (each row a ten, split 5 | 5), so 27 reads
+   as ten, ten and seven. With the hint VO ("टोकरी में 27 केले थे। बंदर 14 केले ले गया। …") they come in on "27", the
+   monkey hops in on "बंदर", and on "14" the bananas go to him one at a time - each leaves a grey banana in its place -
+   and he munches them; then he hops away and the 13 left glow. The card closes once the eating and the VO are over. */
+function smBananaBasket(cfg, card, alive, close, sync){
+  const B = 10;
+  let rows = "";
+  for(let r = 0; r * B < cfg.a; r++){
+    let its = "";
+    for(let i = r * B; i < Math.min(cfg.a, r * B + B); i++) its += `<img class="sm-bb-it" src="${smArt("obj_banana")}" alt="" draggable="false">`;
+    rows += `<div class="sm-bb-row">${its}</div>`;
+  }
+  card.classList.add("sm-bb-card");
+  card.innerHTML = `<div class="sm-bb"><div class="sm-bb-basket"><img class="sm-bb-prop" src="${smArt("prop_basket_top")}" alt="" draggable="false"><div class="sm-bb-rows">${rows}</div></div>` +
+    `<div class="sm-bb-mk"><img src="${smArt("char_monkey")}" alt="" draggable="false"></div></div>`;
+  const all = [...card.querySelectorAll(".sm-bb-it")], scene = card.querySelector(".sm-bb"), basket = card.querySelector(".sm-bb-basket");
+  const mk = card.querySelector(".sm-bb-mk"), mkImg = mk.querySelector("img"), HAND = { x:.46, y:.5 }, MOUTH = { x:.54, y:.44 };
+  const synced = !!sync, STEP = 210, FLY = 680;
+  let ate = false, voOver = !synced;
+  const tryClose = () => { if(ate && voOver) smLater(alive, 1600, close); };
+  all.forEach(it => it.style.visibility = "hidden"); mk.style.visibility = "hidden";
+  const fill = smOnce(() => { if(!alive()) return;
+    all.forEach(it => it.style.visibility = ""); smPopIn(all, 24, sfxPop);
+    basket.classList.add("lit"); smLater(alive, all.length * 24 + 1200, () => basket.classList.remove("lit")); });
+  const hop = (from, to, ms) => mk.animate([{ transform:`translateX(${from}px)`, opacity:from ? 0 : 1 },
+      { transform:`translate(${from + (to - from) * .35}px,-26px)`, opacity:1, offset:.25 }, { transform:`translateX(${from + (to - from) * .55}px)`, opacity:1, offset:.45 },
+      { transform:`translate(${from + (to - from) * .8}px,-20px)`, opacity:1, offset:.7 }, { transform:`translateX(${to}px)`, opacity:to ? 0 : 1 }],
+    { duration:ms, easing:"ease-in-out", fill:"forwards" });
+  const come = smOnce(() => { if(!alive()) return; fill(); mk.style.visibility = ""; hop(320, 0, 800); sfxWhoosh(); });
+  const munch = (i) => {
+    mkImg.animate([{ scale:"1" }, { scale:"1.03 .97", offset:.3 }, { scale:".99 1.02", offset:.65 }, { scale:"1" }], { duration:340, easing:"ease-out" });
+    for(let k = 0; k < 4; k++){
+      const c = smEl("i", "sm-bb-bit"); c.style.left = MOUTH.x * 100 + "%"; c.style.top = MOUTH.y * 100 + "%"; mk.appendChild(c);
+      const dx = (k - 1.5) * 12 + (i % 3) * 3, dy = 34 + (k % 2) * 16;
+      c.animate([{ transform:"translate(0,0) rotate(0deg)", opacity:1 }, { transform:`translate(${dx}px,${dy}px) rotate(${(k - 1.5) * 70}deg)`, opacity:0 }],
+        { duration:640, easing:"cubic-bezier(.3,0,.7,1)", fill:"forwards" }).onfinish = () => c.remove();
+    }
+  };
+  const eat = smOnce(() => smLater(alive, 0, () => {
+    come();
+    // the monkey's share: the last bananas first (the seven of the last row, then the end of the row before)
+    const box = smRect(card), gone = all.slice(cfg.a - cfg.b).reverse();
+    gone.forEach((el, i) => setTimeout(() => {
+      if(!alive()) return;
+      const a = smRect(el), m = smRect(mkImg), w = el.offsetWidth, fly = el.cloneNode(true);
+      fly.classList.add("sm-bb-fly"); fly.style.left = (a.x + a.w / 2 - w / 2 - box.x) + "px"; fly.style.top = (a.y + a.h / 2 - w / 2 - box.y) + "px";
+      card.appendChild(fly); el.classList.add("gone");
+      const dx = m.x + m.w * HAND.x - (a.x + a.w / 2), dy = m.y + m.h * HAND.y - (a.y + a.h / 2);
+      // (the `translate` property, not `transform`: the banana's `rotate` would turn a transform's path too)
+      fly.animate([{ translate:"0 0", scale:"1", opacity:1 }, { translate:`${dx * .5}px ${dy * .5 - 70}px`, scale:"1.1", opacity:1, offset:.5 },
+          { translate:`${dx}px ${dy}px`, scale:".8", opacity:1, offset:.88 }, { translate:`${dx}px ${dy}px`, scale:".5", opacity:0 }],
+        { duration:FLY, easing:"cubic-bezier(.45,.05,.3,1)", fill:"forwards" }).onfinish = () => { if(!alive()) return; fly.remove(); munch(i); sfxPop(i); };
+    }, i * STEP));
+    smLater(alive, gone.length * STEP + FLY + 300, () => {
+      hop(0, 340, 900); scene.classList.add("kept"); sfxCorrect();
+      smLater(alive, 900, () => { ate = true; if(synced) tryClose(); else smLater(alive, 1600, close); });
+    });
+  }));
+  if(synced){
+    sync.a = fill; sync.come = come; sync.b = eat; sync.end = smOnce(() => { voOver = true; tryClose(); });
+    smLater(alive, 2500, fill); smLater(alive, 6000, eat); smLater(alive, 16000, sync.end);   // fallbacks if a cue never fires
+  } else { smLater(alive, 300, fill); smLater(alive, 1700, come); smLater(alive, 2700, eat); }
 }
 
 /* ---------- shared slide chrome for the activity pages ---------- */
@@ -4250,6 +4315,15 @@ SlideModules.BUILD_SENTENCE = {
       else if(kind === "num_in_op" && n >= 2) smPlay(fb.num_in_op, [], () => {});
       else if(kind === "wrong_op"){
         if(n === 1) smPlay(fb.wrong_op_1, smNumCues(story, fb.wrong_op_1), () => {});
+        else if(fb.wrong_op_2_anim && fb.wrong_op_2_anim.wrap === "basket" && fb.wrong_op_1){
+          // [P1] the basket hint plays WITH the op VO: the bananas come in on "27", the monkey on "बंदर", the eating on "14"
+          const an = fb.wrong_op_2_anim, vo = fb.wrong_op_1, sync = {}, iA = smFind(vo, String(an.a));
+          const at = (w, from) => { const j = smWords(vo).findIndex((x, k) => k >= (from || 0) && smNorm(x.w).startsWith(w)); return j < 0 ? null : smWords(vo)[j].ms; };
+          busy = true; stopAudio(); smAnimate(an, alive, () => { busy = false; }, sync);
+          smPlay(vo, [{ at:smAt(vo, String(an.a)), fn:() => sync.a && sync.a() }, { at:at("बंदर", Math.max(0, iA)), fn:() => sync.come && sync.come() },
+              { at:smAt(vo, String(an.b), Math.max(0, iA + 1)), fn:() => sync.b && sync.b() }],
+            () => sync.end && sync.end());
+        }
         else { busy = true; stopAudio(); smAnimate(fb.wrong_op_2_anim, alive, () => { busy = false; }); }
       }
       else if(kind === "wrong_num" && n >= 2 && fb.wrong_num && fb.wrong_num[z._i]) smPlay(fb.wrong_num[z._i], [], () => {});
