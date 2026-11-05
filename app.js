@@ -4454,6 +4454,9 @@ function smWalkKf(dx, dy, s1, steps, ox, oy){
   return kf;
 }
 
+const SW_PAL = { talk:"assets/UI/sw_pal_talk.webp", still:"assets/UI/sw_pal_still.webp" };
+[SW_PAL.talk, SW_PAL.still].forEach(s => { const i = new Image(); i.src = s; });   // warm the cache before the palace
+
 SlideModules.PALACE_SCENE = {
   // STORY BEAT for the "रहस्यमयी महल" adventure (storyboard panels 1 and 7–8): palace backdrop, Swiftie
   // with a speech bubble that matches the VO, आगे after the line. data:{kind:"intro"|"treasure", title?, vo}
@@ -4470,9 +4473,12 @@ SlideModules.PALACE_SCENE = {
             [[18, 22], [72, 14], [40, 8], [86, 40], [10, 48], [58, 30]].map(([x, y], i) => `<i class="tr-spk" style="left:${x}%;top:${y}%;animation-delay:${i * .35}s"></i>`).join("") +
           `</div>`
         : "") +
-      `<img class="sm-pal-sw" src="assets/UI/${pose}.png" alt="">` +
+      (d.kind === "intro" ? `<img class="sm-pal-sw talker" src="${SW_PAL.still}" alt="">` : `<img class="sm-pal-sw" src="assets/UI/${pose}.png" alt="">`) +
       `<div class="sm-bubble">${smEsc(smText(d.vo))}</div>`;
     host.appendChild(sc);
+    /* [art] the intro Swiftie talks (lips moving, keyed from the green-screen clip) while his line plays, and rests
+       with his beak closed before and after it */
+    const swImg = sc.querySelector(".sm-pal-sw.talker"), talking = (on) => { if(swImg) swImg.src = on ? SW_PAL.talk : SW_PAL.still; };
     if(d.kind === "treasure"){
       sfxSparkle();
       smLater(alive, 650, () => {                       // the chest lands: coins spill out in an arc, then the confetti
@@ -4527,9 +4533,9 @@ SlideModules.PALACE_SCENE = {
         };
       };
     };
-    const free = smReplay((done) => smPlay(d.vo, [], done));
+    const free = smReplay((done) => { talking(true); smPlay(d.vo, [], () => { talking(false); done(); }); });
     setSwMood(d.kind === "treasure" ? "celebrate" : "talk");
-    smSteps([500, { id:d.vo }], alive, () => { free(); if(toGate) walkToGate(); else setNavActive(true); });
+    smSteps([500, { id:d.vo, pre:() => talking(true), post:() => talking(false) }], alive, () => { free(); if(toGate) walkToGate(); else setNavActive(true); });
   }
 };
 
