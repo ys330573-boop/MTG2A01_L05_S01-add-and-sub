@@ -3222,3 +3222,41 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
 .sm-bb-mk{position:relative;width:230px;flex:none;}
 .sm-bb-mk img{display:block;width:100%;height:auto;transform-origin:50% 100%;filter:drop-shadow(0 8px 10px rgba(40,30,20,.18));}
 .sm-bb-bit{position:absolute;width:12px;height:6px;margin:-3px 0 0 -6px;border-radius:6px;background:#F7D23C;box-shadow:inset 0 -2px 0 #D9A91A;pointer-events:none;z-index:3;}
+
+/* [P2 hint] three boxes - boys, girls, the classroom (blackboard over a wooden floor with places in rows of ten) */
+.sm-anim-card.sm-cr-card{max-width:none;padding:44px 40px 36px;}
+.sm-cr{display:flex;gap:30px;align-items:flex-end;justify-content:center;}
+.sm-cr-side{display:flex;flex-direction:column;align-items:center;gap:12px;background:#F4F8FE;border:4px solid #DCE6F3;border-radius:24px;padding:14px 18px 20px;}
+.sm-cr-side.boys{background:#EEF5FF;border-color:#9CC4F2;} .sm-cr-side.girls{background:#FFF0F7;border-color:#F0A9CF;}
+.sm-cr-side.room{background:#FFF8EC;border-color:#D9B27A;padding:12px 16px 16px;transition:box-shadow .4s,border-color .4s;}
+.sm-cr-side.room.lit{border-color:#FFB800;box-shadow:0 0 0 6px rgba(255,200,0,.45),0 0 26px rgba(255,190,0,.6);}
+.sm-cr-lbl{font-weight:800;font-size:34px;line-height:1.1;color:var(--navy);}
+.sm-cr-board{width:240px;height:54px;border-radius:8px;background:#2F6B4F;border:7px solid #8A5A2B;box-shadow:inset 0 0 0 2px rgba(255,255,255,.15);}
+.sm-cr-floor{padding:10px 12px;border-radius:14px;background:repeating-linear-gradient(90deg,#E9C893 0 34px,#DDB97F 34px 36px);border:3px solid #C99A5C;}
+.sm-cr .sm-grp{gap:6px;}
+.sm-cr img.sm-it{width:30px;height:30px;}
+.sm-cr-floor .sm-it.slot{visibility:visible;opacity:.18;filter:grayscale(1) brightness(.6);}
+.sm-anim-card.sm-cr-card{width:auto;min-width:0;padding:40px 32px 32px;}
+.sm-cr{gap:24px;}
+.sm-cr-side{padding:12px 14px 16px;gap:10px;}
+.sm-cr-side.room{padding:12px 12px 14px;}
+.sm-anim-card .sm-cr .sm-grp{gap:5px;}
+.sm-anim-card .sm-cr img.sm-it{width:26px;height:26px;}
+.sm-cr-board{width:200px;height:46px;border-width:6px;}
+.sm-cr-floor{padding:9px 10px;}
+.sm-cr{align-items:center;}
+/* [P3 feedback] WA1: the number / sign the hint VO says (32 -> - -> 17) lights up in its own box - orange edge and glow,
+   a small lift. WA2: the right story card glows yellow and pulses (the page's .stage.sm-page .sm-story-opt rule used to
+   hide the .reveal border and glow), the wrong one stays faded. */
+.sm-eq-inline:has(+ .sm-stories) .sm-tok{transition:transform .2s,color .2s,border-color .2s,box-shadow .2s,background-color .2s;}
+.sm-eq-inline:has(+ .sm-stories) .sm-tok.num.lit{background:#FFF1D8 !important;border-color:#F5A524 !important;
+  box-shadow:0 4px 0 #F2C77E,0 0 0 6px rgba(255,200,0,.4),0 0 18px rgba(255,160,0,.55) !important;transform:translateY(-4px) scale(1.1);}
+.sm-eq-inline:has(+ .sm-stories) .sm-tok.op.lit{transform:scale(1.5);}
+.stage.sm-page .sm-story-opt.reveal{border:5px solid #FFB800;background:#FFFBEA;
+  box-shadow:0 4px 0 #F2C77E,0 0 0 6px rgba(255,200,0,.45),0 0 26px rgba(255,190,0,.6);
+  animation:smRevealPulse 1.15s cubic-bezier(.34,.62,.3,1) infinite,smStoryGlow 1.15s ease-in-out infinite;}
+@keyframes smStoryGlow{0%,100%{box-shadow:0 4px 0 #F2C77E,0 0 0 6px rgba(255,200,0,.35),0 0 18px rgba(255,190,0,.45);}
+  35%{box-shadow:0 4px 0 #F2C77E,0 0 0 10px rgba(255,200,0,.55),0 0 34px rgba(255,190,0,.75);}}
+.stage.sm-page .sm-story-opt.faded{opacity:.4;filter:grayscale(.8);}
+.stage.sm-page .sm-story-opt.correct{border:5px solid var(--ui-ok);background:var(--ui-ok-bg);box-shadow:0 4px 0 #A8E3B9,0 0 6px var(--ui-ok),0 0 14px rgba(0,177,50,.45);
+  animation:smRight .45s cubic-bezier(.3,1.6,.5,1) both;}
