@@ -3690,13 +3690,13 @@ function smLaddooFrames(cfg, card, alive, close){
   const side = (k, color, name, row) => `<div class="sm-bp-side ${k} ${color}"><div class="sm-bp-av"><img src="${smArt("av_" + k)}" alt="" draggable="false"><span>${name}</span></div>` +
     `<div class="sm-bp-panel"><div class="sm-bp-row">${row}</div></div></div>`;
   /* [G4 hint] the children's side is no panel of empty frames but a square picture of them eating: each laddoo flies
-     into one of their bowls (turn about), and they munch - the picture chews, crumbs fall from that child's mouth, now
-     and then a 😋 floats up - while a chip counts what they have had. The laddoo leaves a grey one in Dadi's cell. */
+     into one of their bowls (turn about), and they munch - the picture chews, crumbs fall from that child's mouth.
+     The laddoo leaves a grey one in Dadi's cell. */
   card.classList.add("sm-bp-card", "sm-tf-card");
   card.innerHTML = `<div class="sm-bp">${side("dadi", "blue", "दादी", frames(cfg.a))}` +
-    `<div class="sm-bp-side kids pink"><div class="sm-eat"><img class="sm-eat-img" src="${smArt("char_kids_eating")}" alt="" draggable="false"><b class="sm-eat-n">0</b></div></div></div>`;
+    `<div class="sm-bp-side kids pink"><div class="sm-eat"><img class="sm-eat-img" src="${smArt("char_kids_eating")}" alt="" draggable="false"></div></div></div>`;
   const $$ = s => [...card.querySelectorAll(s)], mine = $$(".dadi .sm-tf-it");
-  const eat = card.querySelector(".sm-eat"), pic = eat.querySelector(".sm-eat-img"), num = eat.querySelector(".sm-eat-n");
+  const eat = card.querySelector(".sm-eat"), pic = eat.querySelector(".sm-eat-img");
   const SPOT = [{ x:.33, y:.6, mx:.4, my:.41 }, { x:.74, y:.64, mx:.65, my:.47 }];   // each child's bowl and mouth (fractions of the picture)
   const munch = (s, i) => {
     pic.animate([{ scale:"1" }, { scale:"1.025 .975", offset:.3 }, { scale:".99 1.015", offset:.65 }, { scale:"1" }], { duration:360, easing:"ease-out" });
@@ -3705,11 +3705,6 @@ function smLaddooFrames(cfg, card, alive, close){
       const dx = (k - 2) * 9 + (i % 3) * 3, dy = 26 + (k % 3) * 12;
       c.animate([{ transform:"translate(0,0) scale(1)", opacity:1 }, { transform:`translate(${dx}px,${dy}px) scale(.5)`, opacity:0 }],
         { duration:620, easing:"cubic-bezier(.3,0,.7,1)", fill:"forwards" }).onfinish = () => c.remove();
-    }
-    if(i % 4 === 1){
-      const y = smEl("span", "sm-eat-yum", "😋"); y.style.left = s.mx * 100 + "%"; y.style.top = s.my * 100 + "%"; eat.appendChild(y);
-      y.animate([{ transform:"translate(-50%,0) scale(.4)", opacity:0 }, { transform:"translate(-50%,-40px) scale(1)", opacity:1, offset:.35 }, { transform:"translate(-50%,-90px) scale(.9)", opacity:0 }],
-        { duration:1100, easing:"ease-out", fill:"forwards" }).onfinish = () => y.remove();
     }
   };
   $$(".sm-bp-side").forEach((el, k) => el.animate([{ opacity:0, transform:"translateY(14px)" }, { opacity:1, transform:"none" }], { duration:420, delay:k * 140, easing:"ease-out", fill:"backwards" }));
@@ -3728,12 +3723,10 @@ function smLaddooFrames(cfg, card, alive, close){
       fly.animate([{ transform:"translate(0,0)", opacity:1 }, { transform:`translate(${dx * .5}px,${dy * .5 - 70}px) scale(1.15)`, opacity:1, offset:.5 },
           { transform:`translate(${dx}px,${dy}px) scale(.85)`, opacity:1, offset:.9 }, { transform:`translate(${dx}px,${dy + 4}px) scale(.6)`, opacity:0 }],
         { duration:FLY, easing:"cubic-bezier(.45,.05,.3,1)", fill:"forwards" }).onfinish = () => {
-          if(!alive()) return; fly.remove(); munch(s, i); num.textContent = String(i + 1);
-          num.animate([{ scale:"1" }, { scale:"1.25" }, { scale:"1" }], { duration:280, easing:"ease-out" }); sfxPop(i);
+          if(!alive()) return; fly.remove(); munch(s, i); sfxPop(i);
         };
     }, i * STEP));
     smLater(alive, gone.length * STEP + FLY + 400, () => {
-      eat.classList.add("done");
       card.querySelector(".dadi .sm-bp-panel").classList.add("kept"); sfxCorrect(); smLater(alive, 2200, close);
     });
   });
