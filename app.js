@@ -3963,8 +3963,16 @@ SlideModules.SIGN_DRAG = {
     eq.classList.add("sm-hold"); tray.classList.add("sm-hold");
     const showWork = smOnce(() => [eq, tray].forEach((el, k) => { el.classList.remove("sm-hold");
       el.animate([{ opacity:0, translate:"0 18px" }, { opacity:1, translate:"0 0" }], { duration:460, delay:k * 160, easing:"cubic-bezier(.3,.8,.25,1)", fill:"backwards" }); }));
+    /* [G1] when the instruction VO names the signs ("जोड़ … या घटाना"), each sign card pops in as its word is said;
+       a clip that doesn't name them both brings the cards in together with the tray */
+    const signAt = tiles.map(t => { const w = smWords(d.q_vo).find(w => smNorm(w.w).startsWith(SM_SPOKEN[t.textContent] || "\0")); return w ? w.ms : null; });
+    const oneByOne = signAt.every(ms => ms != null);
+    const showTile = (t) => { if(!t.classList.contains("sm-hold")) return; t.classList.remove("sm-hold");
+      t.animate([{ opacity:0, transform:"translateY(22px) scale(.8)" }, { opacity:1, transform:"translateY(-4px) scale(1.06)", offset:.7 }, { opacity:1, transform:"none" }],
+        { duration:440, easing:"cubic-bezier(.3,.8,.25,1)" }); sfxPop(4 + tiles.indexOf(t) * 3); };
+    if(oneByOne) tiles.forEach(t => t.classList.add("sm-hold"));
     const free = smReplay((done) => smPlay(d.story_vo, smKaraoke(story, d.story_vo), () => { smKaraokeClear(story); done(); }));
-    const endIntro = smOnce(() => { showWork(); free(); smKaraokeClear(story); setSwMood("point"); startNudge(slide, zone, tray); });   // idle: the drag demo, cards → box
+    const endIntro = smOnce(() => { showWork(); tiles.forEach(showTile); free(); smKaraokeClear(story); setSwMood("point"); startNudge(slide, zone, tray); });   // idle: the drag demo, cards → box
     const place = (tile, viaReveal) => {
       endIntro(); state.locked = true; stopNudge();
       zone.classList.add("filled", smTokCls(d.answer).split(" ")[1]); zone.textContent = d.answer;
@@ -4001,7 +4009,8 @@ SlideModules.SIGN_DRAG = {
       tap:(t) => { if(state.locked || busyHint) return; if(revealed && t === right){ state.locked = true; t.style.visibility = "hidden"; smFly(t, zone, 520, () => { t.style.visibility = ""; place(t, true); }); } }
     }));
     setSwMood("talk");
-    smSteps([{ id:d.story_vo, cues:() => smKaraoke(story, d.story_vo), post:() => smKaraokeClear(story), gap:350 }, { id:d.q_vo, pre:showWork }],
+    smSteps([{ id:d.story_vo, cues:() => smKaraoke(story, d.story_vo), post:() => smKaraokeClear(story), gap:350 },
+      { id:d.q_vo, pre:showWork, cues:() => oneByOne ? tiles.map((t, i) => ({ at:signAt[i], fn:() => showTile(t) })) : [] }],
       alive, endIntro);
   }
 };
