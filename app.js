@@ -3367,8 +3367,8 @@ function smAnimate(cfg, alive, onDone, sync){
   const close = () => { ov.classList.add("out"); stage.classList.remove("blurred"); setTimeout(() => ov.remove(), 260); if(onDone) onDone(); };
   const total = cfg.type === "remove" ? cfg.a : cfg.a + cfg.b;
   if(cfg.frames && cfg.type === "remove"){ smLaddooFrames(cfg, card, alive, close); return; }
-  if(cfg.bundles && cfg.type === "remove"){ smBangleBundles(cfg, card, alive, close); return; }
-  if(cfg.handover && cfg.type === "add"){ smBalloonGift(cfg, card, alive, close); return; }
+  if(cfg.bundles && cfg.type === "remove"){ smBangleBundles(cfg, card, alive, close, sync); return; }
+  if(cfg.handover && cfg.type === "add"){ smBalloonGift(cfg, card, alive, close, sync); return; }
   if(cfg.type === "merge"){
     card.innerHTML =
       `<div class="sm-anim-row">` +
@@ -3513,7 +3513,10 @@ function smAnimate(cfg, alive, onDone, sync){
    (60 -> 50 -> 40 -> 30), then single bangles come off the next bundle's top (-> 24); the count shows every step. Few
    things move, each is easy to follow, and the tens and the ones stay in sight. Each bangle carries a piece of its pole
    between its back and front halves, so the pole runs THROUGH the rings. */
-function smBangleBundles(cfg, card, alive, close){
+/* [SME] in step with the hint VO (sync.a on "60", sync.b on "36"): all 60 are on the stall by "60"; the selling starts on "36"
+   and the last bangle lands as the line ends. Then the count goes, then the bag goes, the bangles left slide to the middle,
+   and 1 s later the hint closes. Without a VO (sync absent) the same steps run on the old timing. */
+function smBangleBundles(cfg, card, alive, close, sync){
   const B = cfg.bundles, nb = Math.ceil(cfg.a / B), COL = ["#E3182F", "#FF3E9A", "#16A35A", "#1C6FE0", "#FF8A00", "#8A3FD1"];
   const ring = (c, i) => `<svg class="sm-bk-it" viewBox="0 0 110 40" style="top:${(B - 1 - i) * 12}px" aria-hidden="true">` +
     `<path d="M9 20A46 13 0 0 1 101 20" fill="none" stroke="${c}" stroke-width="8" style="filter:brightness(.62)"/>` +
@@ -3530,7 +3533,8 @@ function smBangleBundles(cfg, card, alive, close){
   }
   const bag = cfg.to ? `<div class="sm-anim-dst"><img src="${smArt("prop_shopping_bag")}" alt="" draggable="false"></div>` : "";
   card.classList.add("sm-bk-card");
-  card.innerHTML = `<div class="sm-bk-count">${cfg.a}</div><div class="sm-anim-scene"><div class="sm-bstand">${bundles}</div>${bag}</div>`;
+  /* [SME] no number on this hint - the bangles alone show the change (the count element stays, hidden, so nothing else moves) */
+  card.innerHTML = `<div class="sm-bk-count" hidden>${cfg.a}</div><div class="sm-anim-scene"><div class="sm-bstand">${bundles}</div>${bag}</div>`;
   const count = card.querySelector(".sm-bk-count"), dst = card.querySelector(".sm-anim-dst img") || card.querySelector(".sm-bstand");
   const stacks = [...card.querySelectorAll(".sm-bk-stack")];
   const set = (v) => { count.textContent = String(v); count.animate([{ scale:"1" }, { scale:"1.18" }, { scale:"1" }], { duration:300, easing:"ease-out" }); };
@@ -3540,12 +3544,26 @@ function smBangleBundles(cfg, card, alive, close){
       { transform:`translate(${d.dx * .55}px,${d.dy * .55 - lift - 40}px) scale(.8)`, opacity:1, offset:.65 },
       { transform:`translate(${d.dx}px,${d.dy + 10}px) scale(.3)`, opacity:0 }], { duration:ms, easing:"ease-in-out", fill:"forwards" }); };
   const jingle = () => [0, 60, 130].forEach((t, j) => setTimeout(() => sfxMarble(j * 3), t));
+  const synced = !!sync, POP = synced ? 90 : 200;
   // the bundles come onto the stall one by one
   stacks.forEach((st, k) => { st.parentElement.style.visibility = "hidden";
     setTimeout(() => { if(!alive()) return; st.parentElement.style.visibility = "";
-      st.parentElement.animate([{ opacity:0, translate:"0 -26px" }, { opacity:1, translate:"0 0" }], { duration:380, easing:"cubic-bezier(.3,1.4,.5,1)" }); sfxMarble(k); }, 150 + k * 200); });
-  const whole = Math.floor(cfg.b / B), ones = cfg.b - whole * B, BUN = 1050, ONE = 360;
-  smLater(alive, 150 + nb * 200 + 700, () => {
+      st.parentElement.animate([{ opacity:0, translate:"0 -26px" }, { opacity:1, translate:"0 0" }], { duration:380, easing:"cubic-bezier(.3,1.4,.5,1)" }); sfxMarble(k); }, (synced ? 40 : 150) + k * POP); });
+  const whole = Math.floor(cfg.b / B), ones = cfg.b - whole * B, BUN = synced ? 850 : 1050, ONE = synced ? 300 : 360;
+  // the end: the bag goes, then the bangles left slide to the middle; 1 s later the hint closes
+  const finish = () => {
+    const stand = card.querySelector(".sm-bstand"), bagEl = card.querySelector(".sm-anim-dst");
+    stand.classList.add("kept"); sfxCorrect();
+    smLater(alive, 150, () => {
+      if(bagEl) bagEl.animate([{ opacity:1, transform:"none" }, { opacity:0, transform:"translateY(24px) scale(.7)" }], { duration:420, easing:"ease-in", fill:"forwards" });
+      smLater(alive, 460, () => {
+        const c = smRect(card), s = smRect(stand), dx = (c.x + c.w / 2) - (s.x + s.w / 2);
+        stand.animate([{ transform:"translateX(0)" }, { transform:`translateX(${dx}px)` }], { duration:650, easing:"cubic-bezier(.3,.8,.3,1)", fill:"forwards" });
+        smLater(alive, 650 + 1000, close);
+      });
+    });
+  };
+  const sell = smOnce(() => {
     let v = cfg.a;
     // whole bundles first, from the end nearest the bag
     for(let w = 0; w < whole; w++) setTimeout(() => {
@@ -3560,18 +3578,17 @@ function smBangleBundles(cfg, card, alive, close){
       it.classList.add("off"); sfxMarble(o); into(it, 52, 640);
       setTimeout(() => { if(!alive()) return; bump(); v -= 1; set(v); }, 590);
     }, whole * BUN + 150 + o * ONE);
-    smLater(alive, whole * BUN + 150 + ones * ONE + 800, () => {
-      card.querySelector(".sm-bstand").classList.add("kept"); count.classList.add("down"); sfxCorrect();
-      smLater(alive, 2200, close);
-    });
+    smLater(alive, whole * BUN + 150 + ones * ONE + (synced ? 650 : 800), finish);
   });
+  if(synced){ sync.b = sell; smLater(alive, 4200, sell); }   // on "36" (a fallback if the cue never fires)
+  else smLater(alive, 150 + nb * 200 + 700, sell);
 }
 
 /* [G3 hint] T1's look for the balloons: Golu's panel (blue) and Dadi's (pink), each under a round portrait with a name
    pill, the count on top ("42 गुब्बारे") and the balloons in bundles of ten tied with a bow plus single balloons, a 10 / 1
    chip under each. The bundles pop in one by one (as T1's marbles), then Dadi's bundle and her single balloon travel over
    into the places waiting in Golu's panel - a faded copy stays behind in hers, as in T1 - and his count goes 42 -> 52 -> 53. */
-function smBalloonGift(cfg, card, alive, close){
+function smBalloonGift(cfg, card, alive, close, sync){
   const COL = ["#FF3B4E", "#2F7BF5", "#2DBE60", "#FFC21A", "#FF8A1F", "#FF5DB1", "#9B4DFF", "#21C1C9", "#E8392F", "#4A63F0"];
   const bundleSVG = () => {
     const pos = [[20, 18], [38, 14], [56, 18], [13, 36], [31, 33], [49, 33], [66, 37], [21, 53], [39, 51], [57, 53]];
@@ -3600,26 +3617,59 @@ function smBalloonGift(cfg, card, alive, close){
   const shown = $$(".sm-bp-it:not(.slot)"), slotsT = $$(".golu .sm-bp-it.ten.slot"), slotsO = $$(".golu .sm-bp-it.one.slot");
   const givT = $$(".dadi .sm-bp-it.ten"), givO = $$(".dadi .sm-bp-it.one");
   const set = (v) => { lbl.textContent = v + " गुब्बारे"; lbl.animate([{ scale:"1" }, { scale:"1.12" }, { scale:"1" }], { duration:300, easing:"ease-out" }); };
-  $$(".sm-bp-side").forEach((el, k) => el.animate([{ opacity:0, transform:"translateY(14px)" }, { opacity:1, transform:"none" }], { duration:420, delay:k * 140, easing:"ease-out", fill:"backwards" }));
-  const t = smPopIn(shown, 170, sfxMarble);
-  smLater(alive, 450 + t + 650, () => {
-    // Dadi's balloons go over to Golu, one piece at a time: a copy flies along an arc, lands in its waiting place in his
-    // panel and shows there; her own stays behind, faded
+  /* [SME] the order, in step with the hint VO ("गोलू के पास पहले 42 गुब्बारे थे। फिर दादी ने 11 गुब्बारे और दिए। ..."):
+     only Golu's box is on screen first (in the middle, his balloons simply there - no pop-in flashes); on "दादी" he steps
+     aside and Dadi's box comes in; on "11" her balloons themselves go over into the places waiting in his frame; then her
+     frame leaves, his box comes back to the middle, and once the voice is over the hint closes. Without a VO (no sync) the
+     same steps run on their own timing. */
+  const golu = card.querySelector(".sm-bp-side.golu"), dadi = card.querySelector(".sm-bp-side.dadi");
+  const centreDx = () => { const c = smRect(card), g = smRect(golu); return (c.x + c.w / 2) - (g.x + g.w / 2); };
+  dadi.style.visibility = "hidden";
+  let gx = centreDx();
+  golu.style.transform = `translateX(${gx}px)`;
+  golu.animate([{ opacity:0, translate:"0 14px" }, { opacity:1, translate:"0 0" }], { duration:420, easing:"ease-out" });
+  const dadiIn = smOnce(() => {
+    golu.animate([{ transform:`translateX(${gx}px)` }, { transform:"translateX(0px)" }], { duration:550, easing:"cubic-bezier(.3,.8,.3,1)", fill:"forwards" });
+    golu.style.transform = "";
+    dadi.style.visibility = "";
+    dadi.animate([{ opacity:0, transform:"translateX(60px)" }, { opacity:1, transform:"none" }], { duration:550, delay:120, easing:"cubic-bezier(.3,.8,.3,1)", fill:"backwards" });
+    sfxWhoosh();
+  });
+  let voOver = !sync, handed = false;
+  const tryClose = () => { if(voOver && handed) smLater(alive, 900, close); };
+  const give = smOnce(() => { dadiIn();
+    smLater(alive, 700, () => {
+    // Dadi's balloons go over to Golu, one piece at a time, along an arc, into the places waiting in his frame
     const box = smRect(card), moves = givT.map((el, i) => [el, slotsT[i], 10]).concat(givO.map((el, i) => [el, slotsO[i], 1])).filter(m => m[1]);
-    let v = cfg.a; sfxWhoosh();
+    let v = cfg.a;
     moves.forEach(([el, to, add], i) => setTimeout(() => {
       if(!alive()) return;
       const a = smRect(el), z = smRect(to), fly = el.cloneNode(true);
       fly.classList.add("sm-bp-fly"); fly.style.left = (a.x - box.x) + "px"; fly.style.top = (a.y - box.y) + "px"; card.appendChild(fly);
-      el.classList.add("ghost");
+      el.style.visibility = "hidden";   // [SME] Dadi's own balloons go over (no grey copy stays behind) and keep their colours
       const dx = z.x - a.x, dy = z.y - a.y;
       fly.animate([{ transform:"translate(0,0)" }, { transform:`translate(${dx * .5}px,${dy * .5 - 70}px) scale(1.08)`, offset:.5 }, { transform:`translate(${dx}px,${dy}px)` }],
         { duration:950, easing:"cubic-bezier(.45,.05,.3,1)", fill:"forwards" }).onfinish = () => {
-          if(!alive()) return; fly.remove(); to.classList.remove("slot"); to.classList.add("pop"); v += add; set(v); sfxPop(i + 4);
+          if(!alive()) return; fly.remove(); to.innerHTML = el.innerHTML;   // [SME] it lands looking exactly as it did with Dadi
+          to.classList.remove("slot"); v += add; set(v); sfxPop(i + 4);
         };
     }, i * 700));
-    smLater(alive, moves.length * 700 + 950 + 400, () => { lbl.classList.add("up"); sfxCorrect(); smLater(alive, 2200, close); });
+    // once she has given them: Dadi's frame goes, Golu's whole box comes back to the middle
+    smLater(alive, (moves.length - 1) * 700 + 950 + 350, () => {
+      sfxCorrect();
+      dadi.animate([{ opacity:1, transform:"none" }, { opacity:0, transform:"translateY(20px) scale(.9)" }], { duration:450, easing:"ease-in", fill:"forwards" });
+      smLater(alive, 500, () => {
+        const dx = centreDx();
+        golu.animate([{ transform:"translateX(0)" }, { transform:`translateX(${dx}px)` }], { duration:700, easing:"cubic-bezier(.3,.8,.3,1)", fill:"forwards" });
+        smLater(alive, 700, () => { handed = true; tryClose(); });
+      });
+    });
+    });
   });
+  if(sync){
+    sync.dadi = dadiIn; sync.give = give; sync.end = () => { voOver = true; tryClose(); };
+    smLater(alive, 7000, give);   // a fallback if a cue never fires
+  } else { smLater(alive, 1300, dadiIn); smLater(alive, 2000, give); }
 }
 
 /* [G4 hint] the G3 panel look with ten-frames: Dadi's panel (blue) holds her laddoos in rows of ten-frames, the
@@ -3639,28 +3689,51 @@ function smLaddooFrames(cfg, card, alive, close){
   };
   const side = (k, color, name, row) => `<div class="sm-bp-side ${k} ${color}"><div class="sm-bp-av"><img src="${smArt("av_" + k)}" alt="" draggable="false"><span>${name}</span></div>` +
     `<div class="sm-bp-panel"><div class="sm-bp-row">${row}</div></div></div>`;
+  /* [G4 hint] the children's side is no panel of empty frames but a square picture of them eating: each laddoo flies
+     into one of their bowls (turn about), and they munch - the picture chews, crumbs fall from that child's mouth, now
+     and then a 😋 floats up - while a chip counts what they have had. The laddoo leaves a grey one in Dadi's cell. */
   card.classList.add("sm-bp-card", "sm-tf-card");
-  card.innerHTML = `<div class="sm-bp">${side("dadi", "blue", "दादी", frames(cfg.a))}${side("kids", "pink", "बच्चे", frames(cfg.b, true))}</div>`;
-  const $$ = s => [...card.querySelectorAll(s)], mine = $$(".dadi .sm-tf-it"), slots = $$(".kids .sm-tf-it.slot");
+  card.innerHTML = `<div class="sm-bp">${side("dadi", "blue", "दादी", frames(cfg.a))}` +
+    `<div class="sm-bp-side kids pink"><div class="sm-eat"><img class="sm-eat-img" src="${smArt("char_kids_eating")}" alt="" draggable="false"><b class="sm-eat-n">0</b></div></div></div>`;
+  const $$ = s => [...card.querySelectorAll(s)], mine = $$(".dadi .sm-tf-it");
+  const eat = card.querySelector(".sm-eat"), pic = eat.querySelector(".sm-eat-img"), num = eat.querySelector(".sm-eat-n");
+  const SPOT = [{ x:.33, y:.6, mx:.4, my:.41 }, { x:.74, y:.64, mx:.65, my:.47 }];   // each child's bowl and mouth (fractions of the picture)
+  const munch = (s, i) => {
+    pic.animate([{ scale:"1" }, { scale:"1.025 .975", offset:.3 }, { scale:".99 1.015", offset:.65 }, { scale:"1" }], { duration:360, easing:"ease-out" });
+    for(let k = 0; k < 5; k++){
+      const c = smEl("i", "sm-eat-crumb"); c.style.left = s.mx * 100 + "%"; c.style.top = s.my * 100 + "%"; eat.appendChild(c);
+      const dx = (k - 2) * 9 + (i % 3) * 3, dy = 26 + (k % 3) * 12;
+      c.animate([{ transform:"translate(0,0) scale(1)", opacity:1 }, { transform:`translate(${dx}px,${dy}px) scale(.5)`, opacity:0 }],
+        { duration:620, easing:"cubic-bezier(.3,0,.7,1)", fill:"forwards" }).onfinish = () => c.remove();
+    }
+    if(i % 4 === 1){
+      const y = smEl("span", "sm-eat-yum", "😋"); y.style.left = s.mx * 100 + "%"; y.style.top = s.my * 100 + "%"; eat.appendChild(y);
+      y.animate([{ transform:"translate(-50%,0) scale(.4)", opacity:0 }, { transform:"translate(-50%,-40px) scale(1)", opacity:1, offset:.35 }, { transform:"translate(-50%,-90px) scale(.9)", opacity:0 }],
+        { duration:1100, easing:"ease-out", fill:"forwards" }).onfinish = () => y.remove();
+    }
+  };
   $$(".sm-bp-side").forEach((el, k) => el.animate([{ opacity:0, transform:"translateY(14px)" }, { opacity:1, transform:"none" }], { duration:420, delay:k * 140, easing:"ease-out", fill:"backwards" }));
   mine.forEach(it => it.style.visibility = "hidden");
   smLater(alive, 400, () => { mine.forEach(it => it.style.visibility = ""); smPopIn(mine, 55, sfxPop); });
-  const STEP = 140, FLY = 700;
+  const STEP = 260, FLY = 720;
   smLater(alive, 400 + mine.length * 55 + 900, () => {
-    // the children's share goes over, last laddoo first, each into the next empty cell on their side
+    // the children's share goes over, last laddoo first, into the two bowls in turn
     const box = smRect(card), gone = mine.slice(cfg.a - cfg.b).reverse(); sfxWhoosh();
     gone.forEach((el, i) => setTimeout(() => {
-      if(!alive() || !slots[i]) return;
-      const a = smRect(el), z = smRect(slots[i]), fly = el.cloneNode(true);
+      if(!alive()) return;
+      const a = smRect(el), p = smRect(pic), s = SPOT[i % 2], fly = el.cloneNode(true);
       fly.classList.add("sm-bp-fly"); fly.style.left = (a.x - box.x) + "px"; fly.style.top = (a.y - box.y) + "px";
-      fly.style.width = a.w + "px"; fly.style.height = a.h + "px"; card.appendChild(fly); el.style.visibility = "hidden";
-      const dx = z.x - a.x, dy = z.y - a.y;
-      fly.animate([{ transform:"translate(0,0)" }, { transform:`translate(${dx * .5}px,${dy * .5 - 60}px) scale(1.15)`, offset:.5 }, { transform:`translate(${dx}px,${dy}px)` }],
+      fly.style.width = a.w + "px"; fly.style.height = a.h + "px"; card.appendChild(fly); el.classList.add("gone");
+      const dx = p.x + p.w * s.x - (a.x + a.w / 2), dy = p.y + p.h * s.y - (a.y + a.h / 2) - (i % 3) * 6;
+      fly.animate([{ transform:"translate(0,0)", opacity:1 }, { transform:`translate(${dx * .5}px,${dy * .5 - 70}px) scale(1.15)`, opacity:1, offset:.5 },
+          { transform:`translate(${dx}px,${dy}px) scale(.85)`, opacity:1, offset:.9 }, { transform:`translate(${dx}px,${dy + 4}px) scale(.6)`, opacity:0 }],
         { duration:FLY, easing:"cubic-bezier(.45,.05,.3,1)", fill:"forwards" }).onfinish = () => {
-          if(!alive()) return; fly.remove(); slots[i].classList.remove("slot"); slots[i].classList.add("pop"); if(i % 2 === 0) sfxPop(i);
+          if(!alive()) return; fly.remove(); munch(s, i); num.textContent = String(i + 1);
+          num.animate([{ scale:"1" }, { scale:"1.25" }, { scale:"1" }], { duration:280, easing:"ease-out" }); sfxPop(i);
         };
     }, i * STEP));
     smLater(alive, gone.length * STEP + FLY + 400, () => {
+      eat.classList.add("done");
       card.querySelector(".dadi .sm-bp-panel").classList.add("kept"); sfxCorrect(); smLater(alive, 2200, close);
     });
   });
@@ -4060,7 +4133,14 @@ SlideModules.PICK_SENTENCE = {
       if(revealed) return;
       smWrong(slide); smWiggle(cell); cell.classList.add("flash"); setTimeout(() => cell.classList.remove("flash"), 700);
       if(state.attempts === 1){ state.scaffoldLevel = 1; smPlay(d.wa1_vo, smNumCues(story, d.wa1_vo), () => {}); }
-      else if(state.attempts === 2){ state.scaffoldLevel = 2; busy = true; stopAudio(); smAnimate(d.anim, alive, () => { busy = false; }); }
+      else if(state.attempts === 2){ state.scaffoldLevel = 2; busy = true; stopAudio();
+        if(d.anim && d.anim.handover && d.wa1_vo){
+          // [SME] G3: the balloon hint plays WITH its VO - Dadi comes in on "दादी", her balloons go over on "11"
+          const sync = {}, i42 = smFind(d.wa1_vo, String(d.anim.a)), at = (w, from) => { const j = smWords(d.wa1_vo).findIndex((x, k) => k >= (from || 0) && smNorm(x.w) === w); return j < 0 ? null : smWords(d.wa1_vo)[j].ms; };
+          smAnimate(d.anim, alive, () => { busy = false; }, sync);
+          smPlay(d.wa1_vo, [{ at:at("दादी", Math.max(0, i42)), fn:() => sync.dadi && sync.dadi() }, { at:smAt(d.wa1_vo, String(d.anim.b), Math.max(0, i42 + 1)), fn:() => sync.give && sync.give() }],
+            () => sync.end && sync.end());
+        } else smAnimate(d.anim, alive, () => { busy = false; }); }
       else {
         revealed = true; state.scaffoldLevel = 3;
         cells.forEach(c => { if(c !== right) c.classList.add("faded"); }); right.classList.add("reveal");

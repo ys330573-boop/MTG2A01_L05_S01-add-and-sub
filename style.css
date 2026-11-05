@@ -3180,3 +3180,19 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
 .sm-we .sm-we-scene.waiting{opacity:0;}
 /* [G1 hint] the 24 already aboard glow as the hint VO says "24 सवारियाँ" */
 .sm-wrap-bus .sm-grp.seated img.sm-person.sm-keep{filter:drop-shadow(0 0 4px #FFC800) drop-shadow(0 0 2px #FFC800);}
+
+/* [G2 hint] no number over the bangles (SME) - the card's top room for it goes too, so the stall sits in the middle */
+.sm-bk-count[hidden]{display:none !important;}
+.sm-bk-card{padding-top:40px !important;}
+
+/* [G3 hint] (SME) no name tags under Golu's and Dadi's pictures */
+.sm-bp-card .sm-bp-av span{display:none !important;}
+/* [G4 hint] the children's side: a square picture of them eating (no empty frames), a chip counting the laddoos they
+   have had, crumbs and a 😋 as they munch; each laddoo that leaves Dadi stays in its cell as a grey one */
+.sm-eat{position:relative;width:330px;height:330px;border:4px solid var(--c2);border-radius:26px;background:#FBFCFF;box-shadow:0 4px 0 rgba(194,51,143,.15);}
+.sm-eat-img{position:absolute;inset:14px;width:calc(100% - 28px);height:calc(100% - 28px);object-fit:contain;transform-origin:50% 100%;display:block;}
+.sm-eat-n{position:absolute;left:50%;bottom:-22px;translate:-50% 0;min-width:64px;height:44px;padding:0 14px;border-radius:999px;background:var(--c);border:3px solid #fff;color:#fff;font-size:28px;font-weight:800;line-height:38px;text-align:center;box-shadow:0 4px 10px rgba(122,20,87,.25);}
+.sm-eat.done .sm-eat-n{background:var(--correct);}
+.sm-eat-crumb{position:absolute;width:7px;height:7px;margin:-3px 0 0 -3px;border-radius:50%;background:#F2A425;box-shadow:inset -1px -1px 0 #C97412;pointer-events:none;z-index:3;}
+.sm-eat-yum{position:absolute;font-size:34px;line-height:1;pointer-events:none;z-index:3;}
+.sm-tf-it.gone,.sm-bp-panel.kept .sm-tf-it.gone{filter:grayscale(1) brightness(.92);opacity:.45;transition:opacity .3s,filter .3s;}
