@@ -5363,6 +5363,10 @@ function boot(){
   if(CARD.theme) $("stage").classList.add("thm-" + CARD.theme);
   // banner title = skill name only (strip "(भाग…)" and the ": letters" list)
   $("sgTitle").textContent = CARD.landing_title || (CARD.title.hi || "").split(/[:：(]/)[0].trim();   // the cover's own title, when the card gives one
+  // [cover] the title sits in a cloud, each word a bubbly painted word (blue, then yellow-orange) - CSS .sg-w
+  { const ws = $("sgTitle").textContent.split(/\s+/).filter(Boolean);
+    $("sgTitle").innerHTML = ws.map((w, i) => `<span class="sg-w w${i % 2 + 1}" data-t="${smEsc(w)}"><i>${smEsc(w)}</i></span>`).join(" ");
+    $("sgTitle").classList.add("sg-cloud"); }
   // [cover] the number sentence(s) under the title (CARD.landing_eq: one, or a list shown side by side), their cards
   // popping in one by one
   if(CARD.landing_eq){

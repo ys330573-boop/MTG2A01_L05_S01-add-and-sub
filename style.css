@@ -3290,3 +3290,20 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
 .sg-eq-t.op.add{color:var(--sm-add);} .sg-eq-t.op.sub{color:var(--sm-sub);}
 @keyframes sgEqIn{from{opacity:0;transform:translateY(16px) scale(.6);}to{opacity:1;transform:none;}}
 @media (prefers-reduced-motion: reduce){ .sg-eq-t{animation:none;} }
+
+/* [cover v2] a warm cream card with a soft blue wave along its foot; the title in a pale-blue cloud (a dashed seam inside
+   its white rim), each word a bubbly painted word - blue, then yellow-orange - with a white rim and a navy edge; the
+   number sentences' cards get a clearer blue rim. Swiftie, the 🔊 and ▶ are as before. */
+.sg-card::before{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1100 140' preserveAspectRatio='none'%3E %3Cpath d='M0,70 C180,20 330,20 520,58 C720,98 900,92 1100,40 L1100,140 L0,140 Z' fill='%23D9F0FF'/%3E %3Cpath d='M0,95 C200,55 380,62 560,88 C760,116 920,110 1100,74 L1100,140 L0,140 Z' fill='%23C3E6FF'/%3E %3C/svg%3E") bottom / 100% 34% no-repeat,linear-gradient(180deg,#FFFBEF 0%,#FFF3D6 100%) !important;}
+.sg-content .sg-title.sg-cloud{display:inline-block;padding:30px 104px 34px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 200' preserveAspectRatio='none'%3E %3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23EAF7FF'/%3E%3Cstop offset='1' stop-color='%23BFE4FF'/%3E%3C/linearGradient%3E %3Cfilter id='s' x='-10%25' y='-20%25' width='120%25' height='150%25'%3E%3CfeDropShadow dx='0' dy='6' stdDeviation='7' flood-color='%235BA7E6' flood-opacity='.35'/%3E%3C/filter%3E%3C/defs%3E %3Cpath d='M110,52 a58.0,26 0 0 1 116.0,0 a58.0,26 0 0 1 116.0,0 a58.0,26 0 0 1 116.0,0 a58.0,26 0 0 1 116.0,0 a58.0,26 0 0 1 116.0,0 a62,48.0 0 0 1 0,96 a58.0,26 0 0 1 -116.0,0 a58.0,26 0 0 1 -116.0,0 a58.0,26 0 0 1 -116.0,0 a58.0,26 0 0 1 -116.0,0 a58.0,26 0 0 1 -116.0,0 a62,48.0 0 0 1 0,-96 Z' fill='url(%23g)' stroke='%23fff' stroke-width='6' filter='url(%23s)'/%3E %3Cpath d='M110,52 a58.0,26 0 0 1 116.0,0 a58.0,26 0 0 1 116.0,0 a58.0,26 0 0 1 116.0,0 a58.0,26 0 0 1 116.0,0 a58.0,26 0 0 1 116.0,0 a62,48.0 0 0 1 0,96 a58.0,26 0 0 1 -116.0,0 a58.0,26 0 0 1 -116.0,0 a58.0,26 0 0 1 -116.0,0 a58.0,26 0 0 1 -116.0,0 a58.0,26 0 0 1 -116.0,0 a62,48.0 0 0 1 0,-96 Z' fill='none' stroke='%237CC4F5' stroke-width='2.5' stroke-dasharray='9 7' transform='translate(400 100) scale(.94 .84) translate(-400 -100)'/%3E %3C/svg%3E") center / 100% 100% no-repeat;
+  font-size:96px;line-height:1.1;text-shadow:none;letter-spacing:1px;white-space:nowrap;}
+.sg-content.with-eq .sg-title.sg-cloud{font-size:104px;}
+.sg-w{position:relative;display:inline-block;isolation:isolate;}
+.sg-w i{position:relative;font-style:normal;background-clip:text;-webkit-background-clip:text;color:transparent;}
+.sg-w.w1 i{background-image:linear-gradient(180deg,#8FE0FF 18%,#3AA6F4 52%,#155FD6 86%);}
+.sg-w.w2 i{background-image:linear-gradient(180deg,#FFEA62 18%,#FFB21E 52%,#FF6F0F 86%);}
+.sg-w::before,.sg-w::after{content:attr(data-t);position:absolute;left:0;top:0;z-index:-1;background:none;}
+.sg-w::after{color:#fff;-webkit-text-stroke:12px #fff;}
+.sg-w::before{color:#0B2F80;-webkit-text-stroke:20px #0B2F80;translate:0 5px;}
+.sg-eq-t.num{border-color:#4E9BEB;box-shadow:0 5px 0 #2F7AD6,0 8px 12px rgba(30,100,200,.12);}
+.sg-eq-t.op.add{color:#1DB33F;}
