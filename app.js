@@ -4476,17 +4476,18 @@ SlideModules.PALACE_SCENE = {
     const d = slide.data, alive = smAlive();
     state.ownsAudio = true; setNavActive(false); $("navBtn").onclick = () => completeSlide(true);
     const sc = smEl("div", "sm-pal-scene " + d.kind);
-    const pose = d.kind === "treasure" ? "sw_lg_celebrating" : "sw_lg_pointing";
+    const pose = d.kind === "treasure" ? "sw_lg_celebrating" : "sw_lg_pointing", intro = d.kind === "intro";
+    // the intro shows no title ribbon and no speech bubble - just Swiftie in the hall, saying his line
     sc.innerHTML =
-      (d.title ? `<div class="sm-ribbon">${smEsc(d.title)}</div>` : "") +
+      (d.title && !intro ? `<div class="sm-ribbon">${smEsc(d.title)}</div>` : "") +
       (d.kind === "treasure"
         ? `<div class="sm-beam"></div><div class="sm-treasure"><i class="tr-glow"></i>` +
             `<img class="tr-chest" src="${smArt("prop_treasure_chest")}" alt="" draggable="false">` +
             [[18, 22], [72, 14], [40, 8], [86, 40], [10, 48], [58, 30]].map(([x, y], i) => `<i class="tr-spk" style="left:${x}%;top:${y}%;animation-delay:${i * .35}s"></i>`).join("") +
           `</div>`
         : "") +
-      (d.kind === "intro" ? `<img class="sm-pal-sw talker" src="${SW_PAL.still}" alt="">` : `<img class="sm-pal-sw" src="assets/UI/${pose}.png" alt="">`) +
-      `<div class="sm-bubble">${smEsc(smText(d.vo))}</div>`;
+      (intro ? `<img class="sm-pal-sw talker" src="${SW_PAL.still}" alt="">` : `<img class="sm-pal-sw" src="assets/UI/${pose}.png" alt="">`) +
+      (intro ? "" : `<div class="sm-bubble">${smEsc(smText(d.vo))}</div>`);
     host.appendChild(sc);
     /* [art] the intro Swiftie talks (lips moving, keyed from the green-screen clip) while his line plays, and rests
        with his beak closed before and after it */
