@@ -4466,8 +4466,39 @@ function smWalkKf(dx, dy, s1, steps, ox, oy){
   return kf;
 }
 
+// the same path without the step bob and sway - for the running sprite, whose frames bob by themselves
+function smRunKf(dx, dy, s1, n, ox, oy){
+  const kf = []; ox = ox || 0; oy = oy || 0;
+  for(let k = 0; k <= n; k++){
+    const sc = 1 / (1 + (1 / s1 - 1) * k / n), p = (1 - sc) / (1 - s1);
+    kf.push({ translate:`${(ox + (dx - ox) * p).toFixed(1)}px ${(oy + (dy - oy) * p).toFixed(1)}px`, scale:sc.toFixed(4) });
+  }
+  return kf;
+}
+/* [gates] a back-view Swiftie <img> (framed like sw_back) runs along `kf` as the running sprite: a stand-in in the same
+   box loops the stride while it moves; on arrival it stands (frame 0) and fn(stand-in) decides what happens to it.
+   Returns the move's animation (finish() it to skip). */
+function smRunAs(img, kf, ms, ease, fn){
+  const rows = Math.ceil(SW_RUN.n / SW_RUN.cols), run = smEl("div", "sm-pal-run");
+  const h = img.offsetHeight;   // the frames are 3:4, like sw_back (whose width is 0 until the image has loaded)
+  run.style.cssText = `left:${img.offsetLeft}px;top:${img.offsetTop}px;width:${(h * .75).toFixed(1)}px;height:${h}px;` +
+    `z-index:${getComputedStyle(img).zIndex};background-image:url(${SW_RUN.sheet});background-size:${SW_RUN.cols * 100}% ${rows * 100}%;`;
+  const show = (i) => { run.style.backgroundPosition = `${(i % SW_RUN.cols) * 100 / (SW_RUN.cols - 1)}% ${Math.floor(i / SW_RUN.cols) * 100 / (rows - 1)}%`; };
+  show(0); img.parentNode.insertBefore(run, img); img.style.visibility = "hidden";
+  const t0 = performance.now(); let going = true;
+  const stride = (now) => { if(!going || !run.isConnected) return; show(1 + Math.floor((now - t0) / SW_RUN.ms) % (SW_RUN.n - 1)); requestAnimationFrame(stride); };
+  requestAnimationFrame(stride);
+  const a = run.animate(kf, { duration:ms, easing:ease, fill:"forwards" });
+  a.onfinish = () => { going = false; show(0); if(fn) fn(run); };
+  return a;
+}
+
 const SW_PAL = { talk:"assets/UI/sw_pal_talk.webp", still:"assets/UI/sw_pal_still.webp" };
-[SW_PAL.talk, SW_PAL.still].forEach(s => { const i = new Image(); i.src = s; });   // warm the cache before the palace
+// his run up the carpet, from the back: 10 frames, 5 across (0 = standing, 1-9 = the running loop), framed like sw_back
+const SW_RUN = { sheet:"assets/UI/sw_run.webp", n:10, cols:5, ms:70 };
+// his turn from the front to the back: a 5-across sprite sheet of 19 frames (10 poses + blended in-betweens), 42 ms each
+const SW_TURN = { sheet:"assets/UI/sw_turn.webp", n:19, cols:5, ms:42 };
+[SW_PAL.talk, SW_PAL.still, SW_TURN.sheet, SW_RUN.sheet].forEach(s => { const i = new Image(); i.src = s; });   // warm the cache before the palace
 
 SlideModules.PALACE_SCENE = {
   // STORY BEAT for the "रहस्यमयी महल" adventure (storyboard panels 1 and 7–8): palace backdrop, Swiftie
@@ -4533,6 +4564,49 @@ SlideModules.PALACE_SCENE = {
       const back = smEl("img", "sm-pal-swb"); back.src = smArt("sw_back"); back.alt = "";
       back.style.cssText = `left:${(cx - W * .58).toFixed(1)}px;top:${(bottom - H * .929).toFixed(1)}px;height:${H.toFixed(1)}px;scale:0 1;`;
       cam.appendChild(back);
+      const walk = () => smLater(alive, T(300), () => {
+        // 2 · he walks slowly up the carpet to the gate; the camera flies in after him until the gate fills the middle
+        const top = parseFloat(back.style.top);
+        const dx = SM_GATE_FOOT.cx - (parseFloat(back.style.left) + W / 2), dy = SM_GATE_FOOT.bottom - (top + H);
+        fade(rib, 700);
+        if(front.classList.contains("talker") && !rm){
+          /* the intro Swiftie runs there: the running sprite (framed like the back view, so it takes its place) loops
+             its stride while it moves up the carpet and shrinks into the distance, and stands still on arrival */
+          const ms = 3800;
+          smRunAs(back, smRunKf(dx, dy, SM_GATE_FOOT.h / H, 24), ms, "cubic-bezier(.35,.1,.55,1)", () => {
+            if(!alive()) return; window.__palArrive = toGate.id; completeSlide(true); });
+          smCam(cam, SM_CAM_GATE, ms, "cubic-bezier(.45,0,.35,1)");
+          return;
+        }
+        const ms = T(4800);
+        const a = back.animate(smWalkKf(dx, dy, SM_GATE_FOOT.h / H, 9), { duration:ms, easing:"cubic-bezier(.3,0,.7,1)", fill:"forwards" });
+        smCam(cam, SM_CAM_GATE, ms, "cubic-bezier(.45,0,.35,1)");
+        a.onfinish = () => { if(!alive()) return; window.__palArrive = toGate.id; completeSlide(true); };
+      });
+      if(front.classList.contains("talker") && !rm){
+        /* 1 · he turns round on the spot: the turnaround sprite (front -> profile -> back, blended in-betweens with a little
+           motion blur) cross-fades in over the front pose, plays through, and hands over to the back view he walks in */
+        const tn = smEl("div", "sm-pal-turn"), rows = Math.ceil(SW_TURN.n / SW_TURN.cols);
+        tn.style.cssText = `left:${f.x.toFixed(1)}px;top:${f.y.toFixed(1)}px;width:${f.w.toFixed(1)}px;height:${f.h.toFixed(1)}px;` +
+          `background-image:url(${SW_TURN.sheet});background-size:${SW_TURN.cols * 100}% ${rows * 100}%;opacity:0;`;
+        const show = (i) => { tn.style.backgroundPosition = `${(i % SW_TURN.cols) * 100 / (SW_TURN.cols - 1)}% ${Math.floor(i / SW_TURN.cols) * 100 / (rows - 1)}%`; };
+        show(0); cam.appendChild(tn);
+        back.style.scale = "1 1"; back.style.opacity = "0";
+        const XF = 140, t0 = performance.now() + XF;
+        tn.animate([{ opacity:0 }, { opacity:1 }], { duration:XF, fill:"forwards" });
+        front.animate([{ opacity:1 }, { opacity:0 }], { duration:XF, fill:"forwards" });
+        const step = (now) => {
+          if(!alive()) return;
+          const i = Math.max(0, Math.min(SW_TURN.n - 1, Math.floor((now - t0) / SW_TURN.ms)));
+          show(i);
+          if(i < SW_TURN.n - 1){ requestAnimationFrame(step); return; }
+          front.style.visibility = "hidden";
+          back.animate([{ opacity:0 }, { opacity:1 }], { duration:160, fill:"forwards" });
+          tn.animate([{ opacity:1 }, { opacity:0 }], { duration:160, fill:"forwards" }).onfinish = () => { tn.remove(); back.style.opacity = "1"; walk(); };
+        };
+        requestAnimationFrame(step);
+        return;
+      }
       // 1 · he turns round: the front pose folds to its edge, the back view unfolds from it
       front.animate([{ scale:"-1 1" }, { scale:"0 1" }], { duration:T(190), easing:"ease-in", fill:"forwards" }).onfinish = () => {
         if(!alive()) return;
@@ -4540,15 +4614,7 @@ SlideModules.PALACE_SCENE = {
         back.animate([{ scale:"0 1" }, { scale:"1 1" }], { duration:T(190), easing:"ease-out", fill:"forwards" }).onfinish = () => {
           if(!alive()) return;
           back.style.scale = "1 1";
-          smLater(alive, T(300), () => {
-            // 2 · he walks slowly up the carpet to the gate; the camera flies in after him until the gate fills the middle
-            const ms = T(4800), top = parseFloat(back.style.top);
-            const dx = SM_GATE_FOOT.cx - (parseFloat(back.style.left) + W / 2), dy = SM_GATE_FOOT.bottom - (top + H);
-            fade(rib, 700);
-            const a = back.animate(smWalkKf(dx, dy, SM_GATE_FOOT.h / H, 9), { duration:ms, easing:"cubic-bezier(.3,0,.7,1)", fill:"forwards" });
-            smCam(cam, SM_CAM_GATE, ms, "cubic-bezier(.45,0,.35,1)");
-            a.onfinish = () => { if(!alive()) return; window.__palArrive = toGate.id; completeSlide(true); };
-          });
+          walk();
         };
       };
     };
@@ -4624,6 +4690,12 @@ SlideModules.STORY_FILL = {
       // 1 · Swiftie walks up the carpet to the gate while the camera flies in after him (after the intro he is there already)
       const walkUp = (fn) => {
         if(arrived){ wait(350, fn); return; }
+        if(!ff){   // he runs up the carpet (the running sprite), and stands at the gate
+          const ms = 2800, a = smRunAs(sw, smRunKf(333, -333, .48, 20, SM_CARPET_X, 12), ms, "cubic-bezier(.35,.1,.55,1)", (run) => {
+            cur = null; wrap.classList.add("atgate"); sw.style.visibility = ""; run.remove(); if(alive()) fn(); });
+          cur = [a, ...smCam(cam, SM_CAM_GATE, ms, "cubic-bezier(.45,0,.35,1)")];
+          return;
+        }
         const ms = ff ? 0 : 3400, a = sw.animate(smWalkKf(333, -333, .48, 7, SM_CARPET_X, 12), { duration:ms, easing:"cubic-bezier(.3,0,.7,1)", fill:"forwards" });
         cur = [a, ...smCam(cam, SM_CAM_GATE, ms, "cubic-bezier(.45,0,.35,1)")];
         a.onfinish = () => { cur = null; wrap.classList.add("atgate"); a.cancel(); if(alive()) fn(); };
@@ -4683,6 +4755,10 @@ SlideModules.STORY_FILL = {
         sealAndReturn(() => {
           wrap.classList.add("charge"); sfxSparkle();
           smLater(alive, 750, () => { wrap.classList.add("open"); sfxWhoosh(); markGateDone(); });
+          // he runs on into the portal (the running sprite, shrinking and fading into the light) - in place of the CSS step-in
+          if(!rm) smLater(alive, 750 + 850, () => smRunAs(sw, [
+            { translate:"333px -333px", scale:.48, opacity:1 }, { translate:"334px -340px", scale:.43, opacity:1, offset:.5 },
+            { translate:"334px -343px", scale:.4, opacity:.6, offset:.75 }, { translate:"334px -345px", scale:.37, opacity:0 }], 1300, "ease-in"));
           smLater(alive, 1300, sfxSparkle);
           // [gate to gate] Swiftie has stepped into the portal: the camera never pulls back. It eases on towards the portal
           // while the "gate passed" line plays, then flies through it after him into the next hall (smThroughPortal).
@@ -5287,6 +5363,15 @@ function boot(){
   if(CARD.theme) $("stage").classList.add("thm-" + CARD.theme);
   // banner title = skill name only (strip "(भाग…)" and the ": letters" list)
   $("sgTitle").textContent = CARD.landing_title || (CARD.title.hi || "").split(/[:：(]/)[0].trim();   // the cover's own title, when the card gives one
+  // [cover] the number sentence(s) under the title (CARD.landing_eq: one, or a list shown side by side), their cards
+  // popping in one by one
+  if(CARD.landing_eq){
+    const eq = document.createElement("div"); eq.className = "sg-eq"; eq.setAttribute("aria-hidden", "true");
+    let i = 0;
+    eq.innerHTML = [].concat(CARD.landing_eq).map(s => `<span class="sg-eq-one">` +
+      smParseEq(s).map(t => `<span class="sg-eq-t ${smTokCls(t)}" style="--i:${i++}">${smEsc(t)}</span>`).join("") + `</span>`).join("");
+    $("sgTitle").after(eq); $("sgTitle").parentNode.classList.add("with-eq");
+  }
   // VISUAL-FIRST landing hero: SHOW the concept, not just the title text
   (function(){ const hero = CARD.landing_hero, el = $("sgHero"); if(!hero || !el) return;
     if(hero.kind === "concept_strip") el.innerHTML = (hero.cells || []).map(c => `<div class="sg-acell">${conceptTileHTML(c)}</div>`).join("");

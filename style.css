@@ -3272,3 +3272,21 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
 .sm-pal-soft{position:absolute;left:0;top:0;width:1333px;height:750px;z-index:1;pointer-events:none;background:center / cover no-repeat;
   filter:blur(6px) brightness(.9);opacity:0;scale:1;transition:opacity .95s ease,scale .95s cubic-bezier(.45,0,.2,1);will-change:opacity,scale;}
 .sm-pal-scene.intro.close .sm-pal-soft{opacity:1;scale:1.08;}
+/* [PL1 turn] the turnaround sprite he turns round with, before he walks to the gate (app.js SW_TURN) */
+.sm-pal-turn{position:absolute;background-repeat:no-repeat;pointer-events:none;filter:drop-shadow(0 10px 14px rgba(0,0,0,.5));}
+/* [PL1 run] the running sprite he runs up the carpet to the gate with (app.js SW_RUN) - placed like the back view */
+.sm-pal-run{position:absolute;transform-origin:50% 100%;background-repeat:no-repeat;pointer-events:none;filter:drop-shadow(0 10px 14px rgba(0,0,0,.5));}
+/* [cover] the number sentence under the title (app.js boot, CARD.landing_eq): number cards like the game's (white, blue
+   rim, soft ledge), a green + / purple − and a navy =; they pop in one after another. The title moves up to make room. */
+.sg-content.with-eq{margin-bottom:120px;}
+.sg-content.with-eq .sg-title{font-size:112px;}
+.sg-eq{display:flex;align-items:center;justify-content:center;gap:64px;margin-top:14px;}
+.sg-eq-one{display:flex;align-items:center;gap:12px;}
+.sg-eq-t{display:inline-flex;align-items:center;justify-content:center;font-family:"Baloo 2","Noto Sans Devanagari",sans-serif;
+  font-weight:800;line-height:1;animation:sgEqIn .5s cubic-bezier(.3,1.5,.5,1) backwards;animation-delay:calc(.35s + var(--i) * .16s);}
+.sg-eq-t.num{min-width:104px;height:84px;padding:0 14px;box-sizing:border-box;border-radius:20px;background:#fff;border:3px solid #BFD9F5;
+  box-shadow:0 5px 0 #CFE3F7;font-size:56px;color:#012F76;}
+.sg-eq-t.op,.sg-eq-t.eqs{font-size:64px;color:#012F76;}
+.sg-eq-t.op.add{color:var(--sm-add);} .sg-eq-t.op.sub{color:var(--sm-sub);}
+@keyframes sgEqIn{from{opacity:0;transform:translateY(16px) scale(.6);}to{opacity:1;transform:none;}}
+@media (prefers-reduced-motion: reduce){ .sg-eq-t{animation:none;} }

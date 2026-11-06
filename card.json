@@ -41,6 +41,7 @@
     "lesson_completed"
   ],
   "landing_title": "संख्या वाक्य",
+  "landing_eq": ["23 + 12 = 35", "23 − 12 = 11"],
   "slides": [
     {
       "id": "T1",
