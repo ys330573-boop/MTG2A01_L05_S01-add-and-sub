@@ -3263,3 +3263,12 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
 /* [G1/G2 tap] the sign cards are tapped, not dragged */
 .sm-tray-signs .sm-tile.sign{cursor:pointer;touch-action:manipulation;}
 .sm-tray-signs .sm-tile.sign:active{scale:.96;}
+/* [PL1 close-up] while he says his line the camera is in on Swiftie - he grows to twice his size in the middle of the
+   screen, over the gate, while a pre-blurred copy of the hall fades in behind him - and eases back out to his usual spot
+   (where he turns to the gate) once he is done. Transforms and opacity only, so the move stays smooth. */
+.sm-pal-scene.intro .sm-pal-sw.talker{z-index:2;transition:translate .95s cubic-bezier(.45,0,.2,1),scale .95s cubic-bezier(.45,0,.2,1);will-change:translate,scale;}
+.sm-pal-scene.intro.close .sm-pal-sw.talker{translate:369px -36px;scale:2;}
+.sm-pal-scene.intro.to-gate.close .sm-pal-sw.talker{scale:-2 2;}
+.sm-pal-soft{position:absolute;left:0;top:0;width:1333px;height:750px;z-index:1;pointer-events:none;background:center / cover no-repeat;
+  filter:blur(6px) brightness(.9);opacity:0;scale:1;transition:opacity .95s ease,scale .95s cubic-bezier(.45,0,.2,1);will-change:opacity,scale;}
+.sm-pal-scene.intro.close .sm-pal-soft{opacity:1;scale:1.08;}

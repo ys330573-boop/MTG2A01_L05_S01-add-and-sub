@@ -4492,6 +4492,12 @@ SlideModules.PALACE_SCENE = {
     /* [art] the intro Swiftie talks (lips moving, keyed from the green-screen clip) while his line plays, and rests
        with his beak closed before and after it */
     const swImg = sc.querySelector(".sm-pal-sw.talker"), talking = (on) => { if(swImg) swImg.src = on ? SW_PAL.talk : SW_PAL.still; };
+    /* [cinematic] the intro is a close-up: the camera comes in on Swiftie (big, in the middle; the hall and the gate
+       behind him go soft) while he says his line, and eases back out - to his usual spot - before he turns to the gate */
+    //   (GPU only: Swiftie scales / moves with transforms, and a pre-blurred copy of the hall fades in over the sharp one)
+    if(swImg){ const soft = smEl("div", "sm-pal-soft"); soft.style.backgroundImage = `url(${smArt("bg_palace_hall")})`; sc.insertBefore(soft, swImg); }
+    const closeUp = (on) => { sc.classList.toggle("close", on); sfxWhoosh(); };
+    if(swImg) smLater(alive, 120, () => closeUp(true));   // a beat after the slide is in, so the push-in is seen
     if(d.kind === "treasure"){
       sfxSparkle();
       smLater(alive, 650, () => {                       // the chest lands: coins spill out in an arc, then the confetti
@@ -4548,7 +4554,11 @@ SlideModules.PALACE_SCENE = {
     };
     const free = smReplay((done) => { talking(true); smPlay(d.vo, [], () => { talking(false); done(); }); });
     setSwMood(d.kind === "treasure" ? "celebrate" : "talk");
-    smSteps([500, { id:d.vo, pre:() => talking(true), post:() => talking(false) }], alive, () => { free(); if(toGate) walkToGate(); else setNavActive(true); });
+    const after = () => { if(toGate) walkToGate(); else setNavActive(true); };
+    smSteps([swImg ? 1100 : 500, { id:d.vo, pre:() => talking(true), post:() => talking(false) }], alive, () => {
+      free();
+      if(swImg && sc.classList.contains("close")){ closeUp(false); smLater(alive, 950, after); } else after();
+    });
   }
 };
 
