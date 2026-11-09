@@ -3016,13 +3016,13 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
 .sm-doorwrap.staged .sm-cam{left:0;top:0;}
 .sm-cam > .sm-door2{position:absolute;left:378px;top:223px;transform-origin:0 0;scale:.43;}
 /* Swiftie at the gate's threshold (where the walk up the carpet ends) */
-.sm-doorwrap.atgate .sm-door-sw{translate:333px -333px;scale:.48;}
+.sm-doorwrap.atgate .sm-door-sw{translate:333px -333px;scale:.34;}   /* = app.js SM_GATE_S */
 /* the gate opens: he steps on into the portal */
 .sm-doorwrap.staged.open .sm-door-sw{animation:swIntoGate 1.3s ease-in .85s forwards;}
 @keyframes swIntoGate{
-  0%{translate:333px -333px;scale:.48;rotate:0deg;opacity:1;} 25%{translate:333px -337px;scale:.46;rotate:-2deg;}
-  50%{translate:334px -340px;scale:.43;rotate:2deg;opacity:1;} 75%{translate:334px -343px;scale:.4;rotate:-1deg;opacity:.6;}
-  100%{translate:334px -345px;scale:.37;rotate:0deg;opacity:0;}}
+  0%{translate:333px -333px;scale:.34;rotate:0deg;opacity:1;} 25%{translate:333px -336px;scale:.325;rotate:-2deg;}
+  50%{translate:334px -338px;scale:.305;rotate:2deg;opacity:1;} 75%{translate:334px -341px;scale:.283;rotate:-1deg;opacity:.6;}
+  100%{translate:334px -343px;scale:.262;rotate:0deg;opacity:0;}}
 /* the intro: the first gate already stands at the end of the carpet; Swiftie turns to it (mirrored, pointing that way)
    and his back view walks up to it */
 .sm-pal-scene.to-gate .sm-pal-sw{left:80px;scale:-1 1;}

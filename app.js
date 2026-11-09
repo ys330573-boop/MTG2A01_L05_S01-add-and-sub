@@ -4423,7 +4423,12 @@ SlideModules.PICK_STORY = {
    together, so a push-in frames the gate big in the middle of the screen with Swiftie at its foot. */
 const SM_CAM_GATE = { x:-219, y:-176, s:2 };
 const SM_CARPET_X = 333;   // Swiftie on the carpet's middle, just in front of the camera (his translate from the gate scene's resting spot)
-const SM_GATE_FOOT = { cx:443.5, bottom:397, h:74.88 };   // Swiftie at the gate's threshold (= the gate slides' .atgate spot)
+// [depth] how small Swiftie stands at the far gate (style.css .atgate / swIntoGate use the same scale): small enough
+// that his run up the carpet reads as going away from us, even with the camera following him in
+const SM_GATE_S = .34;
+const SM_GATE_FOOT = { cx:443.5, bottom:397, h:156 * SM_GATE_S };   // Swiftie at the gate's threshold (= the gate slides' .atgate spot)
+// the camera waits this share of a run up the carpet before it follows, so he is seen getting smaller first
+const SM_CAM_HOLD = .3;
 function smCamTf(c){ c = c || { x:0, y:0, s:1 }; return `translate(${c.x}px,${c.y}px) scale(${c.s})`; }
 // a 1333×750 layer at the stage's origin, inside `parent` (positioned and already in the page)
 function smStageLayer(parent, cls){
@@ -4443,15 +4448,18 @@ function smThroughPortal(cam, p, door, ms, fn){
   const a = L.animate([{ opacity:0 }, { opacity:0, offset:.25 }, { opacity:1 }], { duration:ms, easing:"ease-in", fill:"forwards" });
   a.onfinish = fn;
 }
-// move the camera (the hall + `layer`) to `to` (null = the whole hall); returns the running animations
-function smCam(layer, to, ms, ease){
+// move the camera (the hall + `layer`) to `to` (null = the whole hall); returns the running animations.
+// hold (0-1): the camera stays put for that share of ms, then makes its move in the rest
+function smCam(layer, to, ms, ease, hold){
   const tf = smCamTf(to), out = [];
   [$("smPalaceBg"), layer].forEach(el => { if(!el) return;
     const run = el.getAnimations().filter(a => !(window.CSSTransition && a instanceof CSSTransition)), now = getComputedStyle(el).transform;
     const from = run.length && now && now !== "none" ? now : el.style.transform || smCamTf(null);   // a camera move cut short goes on from where it is
     run.forEach(a => a.cancel());
     el.style.transformOrigin = "0 0"; el.style.transform = tf;
-    if(ms && from !== tf) out.push(el.animate([{ transform:from }, { transform:tf }], { duration:ms, easing:ease || "ease-in-out" }));
+    if(ms && from !== tf) out.push(hold
+      ? el.animate([{ transform:from }, { transform:from, offset:hold, easing:ease || "ease-in-out" }, { transform:tf }], { duration:ms })
+      : el.animate([{ transform:from }, { transform:tf }], { duration:ms, easing:ease || "ease-in-out" }));
   });
   return out;
 }
@@ -4575,7 +4583,7 @@ SlideModules.PALACE_SCENE = {
           const ms = 3800;
           smRunAs(back, smRunKf(dx, dy, SM_GATE_FOOT.h / H, 24), ms, "cubic-bezier(.35,.1,.55,1)", () => {
             if(!alive()) return; window.__palArrive = toGate.id; completeSlide(true); });
-          smCam(cam, SM_CAM_GATE, ms, "cubic-bezier(.45,0,.35,1)");
+          smCam(cam, SM_CAM_GATE, ms, "cubic-bezier(.45,0,.35,1)", SM_CAM_HOLD);
           return;
         }
         const ms = T(4800);
@@ -4691,12 +4699,12 @@ SlideModules.STORY_FILL = {
       const walkUp = (fn) => {
         if(arrived){ wait(350, fn); return; }
         if(!ff){   // he runs up the carpet (the running sprite), and stands at the gate
-          const ms = 2800, a = smRunAs(sw, smRunKf(333, -333, .48, 20, SM_CARPET_X, 12), ms, "cubic-bezier(.35,.1,.55,1)", (run) => {
+          const ms = 2800, a = smRunAs(sw, smRunKf(333, -333, SM_GATE_S, 20, SM_CARPET_X, 12), ms, "cubic-bezier(.35,.1,.55,1)", (run) => {
             cur = null; wrap.classList.add("atgate"); sw.style.visibility = ""; run.remove(); if(alive()) fn(); });
-          cur = [a, ...smCam(cam, SM_CAM_GATE, ms, "cubic-bezier(.45,0,.35,1)")];
+          cur = [a, ...smCam(cam, SM_CAM_GATE, ms, "cubic-bezier(.45,0,.35,1)", SM_CAM_HOLD)];
           return;
         }
-        const ms = ff ? 0 : 3400, a = sw.animate(smWalkKf(333, -333, .48, 7, SM_CARPET_X, 12), { duration:ms, easing:"cubic-bezier(.3,0,.7,1)", fill:"forwards" });
+        const ms = ff ? 0 : 3400, a = sw.animate(smWalkKf(333, -333, SM_GATE_S, 7, SM_CARPET_X, 12), { duration:ms, easing:"cubic-bezier(.3,0,.7,1)", fill:"forwards" });
         cur = [a, ...smCam(cam, SM_CAM_GATE, ms, "cubic-bezier(.45,0,.35,1)")];
         a.onfinish = () => { cur = null; wrap.classList.add("atgate"); a.cancel(); if(alive()) fn(); };
       };
@@ -4757,8 +4765,8 @@ SlideModules.STORY_FILL = {
           smLater(alive, 750, () => { wrap.classList.add("open"); sfxWhoosh(); markGateDone(); });
           // he runs on into the portal (the running sprite, shrinking and fading into the light) - in place of the CSS step-in
           if(!rm) smLater(alive, 750 + 850, () => smRunAs(sw, [
-            { translate:"333px -333px", scale:.48, opacity:1 }, { translate:"334px -340px", scale:.43, opacity:1, offset:.5 },
-            { translate:"334px -343px", scale:.4, opacity:.6, offset:.75 }, { translate:"334px -345px", scale:.37, opacity:0 }], 1300, "ease-in"));
+            { translate:"333px -333px", scale:SM_GATE_S, opacity:1 }, { translate:"334px -338px", scale:SM_GATE_S * .9, opacity:1, offset:.5 },
+            { translate:"334px -341px", scale:SM_GATE_S * .83, opacity:.6, offset:.75 }, { translate:"334px -343px", scale:SM_GATE_S * .77, opacity:0 }], 1300, "ease-in"));
           smLater(alive, 1300, sfxSparkle);
           // [gate to gate] Swiftie has stepped into the portal: the camera never pulls back. It eases on towards the portal
           // while the "gate passed" line plays, then flies through it after him into the next hall (smThroughPortal).
