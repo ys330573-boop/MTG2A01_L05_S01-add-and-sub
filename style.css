@@ -1579,6 +1579,12 @@ body.is-start .sg-sky{
 .phase-gate.talking.leaving .pg-title{animation:pgTitleOut .3s ease-in both;}
 @keyframes pgTitleIn{from{opacity:0;transform:translateX(-50%) scale(.6);}to{opacity:1;transform:translateX(-50%) scale(1);}}
 @keyframes pgTitleOut{to{opacity:0;transform:translateX(-50%) scale(.92);}}
+/* the headline is WRITTEN in word by word (left-to-right wipe, as in the FLN repo's gate) as Swiftie says each word:
+   app.js pgWriteWords animates its clip-path on the VO's clock (PHASE_GATE_TITLE_AT). No pop here - it stands still
+   while it is written. Hidden (.pg-wait) until she starts talking. */
+.phase-gate .pg-title.pg-wait{visibility:hidden;}
+.phase-gate.talking .pg-title.pg-write{opacity:1;animation:none;}
+.phase-gate.talking.leaving .pg-title.pg-write{animation:pgTitleOut .3s ease-in both;}
 
 /* [10] WRONG card: the shake never played. A wrong tap carries BOTH .crossed and .wg-wrong, and
    `.opt-cell.crossed{animation:none}` (same specificity, later) beat `.opt-cell.wg-wrong{animation:wgNo}`.

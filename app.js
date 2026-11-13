@@ -4985,6 +4985,30 @@ function afterConfetti(fn){ FLNMotion.confetti.after(fn); }   // let the correct
 /* onscreen headline per gate (display only; distinct from any narration). Eligibility = phase IN this map. */
 const PHASE_GATE_TITLE = { tutorial:"चलिए, शुरू करें!", guided:"चलिए, साथ में करें!", practice:"अब आपकी बारी!" };   // [16h] the lead’s official transition lines (VO = full sentences in the card manifest; NOTE aap-register — flagged)
 const PHASE_GATE_VO    = { tutorial:"vo_pt_tutorial", guided:"vo_pt_guided", practice:"vo_pt_practice" };
+/* the headline is written in word by word (a left-to-right wipe, as in the FLN repo's gate) exactly as Swiftie SAYS
+   each word, not when she starts talking: [start, end] ms of every headline word from the clip start, measured from
+   the pauses in each clip (अब/आपकी run together, so their split is estimated). The wipe crosses a word while it is
+   said and waits in the pauses between. */
+const PHASE_GATE_TITLE_AT = {
+  tutorial:[[4440, 4880], [5290, 5670], [5720, 6010]],                 // चलिए, | शुरू | करें!
+  guided:  [[5770, 6220], [6660, 6970], [7110, 7240], [7290, 7540]],   // चलिए, | साथ | में | करें!
+  practice:[[1880, 2000], [2000, 2220], [2340, 2870]]                  // अब | आपकी | बारी!
+};
+// write the headline in word by word on the clip's clock (times as above, from `t0`)
+function pgWriteWords(title, times, t0){
+  const tx = title.firstChild, txt = title.textContent, box = title.getBoundingClientRect();
+  const words = [], re = /\S+/g; let m;
+  while((m = re.exec(txt))) words.push([m.index, m.index + m[0].length]);
+  if(!tx || !box.width || words.length !== times.length) return null;
+  const rg = document.createRange(), right = words.map(([s, e]) => { rg.setStart(tx, s); rg.setEnd(tx, e); const r = rg.getBoundingClientRect(); return (r.right - box.left) / box.width; });
+  const clip = f => `inset(-30% ${((1 - f) * 100).toFixed(2)}% -30% -12%)`;   // right inset; the outline overhangs both sides
+  const a = times[0][0], z = times[times.length - 1][1], T = Math.max(1, z - a), kf = [{ clipPath:clip(-.12), offset:0 }];
+  times.forEach(([s, e], i) => {
+    const from = i ? right[i - 1] + .01 : -.12, to = i === times.length - 1 ? 1.12 : right[i] + .01;
+    kf.push({ clipPath:clip(from), offset:(s - a) / T }, { clipPath:clip(to), offset:(e - a) / T });
+  });
+  return title.animate(kf.filter((k, i, all) => !i || k.offset > all[i - 1].offset - 1e-9), { duration:T, delay:Math.max(0, a - (performance.now() - t0)), fill:"both" });
+}
 const PG_CLIP_MS = 8304;      // peeking.webp: rise, peek, blink, come out, talk, duck - plays once
 const PG_EXIT_MS = 520;       // the duck-down (CSS pgDuck) - a fallback bound only; animationend closes the gate
 const PG_TALK_MS = 2724;      // the clip's first open-mouth frame: the headline + line start here
@@ -5045,7 +5069,8 @@ function phaseBlurTransition(cb, toPhase){
   stopNudge(); stopAudio();
   const gate = $("phaseGate"), img = $("phaseGateImg"), cv = $("phaseGateCv");
   gate.classList.remove("talking");
-  const title = $("phaseGateTitle"); if(title) title.textContent = PHASE_GATE_TITLE[toPhase] || "";
+  const title = $("phaseGateTitle");
+  if(title){ title.textContent = PHASE_GATE_TITLE[toPhase] || ""; title.classList.remove("pg-write"); title.classList.add("pg-wait"); }
   $("stage").classList.add("blurred", "gating");
   document.body.classList.add("gating");
   gate.classList.remove("leaving");
@@ -5073,8 +5098,17 @@ function phaseBlurTransition(cb, toPhase){
   setTimeout(startClock, PG_LOAD_CAP_MS);
   function talk(){
     if(tok !== _gateToken) return;
-    gate.classList.add("talking");          // headline pops in (CSS) on the same tick the VO starts
+    gate.classList.add("talking");
     play(voSrc, afterVo);
+    // the headline is written in word by word as she says it (no VO, or reduced motion: shown at once)
+    if(title){
+      title.getAnimations().forEach(a => a.cancel());
+      title.classList.remove("pg-wait"); title.classList.add("pg-write");
+      const times = voSrc && PHASE_GATE_TITLE_AT[toPhase];
+      const rm = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if(times && !rm && !pgWriteWords(title, times, performance.now())) title.animate([{ clipPath:"inset(-30% 112% -30% -12%)" }, { clipPath:"inset(-30% -12% -30% -12%)" }],
+        { duration:times[times.length - 1][1] - times[0][0], delay:times[0][0], fill:"both" });   // (words not measurable: one even wipe)
+    }
   }
   function afterVo(){
     if(tok !== _gateToken){ closeGate(); return; }
