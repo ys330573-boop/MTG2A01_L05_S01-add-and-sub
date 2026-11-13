@@ -4133,9 +4133,27 @@ SlideModules.SIGN_DRAG = {
         { duration:440, easing:"cubic-bezier(.3,.8,.25,1)" }); sfxPop(4 + tiles.indexOf(t) * 3); };
     if(oneByOne) tiles.forEach(t => t.classList.add("sm-hold"));
     const free = smReplay((done) => smPlay(d.story_vo, smKaraoke(story, d.story_vo), () => { smKaraokeClear(story); done(); }));
-    const endIntro = smOnce(() => { showWork(); tiles.forEach(showTile); free(); smKaraokeClear(story); setSwMood("point"); startNudge(slide, tray); });   // idle: the hand taps at the sign cards
+    /* [G1/G2 idle] 7 s with no tap: no hand - the instruction VO is played again and the dotted box in the sentence
+       (where the sign goes) pulses (the same pulse as P1/P2's empty boxes); it re-arms after each try or replay. While
+       a voice-over, the hint or a flying card is on, it waits and checks again. */
+    let idleT = 0, idleVo = null;
+    // a tap ends the hint: the pulse stops, and the replayed instruction too if it is still being said
+    const idleStop = () => { clearTimeout(idleT); zone.classList.remove("idle"); if(idleVo && currentAudio === idleVo) stopAudio(); idleVo = null; };
+    const idleArm = () => {
+      clearTimeout(idleT);
+      if(!alive() || state.locked || revealed) return;
+      idleT = setTimeout(() => {
+        if(!alive() || state.locked || revealed) return;
+        if(busyHint || flying || isPlaying){ idleArm(); return; }
+        zone.classList.remove("idle"); void zone.offsetWidth; zone.classList.add("idle");
+        state.nudgeUsed = true; state.scaffoldLevel = Math.max(state.scaffoldLevel, 1);
+        SwiftPAL.emit("nudge_invoked", { slide_id:slide.id, phase:slide.phase });
+        smPlay(d.q_vo, [], () => { idleVo = null; if(alive()) idleArm(); }); idleVo = currentAudio;
+      }, 7000);
+    };
+    const endIntro = smOnce(() => { showWork(); tiles.forEach(showTile); free(); smKaraokeClear(story); setSwMood("point"); idleArm(); });
     const place = (tile, viaReveal) => {
-      endIntro(); state.locked = true; stopNudge();
+      endIntro(); state.locked = true; stopNudge(); idleStop();
       zone.classList.add("filled", smTokCls(d.answer).split(" ")[1]); zone.textContent = d.answer;
       tile.classList.add("used"); tile.classList.remove("pulse", "faded");
       /* the other sign leaves the tray: it eases down a little, shrinks and fades out from however it looks now (a faded one
@@ -4163,12 +4181,14 @@ SlideModules.SIGN_DRAG = {
         smWiggle(tile, 430); tiles.forEach(t => { if(t !== right) t.classList.add("faded"); }); right.classList.add("pulse");
         SwiftPAL.emit("answer_revealed", { slide_id:slide.id, phase:slide.phase, attempts:state.attempts });
       }
+      idleArm();
     };
     /* [G1/G2 tap] the child taps a sign card (no dragging): the right one flies into the box; a wrong one goes to the
        box, shakes there and springs back to the tray, and the usual wrong-answer feedback / hint runs */
     let flying = false;
     tiles.forEach(tile => tile.addEventListener("click", () => {
       if(state.locked || busyHint || flying || tile.classList.contains("faded")) return;
+      idleStop();
       if(tile === right){
         state.locked = true; tile.style.visibility = "hidden";
         smFly(tile, zone, 480, () => { tile.style.visibility = ""; place(tile, revealed); });

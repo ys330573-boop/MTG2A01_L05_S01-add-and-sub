@@ -3273,6 +3273,8 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
 /* [G1/G2 tap] the sign cards are tapped, not dragged */
 .sm-tray-signs .sm-tile.sign{cursor:pointer;touch-action:manipulation;}
 .sm-tray-signs .sm-tile.sign:active{scale:.96;}
+/* [G1/G2] the + and − cards stand further apart - the same 48px as the two story cards on P3/P4 (was 32px) */
+.stage.sm-page .sm-tray.sm-tray-signs{gap:48px;}
 /* [PL1 close-up] while he says his line the camera is in on Swiftie - he grows to twice his size in the middle of the
    screen, over the gate, while a pre-blurred copy of the hall fades in behind him - and eases back out to his usual spot
    (where he turns to the gate) once he is done. Transforms and opacity only, so the move stays smooth. */
