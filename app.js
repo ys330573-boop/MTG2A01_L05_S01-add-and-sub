@@ -3979,8 +3979,12 @@ SlideModules.WORKED_EXAMPLE = {
           return c;
         }, gap:500 },
       { id:S[3], pre:() => { story.querySelectorAll(".sm-n.hl").forEach(x => x.classList.remove("hl")); lastSent() && lastSent().classList.add("hl-sent"); },
-        cues:() => [{ at:smAt(S[3], d.op_word) || smDur(S[3]) - 900, fn:() => { show(cards[1]); cards[1].classList.add("pulse"); sfxPop(8); } }], gap:400 },
-      { id:S[4], pre:() => { lastSent() && lastSent().classList.remove("hl-sent"); cards[1].classList.remove("pulse"); unpair(); },   // "= ?" and then the total need the right side
+        cues:() => [{ at:smAt(S[3], d.op_word) || smDur(S[3]) - 900, fn:() => {
+          // the sign comes in lit for a moment (the same highlight as the numbers get), then settles - no pulsing
+          show(cards[1]); cards[1].classList.add("lit"); sfxPop(8);
+          smLater(alive, 1200, () => cards[1].classList.remove("lit"));
+        } }], gap:400 },
+      { id:S[4], pre:() => { lastSent() && lastSent().classList.remove("hl-sent"); cards[1].classList.remove("lit"); unpair(); },   // "= ?" and then the total need the right side
         cues:() => {
           const t = smSeqTimes(S[4], tokens);
           return t.map((ms, i) => ms == null ? null : { at:ms, fn:() => { if(i >= 3) show(cards[i]); cards.forEach((c, j) => c.classList.toggle("lit", j === i)); } }).filter(Boolean);
