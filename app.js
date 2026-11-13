@@ -165,6 +165,32 @@ function stopAudio(){
   if(currentAudio){ try{ currentAudio.pause(); }catch(e){} currentAudio=null; }
   setPlaying(false);
 }
+/* [speaker busy] the speaker is GREY and takes no taps while a voice-over plays; it turns blue only when the voice-over is
+   over (as the reference repo, QA BUG_06). body.spk-busy covers the WHOLE sequence: any clip playing, and it lets go only
+   after 700 ms with no clip - that bridges the short gaps between chained lines, so it never flashes blue in between.
+   A page keeps it grey from the moment it opens until its opening voice is over (spoken, then 700 ms quiet; a page that
+   says nothing lets go after 8 s). On the cover it simply follows the greeting. Read from the one isPlaying flag that
+   every playback exit passes through (setPlaying), polled - not a timer per clip - so it can never stick. */
+(function speakerState(){
+  let quietSince = 0, page = null, heard = false, openAt = 0, intro = false;
+  const tick = ()=>{
+    try{
+      const seq = !!isPlaying, now = performance.now();
+      const gate = document.getElementById("startGate");
+      const onCover = !!(gate && !gate.classList.contains("hidden"));
+      const pg = (typeof state !== "undefined") ? state.slideStart : null;
+      if(pg !== page && !onCover){ page = pg; heard = false; openAt = now; intro = page != null; }
+      if(onCover) intro = false;
+      if(seq){ quietSince = 0; heard = true; } else if(!quietSince) quietSince = now;
+      const settled = !seq && now - quietSince >= 700;
+      if(intro && ((heard && settled) || (!heard && now - openAt > 8000))) intro = false;
+      const busy = !settled || intro;
+      if(document.body && document.body.classList.contains("spk-busy") !== busy) document.body.classList.toggle("spk-busy", busy);
+    }catch(e){}
+  };
+  setInterval(tick, 80);
+})();
+const speakerBusy = ()=> document.body.classList.contains("spk-busy");
 /* play(src, onEnd): real MP3 if path exists; silent 1.5s beat if missing/blocked. */
 function play(src, onEnd){
   stopAudio(); setPlaying(true);
@@ -3370,6 +3396,7 @@ function smAnimate(cfg, alive, onDone, sync){
   if(cfg.wrap === "basket" && cfg.type === "remove"){ smBananaBasket(cfg, card, alive, close, sync); return; }
   if(cfg.bundles && cfg.type === "remove"){ smBangleBundles(cfg, card, alive, close, sync); return; }
   if(cfg.handover && cfg.type === "add"){ smBalloonGift(cfg, card, alive, close, sync); return; }
+  if(cfg.classroom && cfg.type === "merge"){ smClassroom(cfg, card, alive, close, sync); return; }
   if(cfg.type === "merge"){
     card.innerHTML =
       `<div class="sm-anim-row">` +
@@ -3671,6 +3698,62 @@ function smBalloonGift(cfg, card, alive, close, sync){
     sync.dadi = dadiIn; sync.give = give; sync.end = () => { voOver = true; tryClose(); };
     smLater(alive, 7000, give);   // a fallback if a cue never fires
   } else { smLater(alive, 1300, dadiIn); smLater(alive, 2000, give); }
+}
+
+/* [P2 hint] three boxes, no numbers: the boys' box, the girls' box and the classroom (blackboard, floor, empty places in
+   rows of ten). In step with the hint VO ("लड़के और लड़कियों को मिलाकर कुल बच्चे ..."): the boys' box comes in on
+   "लड़के", the girls' on "लड़कियों", on "मिलाकर" the children themselves walk over into the classroom - boys first,
+   then girls; the classroom glows on "बच्चे"; then the two boxes leave, the classroom comes to the middle, and once
+   the voice is over the hint closes. Without a VO (no sync) the same steps run on their own timing. */
+function smClassroom(cfg, card, alive, close, sync){
+  const box = (k, lbl, inner) => `<div class="sm-cr-side ${k}"><div class="sm-cr-lbl">${lbl}</div>${inner}</div>`;
+  const seats = smGroup(cfg.kind, cfg.a, { cols:10, cls:"seat" }).replace(/<\/div>$/, "") +
+                smGroup(cfg.kindB, cfg.b, { cols:10 }).replace(/^<div[^>]*>/, "");
+  card.classList.add("sm-cr-card");
+  card.innerHTML = `<div class="sm-cr">` +
+    box("boys", "लड़के", smGroup(cfg.kind, cfg.a, { cols:10, cls:"ga" })) +
+    box("girls", "लड़कियाँ", smGroup(cfg.kindB, cfg.b, { cols:10, cls:"gb" })) +
+    box("room", "कक्षा", `<div class="sm-cr-board"></div><div class="sm-cr-floor">${seats}</div>`) + `</div>`;
+  const $$ = s => [...card.querySelectorAll(s)];
+  const boys = card.querySelector(".sm-cr-side.boys"), girls = card.querySelector(".sm-cr-side.girls"), room = card.querySelector(".sm-cr-side.room");
+  const kids = $$(".ga .sm-it").concat($$(".gb .sm-it")), places = $$(".sm-cr-floor .sm-it");
+  places.forEach(p => p.classList.add("slot"));
+  [boys, girls].forEach(b => b.style.visibility = "hidden");
+  const show = (b) => { b.style.visibility = ""; sfxPop(3);
+    b.animate([{ opacity:0, transform:"translateY(24px) scale(.94)" }, { opacity:1, transform:"none" }], { duration:480, easing:"cubic-bezier(.3,.8,.3,1)" }); };
+  const boysIn = smOnce(() => show(boys)), girlsIn = smOnce(() => { boysIn(); show(girls); });
+  let voOver = !sync, moved = false;
+  const tryClose = () => { if(voOver && moved) smLater(alive, 1000, close); };
+  const glow = smOnce(() => room.classList.add("lit"));
+  const go = smOnce(() => { girlsIn();
+    smLater(alive, 500, () => {
+      sfxWhoosh();
+      const STAG = 30, MS = 850;
+      kids.forEach((el, i) => setTimeout(() => {
+        if(!alive()) return;
+        const a = smRect(el), z = smRect(places[i]), dx = z.x - a.x, dy = z.y - a.y;
+        el.style.position = "relative"; el.style.zIndex = "6";
+        el.animate([{ transform:"translate(0,0)" }, { transform:`translate(${dx * .5}px,${dy * .5 - 40}px) scale(1.1)`, offset:.5 }, { transform:`translate(${dx}px,${dy}px)` }],
+          { duration:MS, easing:"cubic-bezier(.45,.05,.3,1)", fill:"forwards" }).onfinish = () => {
+            if(!alive()) return; places[i].classList.remove("slot"); el.style.visibility = "hidden"; if(i % 4 === 0) sfxPop(i);
+          };
+      }, i * STAG));
+      // everyone is in the classroom: the two boxes go, the classroom comes to the middle
+      smLater(alive, (kids.length - 1) * STAG + MS + 300, () => {
+        sfxCorrect(); glow();
+        [boys, girls].forEach(b => b.animate([{ opacity:1, transform:"none" }, { opacity:0, transform:"translateY(20px) scale(.9)" }], { duration:450, easing:"ease-in", fill:"forwards" }));
+        smLater(alive, 500, () => {
+          const c = smRect(card), r = smRect(room), dx = (c.x + c.w / 2) - (r.x + r.w / 2);
+          room.animate([{ transform:"translateX(0)" }, { transform:`translateX(${dx}px)` }], { duration:700, easing:"cubic-bezier(.3,.8,.3,1)", fill:"forwards" });
+          smLater(alive, 700, () => { moved = true; tryClose(); });
+        });
+      });
+    });
+  });
+  if(sync){
+    sync.boys = boysIn; sync.girls = girlsIn; sync.go = go; sync.glow = glow; sync.end = () => { voOver = true; tryClose(); };
+    smLater(alive, 4000, go);   // a fallback if a cue never fires
+  } else { smLater(alive, 300, boysIn); smLater(alive, 1200, girlsIn); smLater(alive, 2200, go); }
 }
 
 /* [G4 hint] the G3 panel look with ten-frames: Dadi's panel (blue) holds her laddoos in rows of ten-frames, the
@@ -4369,6 +4452,13 @@ SlideModules.BUILD_SENTENCE = {
               { at:smAt(vo, String(an.b), Math.max(0, iA + 1)), fn:() => sync.b && sync.b() }],
             () => sync.end && sync.end());
         }
+        else if(fb.wrong_op_2_anim && fb.wrong_op_2_anim.classroom && fb.wrong_op_1){
+          // [P2] the classroom hint plays WITH the op VO: boys on "लड़के", girls on "लड़कियों", into the class on "मिलाकर"
+          const an = fb.wrong_op_2_anim, vo = fb.wrong_op_1, sync = {}, cue = (w, k) => ({ at:smAt(vo, w), fn:() => sync[k] && sync[k]() });
+          busy = true; stopAudio(); smAnimate(an, alive, () => { busy = false; }, sync);
+          smPlay(vo, [cue("लड़के", "boys"), cue("लड़कियों", "girls"), cue("मिलाकर", "go")].filter(c => c.at != null),
+            () => sync.end && sync.end());
+        }
         else { busy = true; stopAudio(); smAnimate(fb.wrong_op_2_anim, alive, () => { busy = false; }); }
       }
       else if(kind === "wrong_num" && n >= 2 && fb.wrong_num && fb.wrong_num[z._i]) smPlay(fb.wrong_num[z._i], [], () => {});
@@ -4540,9 +4630,10 @@ const SW_RUN = { sheet:"assets/UI/sw_run.webp", n:10, cols:5, ms:70 };
 // his turn from the front to the back: a 5-across sprite sheet of 19 frames (10 poses + blended in-betweens), 42 ms each
 const SW_TURN = { sheet:"assets/UI/sw_turn.webp", n:19, cols:5, ms:42 };
 [SW_PAL.still, SW_TURN.sheet, SW_RUN.sheet].forEach(s => { const i = new Image(); i.src = s; });   // warm the cache before the palace
-/* the palace intro's transition title ("चलिए, साथ में करें!" - not in its line) is written in word by word while the
-   line says "इस रहस्यमयी महल में" (5.08-6.77 s, from the pauses in vo_pl_intro): [start, end] ms of each title word */
-const PL_TITLE_AT = { vo_pl_intro:[[5250, 5900], [5950, 6300], [6350, 6550], [6550, 6800]] };
+/* the palace intro's transition: after the palace line Swiftie says "चलिए, साथ में करें!" - the guided gate's own words,
+   cut from the end of vo_pt_guided (5.65-7.66 s) into vo_pl_go - and the headline is written in word by word with it:
+   [start, end] ms of each word from that clip's start (measured from its pauses) */
+const SM_PL_GO = { src:"assets/Audio/vo_pl_go.mp3", times:[[120, 570], [1000, 1330], [1460, 1590], [1640, 1890]] };   // चलिए, | साथ | में | करें!
 
 SlideModules.PALACE_SCENE = {
   // STORY BEAT for the "रहस्यमयी महल" adventure (storyboard panels 1 and 7–8): palace backdrop, Swiftie
@@ -4566,7 +4657,7 @@ SlideModules.PALACE_SCENE = {
       (intro ? "" : `<div class="sm-bubble">${smEsc(smText(d.vo))}</div>`);
     host.appendChild(sc);
     /* [repo gate] the intro line is said in the transition screen (the FLN repo's gate, as the phase gates): the hall
-       blurs, Swiftie peeks up and talks, "चलिए, साथ में करें!" is written in as she says "रहस्यमयी महल"; then the
+       blurs, Swiftie peeks up and says it, then "चलिए, साथ में करें!" - written in word by word as she says it; then the
        gate closes and he turns to the first gate in the hall (no talking close-up any more) */
     const swImg = sc.querySelector(".sm-pal-sw.talker");
     if(d.kind === "treasure"){
@@ -4663,8 +4754,8 @@ SlideModules.PALACE_SCENE = {
     setSwMood(d.kind === "treasure" ? "celebrate" : "talk");
     const after = () => { if(toGate) walkToGate(); else setNavActive(true); };
     if(swImg){
-      // its headline is the guided gate's "चलिए, साथ में करें!" (user 2026-11-13; the palace line itself is still said)
-      smLater(alive, 500, () => pgGate({ title:PHASE_GATE_TITLE.guided, vo:d.vo, times:PL_TITLE_AT[d.vo], onDone:() => { if(!alive()) return; free(); smLater(alive, 350, after); } }));
+      // the palace line first, then "चलिए, साथ में करें!" (said and written word by word - user 2026-11-13)
+      smLater(alive, 500, () => pgGate({ title:PHASE_GATE_TITLE.guided, lead:d.vo, src:SM_PL_GO.src, times:SM_PL_GO.times, onDone:() => { if(!alive()) return; free(); smLater(alive, 350, after); } }));
       return;
     }
     smSteps([500, { id:d.vo }], alive, () => { free(); after(); });
@@ -4948,6 +5039,7 @@ function mountSlideNow(idx){
   // audio chip = replay the slide audio. Prefer a module-supplied replay (teach slides own their
   // count_intro/explain sequence, which autoPlayChain deliberately skips), else replay the chain.
   $("audioChip").onclick = ()=>{
+    if(speakerBusy()) return;   // [speaker busy] grey = no replay until the voice-over is over
     state.audioReplays++;
     SwiftPAL.emit("audio_replay", { slide_id: slide.id, phase: slide.phase, count: state.audioReplays });
     if(state.replayAudio) state.replayAudio(); else autoPlayChain(slide);
@@ -4982,6 +5074,7 @@ function mountSlideNow(idx){
     const inner = document.createElement("div"); inner.className = "tut-content";
     card.insertBefore(inner, card.querySelector(".tut-mascot"));
     card.querySelector(".tut-audio").onclick = ()=>{
+      if(speakerBusy()) return;   // [speaker busy]
       state.audioReplays++;
       SwiftPAL.emit("audio_replay", { slide_id: slide.id, phase: slide.phase, count: state.audioReplays, src: "tut_chip" });
       if(state.replayAudio) state.replayAudio(); else autoPlayChain(slide);
@@ -5051,8 +5144,9 @@ function pgWriteWords(title, times, t0){
 const GATE_ART = { peek:"assets/UI/gate_peek.webp", talk:"assets/UI/gate_talk.webp", rest:"assets/UI/gate_rest.webp", peek_ms:1520, hold_ms:450 };
 const _gatedPhases = new Set();   // each phase gate plays ONCE (Start→tutorial, →guided, →practice)
 let _gateToken = 0;
-/* one gate: { title, vo (audio id), times ([[start, end]…] ms of each title word from the VO start), onDone } -
-   used by the phase transitions and by the palace intro (PL1) */
+/* one gate: { title, vo (audio id) or src (a clip path), times ([[start, end]…] ms of each title word from that clip's
+   start), lead (an audio id said first, before the title's clip), onDone } - used by the phase transitions and by the
+   palace intro (PL1) */
 function pgGate(o){
   const tok = ++_gateToken;
   stopNudge(); stopAudio();
@@ -5065,7 +5159,8 @@ function pgGate(o){
   $("stage").classList.add("blurred", "gating");
   document.body.classList.add("gating");
   gate.classList.add("show");
-  const voSrc = (o.vo && CARD.assets && CARD.assets.audio && CARD.assets.audio[o.vo]) || null;
+  const au = id => (id && CARD.assets && CARD.assets.audio && CARD.assets.audio[id]) || null;
+  const voSrc = o.src || au(o.vo), leadSrc = au(o.lead);
   let finished = false;
   const finish = ()=>{
     if(finished) return; finished = true;
@@ -5083,17 +5178,21 @@ function pgGate(o){
   const talk = ()=>{
     if(tok !== _gateToken) return;
     gate.classList.add("talking");
-    setImg(GATE_ART.talk);
-    play(voSrc, finish);                            // the talk loop runs until the VO's end
-    // the headline is written in word by word as she says it (no VO, or reduced motion: shown at once)
-    if(title){
-      title.classList.remove("pg-wait"); title.classList.add("pg-write");
-      const times = voSrc && o.times;
-      const rm = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
-      if(times && !rm && !pgWriteWords(title, times, performance.now())) title.animate([{ clipPath:"inset(-30% 112% -30% -12%)" }, { clipPath:"inset(-30% -12% -30% -12%)" }],
-        { duration:times[times.length - 1][1] - times[0][0], delay:times[0][0], fill:"both" });   // (words not measurable: one even wipe)
-    }
-    setTimeout(finish, 20000);                      // never strand the child
+    setImg(GATE_ART.talk);                          // the talk loop runs until the last clip's end
+    const say = ()=>{
+      if(tok !== _gateToken) return;
+      play(voSrc, finish);
+      // the headline is written in word by word as she says it (no VO, or reduced motion: shown at once)
+      if(title){
+        title.classList.remove("pg-wait"); title.classList.add("pg-write");
+        const times = voSrc && o.times;
+        const rm = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if(times && !rm && !pgWriteWords(title, times, performance.now())) title.animate([{ clipPath:"inset(-30% 112% -30% -12%)" }, { clipPath:"inset(-30% -12% -30% -12%)" }],
+          { duration:times[times.length - 1][1] - times[0][0], delay:times[0][0], fill:"both" });   // (words not measurable: one even wipe)
+      }
+    };
+    if(leadSrc) play(leadSrc, ()=> setTimeout(say, 250)); else say();   // a lead line first, the headline's clip after it
+    setTimeout(finish, 25000);                      // never strand the child
   };
   // the peek clock starts when the peek picture has actually loaded (the three are fetched under the landing)
   let started = false;
@@ -5445,7 +5544,7 @@ function boot(){
     else { _greetingHeard = true; releaseStart(); }
   };
   window.addEventListener("pointerdown", ()=>{ if(onLandingNow() && !startWaiting()) armStartPulse(); }, true);
-  const sgVo = $("sgVo"); if(sgVo) sgVo.onclick = (e)=>{ e.stopPropagation(); if(!isPlaying) playLanding(); };
+  const sgVo = $("sgVo"); if(sgVo) sgVo.onclick = (e)=>{ e.stopPropagation(); if(!isPlaying && !speakerBusy()) playLanding(); };
   /* ---- [landing mascot player] the waving Swiftee drawn on a canvas where the browser can decode the clip itself (no
      frame blinks); the plain <img> otherwise. Verbatim from the reference shell. ---- */
   const sgMascotPlayer = (()=>{

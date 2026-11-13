@@ -382,6 +382,7 @@
             "type": "merge",
             "kind": "boy",
             "kindB": "girl",
+            "classroom": true,
             "a": 30,
             "b": 40,
             "labelA": "30 लड़के",

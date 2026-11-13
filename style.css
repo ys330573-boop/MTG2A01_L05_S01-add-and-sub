@@ -3335,3 +3335,21 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
 .sg-w::before{color:#0B2F80;-webkit-text-stroke:20px #0B2F80;translate:0 5px;}
 .sg-eq-t.num{border-color:#4E9BEB;box-shadow:0 5px 0 #2F7AD6,0 8px 12px rgba(30,100,200,.12);}
 .sg-eq-t.op.add{color:#1DB33F;}
+/* [cover v3] each number sentence sits on its own panel (pale-blue card, white rim, soft ledge + shadow) so the two
+   read as two separate sentences; cards, signs and gaps are a bit smaller so the row stays clear of Swiftie. */
+.sg-content.with-eq{margin-bottom:150px;}
+.sg-eq{gap:36px;margin-top:0;}
+.sg-eq-one{gap:8px;padding:12px 20px 14px;border-radius:30px;background:linear-gradient(180deg,#F4FBFF 0%,#DDF0FF 100%);
+  border:4px solid #fff;box-shadow:0 0 0 3px #A9D6F7,0 7px 0 3px #8FC4EE,0 14px 22px rgba(30,100,200,.18);
+  animation:sgEqIn .5s cubic-bezier(.3,1.5,.5,1) backwards;animation-delay:.25s;}
+.sg-eq-t.num{min-width:80px;height:64px;padding:0 10px;border-radius:16px;font-size:42px;
+  box-shadow:0 4px 0 #2F7AD6,0 6px 10px rgba(30,100,200,.12);}
+.sg-eq-t.op,.sg-eq-t.eqs{font-size:48px;}
+@media (prefers-reduced-motion: reduce){ .sg-eq-one{animation:none;} }
+
+/* [speaker busy] the speaker (header chip, in-card chip, cover chip) stays GREY and takes no taps while a voice-over plays
+   - body.spk-busy, driven by speakerState() in app.js - and turns blue again only when the voice-over is over (as the
+   reference repo). The sound-wave arcs still animate while it speaks (.playing). */
+.audio-chip,.tut-audio,.sg-vo{transition:opacity .18s ease, filter .18s ease;}
+body.spk-busy .audio-chip,body.spk-busy .tut-audio,body.spk-busy .sg-vo{pointer-events:none !important;cursor:default !important;
+  opacity:.45 !important;filter:grayscale(.75) !important;}
