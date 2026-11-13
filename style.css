@@ -2934,6 +2934,10 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
 .sm-we-marbles:not(.final) .sm-card.q{border-width:2.69px;box-shadow:0 4px 0 var(--ui-ledge);}
 .sm-we-marbles:not(.final) .sm-card.q.ans{border-width:2.69px;box-shadow:0 4px 0 #A8E3B9,0 0 8px rgba(0,177,50,.5);}
 .sm-we-marbles > *{flex-shrink:0;}
+/* [T1 centring] app.js align(): Pari's and Aaru's groups (and the cards under them) stand centred while they are alone
+   (.pair, --we-pair = the shift right), and glide back left (.unpair) when the right side is needed */
+.sm-we-marbles.pair .sm-we-scene,.sm-we-marbles.pair .sm-eq-cards{translate:var(--we-pair,0px) 0;}
+.sm-we-marbles.unpair .sm-we-scene,.sm-we-marbles.unpair .sm-eq-cards{translate:0 0;transition:translate .9s cubic-bezier(.45,0,.3,1),opacity .45s ease,transform .7s cubic-bezier(.3,.8,.3,1);}
 /* T2 too: the block is anchored to the top of the content area, so the story card's glide up has a fixed target */
 .sm-we-birds{min-height:0;}
 .sm-we-birds > *{flex-shrink:0;}

@@ -3923,7 +3923,15 @@ SlideModules.WORKED_EXAMPLE = {
       const xs = [cx(scene.querySelector(".ca")), 0, cx(scene.querySelector(".cb")), cx(scene.querySelector(".sm-we-arrow")), cx(scene.querySelector(".cc"))];
       xs[1] = (xs[0] + xs[2]) / 2;
       cards.forEach((c, i)=>{ c.style.left = (xs[i] - c.offsetWidth / 2).toFixed(1) + "px"; });
+      /* [T1 centring] the row is laid out with room for the combined box on the right, so while only Pari's and Aaru's
+         marbles are there they would sit left of centre: the scene and the cards under it stand shifted right until
+         the right side is needed (unpair), so the two groups read centred on the screen */
+      const fr = wrap.getBoundingClientRect(), pa = scene.querySelector(".ca").getBoundingClientRect(), pb = scene.querySelector(".cb").getBoundingClientRect();
+      const shift = ((fr.left + fr.width / 2) - (pa.left + pb.right) / 2) / sc;
+      if(shift > 1){ wrap.style.setProperty("--we-pair", shift.toFixed(1) + "px"); wrap.classList.add("pair"); }
     };
+    // the right side is about to be used: both groups glide back left so the whole picture is centred again
+    const unpair = ()=>{ if(!wrap.classList.contains("pair")) return; wrap.classList.add("unpair"); wrap.classList.remove("pair"); };
     const unalign = ()=>{ eq.classList.remove("aligned"); cards.forEach(c => c.style.left = ""); };
 
     /* step 1 — the story card glides up into its place under the frame's top edge, shrinking to the strip size as it goes.
@@ -3972,12 +3980,13 @@ SlideModules.WORKED_EXAMPLE = {
         }, gap:500 },
       { id:S[3], pre:() => { story.querySelectorAll(".sm-n.hl").forEach(x => x.classList.remove("hl")); lastSent() && lastSent().classList.add("hl-sent"); },
         cues:() => [{ at:smAt(S[3], d.op_word) || smDur(S[3]) - 900, fn:() => { show(cards[1]); cards[1].classList.add("pulse"); sfxPop(8); } }], gap:400 },
-      { id:S[4], pre:() => { lastSent() && lastSent().classList.remove("hl-sent"); cards[1].classList.remove("pulse"); },
+      { id:S[4], pre:() => { lastSent() && lastSent().classList.remove("hl-sent"); cards[1].classList.remove("pulse"); unpair(); },   // "= ?" and then the total need the right side
         cues:() => {
           const t = smSeqTimes(S[4], tokens);
           return t.map((ms, i) => ms == null ? null : { at:ms, fn:() => { if(i >= 3) show(cards[i]); cards.forEach((c, j) => c.classList.toggle("lit", j === i)); } }).filter(Boolean);
         }, post:() => smUnlit(eq), gap:400 },
       { id:S[5], pre:() => {
+          unpair();
           if(d.scene === "marbles"){
             const bt = scene.querySelector(".bt"); show(scene.querySelector(".sm-we-arrow")); show(bt);
             const items = [...scene.querySelectorAll(".ba .sm-it, .bb .sm-it")], slots = [...bt.querySelectorAll(".sm-it")];
