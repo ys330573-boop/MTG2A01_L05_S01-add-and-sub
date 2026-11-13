@@ -3262,6 +3262,19 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
 .sm-eq-inline:has(+ .sm-stories) .sm-tok.num.lit{background:#FFF1D8 !important;border-color:#F5A524 !important;
   box-shadow:0 4px 0 #F2C77E,0 0 0 6px rgba(255,200,0,.4),0 0 18px rgba(255,160,0,.55) !important;transform:translateY(-4px) scale(1.1);}
 .sm-eq-inline:has(+ .sm-stories) .sm-tok.op.lit{transform:scale(1.5);}
+/* [P3/P4 equation tiles] the whole sentence sits on a panel (G1's equation panel: white, pale-blue rim and ledge), and
+   the sign and "=" have their own cards like the numbers (same height, rim, ledge and corners; a little narrower, as
+   G1's sign box). The sign keeps its colour; a lit sign / "=" lights up in its card like a lit number. */
+.sm-eq-inline.big:has(+ .sm-stories){background:#fff;border:3px solid var(--ui-panel-rim);border-radius:26px;
+  box-shadow:0 4px 0 var(--ui-panel-ledge),0 8px 20px rgba(11,61,140,.06);padding:16px 30px;gap:16px;}
+.sm-eq-inline.big:has(+ .sm-stories) .sm-tok.op,.sm-eq-inline.big:has(+ .sm-stories) .sm-tok.eqs{
+  box-sizing:border-box;min-width:96px;height:88px;padding:0 12px;display:inline-flex;align-items:center;justify-content:center;
+  background:#fff;border:2.69px solid var(--ui-rim);border-radius:24px;box-shadow:0 4px 0 var(--ui-ledge);font-size:62px;line-height:1;}
+.sm-eq-inline.big.add:has(+ .sm-stories) .sm-tok.op{color:var(--sm-add);}
+.sm-eq-inline.big.sub:has(+ .sm-stories) .sm-tok.op{color:var(--sm-sub);}
+.sm-eq-inline.big:has(+ .sm-stories) .sm-tok.eqs{color:var(--ui-ink);}
+.sm-eq-inline.big:has(+ .sm-stories) .sm-tok.op.lit,.sm-eq-inline.big:has(+ .sm-stories) .sm-tok.eqs.lit{background:#FFF1D8 !important;border-color:#F5A524 !important;
+  box-shadow:0 4px 0 #F2C77E,0 0 0 6px rgba(255,200,0,.4),0 0 18px rgba(255,160,0,.55) !important;transform:translateY(-4px) scale(1.1);}
 .stage.sm-page .sm-story-opt.reveal{border:5px solid #FFB800;background:#FFFBEA;
   box-shadow:0 4px 0 #F2C77E,0 0 0 6px rgba(255,200,0,.45),0 0 26px rgba(255,190,0,.6);
   animation:smRevealPulse 1.15s cubic-bezier(.34,.62,.3,1) infinite,smStoryGlow 1.15s ease-in-out infinite;}
