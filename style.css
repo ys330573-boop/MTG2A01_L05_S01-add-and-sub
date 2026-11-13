@@ -1585,6 +1585,9 @@ body.is-start .sg-sky{
 .phase-gate .pg-title.pg-wait{visibility:hidden;}
 .phase-gate.talking .pg-title.pg-write{opacity:1;animation:none;}
 .phase-gate.talking.leaving .pg-title.pg-write{animation:pgTitleOut .3s ease-in both;}
+/* [repo gate] the FLN repo's gate pictures (gate_peek / gate_talk / gate_rest, 505x440): sized as the repo sizes them,
+   standing on the bottom edge; no CSS entrance or exit - the rise is in the peek clip (app.js pgGate) */
+.phase-gate #phaseGateImg.pg-card{animation:none;height:calc(225px * var(--scale,1));width:auto;margin-bottom:0;}
 
 /* [10] WRONG card: the shake never played. A wrong tap carries BOTH .crossed and .wg-wrong, and
    `.opt-cell.crossed{animation:none}` (same specificity, later) beat `.opt-cell.wg-wrong{animation:wgNo}`.

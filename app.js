@@ -4539,7 +4539,10 @@ const SW_PAL = { talk:"assets/UI/sw_pal_talk.webp", still:"assets/UI/sw_pal_stil
 const SW_RUN = { sheet:"assets/UI/sw_run.webp", n:10, cols:5, ms:70 };
 // his turn from the front to the back: a 5-across sprite sheet of 19 frames (10 poses + blended in-betweens), 42 ms each
 const SW_TURN = { sheet:"assets/UI/sw_turn.webp", n:19, cols:5, ms:42 };
-[SW_PAL.talk, SW_PAL.still, SW_TURN.sheet, SW_RUN.sheet].forEach(s => { const i = new Image(); i.src = s; });   // warm the cache before the palace
+[SW_PAL.still, SW_TURN.sheet, SW_RUN.sheet].forEach(s => { const i = new Image(); i.src = s; });   // warm the cache before the palace
+/* the palace intro's transition title ("चलिए, साथ में करें!" - not in its line) is written in word by word while the
+   line says "इस रहस्यमयी महल में" (5.08-6.77 s, from the pauses in vo_pl_intro): [start, end] ms of each title word */
+const PL_TITLE_AT = { vo_pl_intro:[[5250, 5900], [5950, 6300], [6350, 6550], [6550, 6800]] };
 
 SlideModules.PALACE_SCENE = {
   // STORY BEAT for the "रहस्यमयी महल" adventure (storyboard panels 1 and 7–8): palace backdrop, Swiftie
@@ -4558,18 +4561,14 @@ SlideModules.PALACE_SCENE = {
             [[18, 22], [72, 14], [40, 8], [86, 40], [10, 48], [58, 30]].map(([x, y], i) => `<i class="tr-spk" style="left:${x}%;top:${y}%;animation-delay:${i * .35}s"></i>`).join("") +
           `</div>`
         : "") +
-      (intro ? `<img class="sm-pal-sw talker" src="${SW_PAL.still}" alt="">` : `<img class="sm-pal-sw" src="assets/UI/${pose}.png" alt="">`) +
+      // the intro's Swiftie only marks his spot in the hall (unseen): he appears there turning to the gate (walkToGate)
+      (intro ? `<img class="sm-pal-sw talker" src="${SW_PAL.still}" alt="" style="visibility:hidden">` : `<img class="sm-pal-sw" src="assets/UI/${pose}.png" alt="">`) +
       (intro ? "" : `<div class="sm-bubble">${smEsc(smText(d.vo))}</div>`);
     host.appendChild(sc);
-    /* [art] the intro Swiftie talks (lips moving, keyed from the green-screen clip) while his line plays, and rests
-       with his beak closed before and after it */
-    const swImg = sc.querySelector(".sm-pal-sw.talker"), talking = (on) => { if(swImg) swImg.src = on ? SW_PAL.talk : SW_PAL.still; };
-    /* [cinematic] the intro is a close-up: the camera comes in on Swiftie (big, in the middle; the hall and the gate
-       behind him go soft) while he says his line, and eases back out - to his usual spot - before he turns to the gate */
-    //   (GPU only: Swiftie scales / moves with transforms, and a pre-blurred copy of the hall fades in over the sharp one)
-    if(swImg){ const soft = smEl("div", "sm-pal-soft"); soft.style.backgroundImage = `url(${smArt("bg_palace_hall")})`; sc.insertBefore(soft, swImg); }
-    const closeUp = (on) => { sc.classList.toggle("close", on); sfxWhoosh(); };
-    if(swImg) smLater(alive, 120, () => closeUp(true));   // a beat after the slide is in, so the push-in is seen
+    /* [repo gate] the intro line is said in the transition screen (the FLN repo's gate, as the phase gates): the hall
+       blurs, Swiftie peeks up and talks, "चलिए, साथ में करें!" is written in as she says "रहस्यमयी महल"; then the
+       gate closes and he turns to the first gate in the hall (no talking close-up any more) */
+    const swImg = sc.querySelector(".sm-pal-sw.talker");
     if(d.kind === "treasure"){
       sfxSparkle();
       smLater(alive, 650, () => {                       // the chest lands: coins spill out in an arc, then the confetti
@@ -4633,7 +4632,8 @@ SlideModules.PALACE_SCENE = {
         const show = (i) => { tn.style.backgroundPosition = `${(i % SW_TURN.cols) * 100 / (SW_TURN.cols - 1)}% ${Math.floor(i / SW_TURN.cols) * 100 / (rows - 1)}%`; };
         show(0); cam.appendChild(tn);
         back.style.scale = "1 1"; back.style.opacity = "0";
-        const XF = 140, t0 = performance.now() + XF;
+        // (the intro's front pose is unseen: he fades in at his spot, already in the turn's first frame)
+        const XF = front.style.visibility === "hidden" ? 380 : 140, t0 = performance.now() + XF;
         tn.animate([{ opacity:0 }, { opacity:1 }], { duration:XF, fill:"forwards" });
         front.animate([{ opacity:1 }, { opacity:0 }], { duration:XF, fill:"forwards" });
         const step = (now) => {
@@ -4659,13 +4659,15 @@ SlideModules.PALACE_SCENE = {
         };
       };
     };
-    const free = smReplay((done) => { talking(true); smPlay(d.vo, [], () => { talking(false); done(); }); });
+    const free = smReplay((done) => smPlay(d.vo, [], done));
     setSwMood(d.kind === "treasure" ? "celebrate" : "talk");
     const after = () => { if(toGate) walkToGate(); else setNavActive(true); };
-    smSteps([swImg ? 1100 : 500, { id:d.vo, pre:() => talking(true), post:() => talking(false) }], alive, () => {
-      free();
-      if(swImg && sc.classList.contains("close")){ closeUp(false); smLater(alive, 950, after); } else after();
-    });
+    if(swImg){
+      // its headline is the guided gate's "चलिए, साथ में करें!" (user 2026-11-13; the palace line itself is still said)
+      smLater(alive, 500, () => pgGate({ title:PHASE_GATE_TITLE.guided, vo:d.vo, times:PL_TITLE_AT[d.vo], onDone:() => { if(!alive()) return; free(); smLater(alive, 350, after); } }));
+      return;
+    }
+    smSteps([500, { id:d.vo }], alive, () => { free(); after(); });
   }
 };
 
@@ -5011,9 +5013,9 @@ function mountSlideNow(idx){
 
 /* ---------- [engine JS] r4/P1 PHASE-TRANSITION PEEK GATE ----------
    An automatic interstitial fired ON A PHASE BOUNDARY (not a slide type). [ui: reference shell] the gate covers the
-   WHOLE window (body-level): a frosted veil, Swiftie peeks up from the bottom (assets/gif/peeking.webp, drawn on a
-   canvas where the browser can decode it - no frame blinks), the headline pops in on her first open-mouth frame as the
-   line starts, and she ducks back down before the next slide mounts. */
+   WHOLE window (body-level): a frosted veil, Swiftie peeks up from the bottom, talks while the line plays and rests when
+   it ends (the FLN repo's gate - see pgGate below), the headline is written in word by word as she says it, and the
+   next slide mounts as the gate closes. */
 function afterConfetti(fn){ FLNMotion.confetti.after(fn); }   // let the correct-answer confetti land first (8s cap)
 /* onscreen headline per gate (display only; distinct from any narration). Eligibility = phase IN this map. */
 const PHASE_GATE_TITLE = { tutorial:"चलिए, शुरू करें!", guided:"चलिए, साथ में करें!", practice:"अब आपकी बारी!" };   // [16h] the lead’s official transition lines (VO = full sentences in the card manifest; NOTE aap-register — flagged)
@@ -5042,136 +5044,66 @@ function pgWriteWords(title, times, t0){
   });
   return title.animate(kf.filter((k, i, all) => !i || k.offset > all[i - 1].offset - 1e-9), { duration:T, delay:Math.max(0, a - (performance.now() - t0)), fill:"both" });
 }
-const PG_CLIP_MS = 8304;      // peeking.webp: rise, peek, blink, come out, talk, duck - plays once
-const PG_EXIT_MS = 520;       // the duck-down (CSS pgDuck) - a fallback bound only; animationend closes the gate
-const PG_TALK_MS = 2724;      // the clip's first open-mouth frame: the headline + line start here
-const PG_TAIL_MS = 450;       // a line that ends while she is still talking: hold this long, then duck
-const PG_LOAD_CAP_MS = 2500;  // never wait longer than this for the clip to decode
-let _peekUrl = "";
-function restartPeek(img){
-  const old = _peekUrl;
-  img.src = _peekUrl = Assets.fresh("assets/gif/peeking.webp");
-  if(old && old.indexOf("blob:") === 0) URL.revokeObjectURL(old);
-}
-const PeekPlayer = (()=>{
-  const SRC = "assets/gif/peeking.webp", TYPE = "image/webp";
-  let run = 0;
-  function stop(){ run++; }
-  function play(cv, img){
-    const my = ++run, blob = Assets.blob(SRC);
-    if(!cv || !blob || typeof ImageDecoder === "undefined") return Promise.resolve(false);
-    if(img) img.style.display = "none";
-    cv.style.display = "";
-    cv.width = cv.height = 900;                  // the clip's 1:1 shape, so the CSS height + width:auto lays it out
-    const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
-    const W = Math.max(1, Math.round(r.width * dpr)), H = Math.max(1, Math.round(r.height * dpr));
-    cv.width = W; cv.height = H;                 // (this also wipes the last gate's parked smile)
-    const ctx = cv.getContext("2d"); ctx.imageSmoothingQuality = "high";
-    const draw = f =>{ ctx.clearRect(0, 0, W, H); ctx.drawImage(f, 0, 0, W, H); };
-    return (async ()=>{
-      if(ImageDecoder.isTypeSupported && !(await ImageDecoder.isTypeSupported(TYPE))) return false;
-      const dec = new ImageDecoder({ data: await blob.arrayBuffer(), type: TYPE });
-      await dec.tracks.ready;
-      const count = dec.tracks.selectedTrack.frameCount;
-      const first = count > 0 ? (await dec.decode({ frameIndex: 0 })).image : null;
-      if(!first || my !== run){ if(first) first.close(); dec.close(); return false; }
-      draw(first);
-      let i = 0, cur = first, due = performance.now() + (cur.duration || 90000) / 1000;   // VideoFrame.duration: us
-      let next = count > 1 ? dec.decode({ frameIndex: 1 }) : null;
-      (async ()=>{
-        while(next){
-          let n; try { n = (await next).image; } catch(e){ break; }   // a failed decode: the frame on show stays
-          const wait = due - performance.now();
-          if(wait > 1) await new Promise(res => setTimeout(res, wait));
-          if(my !== run){ n.close(); break; }                        // a newer gate, or this one closed
-          draw(n); cur.close(); cur = n; i++;
-          due = Math.max(due, performance.now() - 30) + (n.duration || 90000) / 1000;
-          next = i + 1 < count ? dec.decode({ frameIndex: i + 1 }) : null;   // decoded while this one is on show
-        }
-        cur.close(); dec.close();                                    // plays once: the last frame stays drawn
-      })();
-      return true;
-    })().catch(()=> false);
-  }
-  return { play, stop };
-})();
+/* [repo gate] the transition exactly as the FLN repo's: Swiftie peeks up ONCE (gate_peek), then talks - a mouth
+   open/close loop (gate_talk) shown only while the gate VO is actually sounding - and rests with her mouth closed
+   (gate_rest) from the moment it ends; the headline is written in word by word as she says it (pgWriteWords), and the
+   gate closes hold_ms later. Each picture gets a fresh blob: URL so it always plays from its first frame. */
+const GATE_ART = { peek:"assets/UI/gate_peek.webp", talk:"assets/UI/gate_talk.webp", rest:"assets/UI/gate_rest.webp", peek_ms:1520, hold_ms:450 };
 const _gatedPhases = new Set();   // each phase gate plays ONCE (Start→tutorial, →guided, →practice)
 let _gateToken = 0;
-function phaseBlurTransition(cb, toPhase){
+/* one gate: { title, vo (audio id), times ([[start, end]…] ms of each title word from the VO start), onDone } -
+   used by the phase transitions and by the palace intro (PL1) */
+function pgGate(o){
   const tok = ++_gateToken;
   stopNudge(); stopAudio();
-  const gate = $("phaseGate"), img = $("phaseGateImg"), cv = $("phaseGateCv");
-  gate.classList.remove("talking");
-  const title = $("phaseGateTitle");
-  if(title){ title.textContent = PHASE_GATE_TITLE[toPhase] || ""; title.classList.remove("pg-write"); title.classList.add("pg-wait"); }
+  const gate = $("phaseGate"), img = $("phaseGateImg"), cv = $("phaseGateCv"), title = $("phaseGateTitle");
+  if(cv) cv.style.display = "none";
+  const setImg = (src)=>{ if(!img) return; const old = img.getAttribute("src") || ""; img.src = Assets.fresh(src); if(old.indexOf("blob:") === 0) URL.revokeObjectURL(old); };
+  if(img){ img.style.display = ""; img.classList.add("pg-card"); setImg(GATE_ART.peek); }
+  if(title){ title.getAnimations().forEach(a => a.cancel()); title.textContent = o.title || ""; title.classList.remove("pg-write"); title.classList.add("pg-wait"); }
+  gate.classList.remove("talking", "leaving");
   $("stage").classList.add("blurred", "gating");
   document.body.classList.add("gating");
-  gate.classList.remove("leaving");
   gate.classList.add("show");
-  SwiftPAL.emit("phase_transition", { to: toPhase });
-  const closeGate = ()=>{ gate.classList.remove("show", "leaving", "talking"); $("stage").classList.remove("blurred", "gating"); document.body.classList.remove("gating"); };
-  // VO only if the card actually ships it; else a silent beat — the clip keeps the peek visible.
-  const voId = PHASE_GATE_VO[toPhase];
-  const voSrc = (voId && CARD.assets && CARD.assets.audio && CARD.assets.audio[voId]) || null;
-  let clipAt = 0;
-  const startClock = ()=>{
-    if(clipAt || tok !== _gateToken) return;
-    clipAt = Date.now();
-    setTimeout(talk, PG_TALK_MS);
+  const voSrc = (o.vo && CARD.assets && CARD.assets.audio && CARD.assets.audio[o.vo]) || null;
+  let finished = false;
+  const finish = ()=>{
+    if(finished) return; finished = true;
+    if(tok !== _gateToken) return;                  // a newer gate owns the screen
+    setImg(GATE_ART.rest);                          // the mouth closes with the last word
+    setTimeout(()=>{
+      if(tok !== _gateToken) return;
+      gate.classList.remove("show", "talking", "leaving");
+      $("stage").classList.remove("blurred");
+      if(o.onDone) o.onDone();                      // mounts / shows what comes next
+      $("stage").classList.remove("gating");        // header returns once it is in
+      document.body.classList.remove("gating");
+    }, GATE_ART.hold_ms);
   };
-  const useImg = ()=>{
-    if(tok !== _gateToken) return;
-    if(cv) cv.style.display = "none";
-    if(!img){ startClock(); return; }
-    img.style.display = "";
-    restartPeek(img);
-    if(img.decode) img.decode().then(startClock, startClock); else startClock();
-  };
-  PeekPlayer.play(cv, img).then(ok =>{ if(tok !== _gateToken) return; if(ok) startClock(); else useImg(); }, useImg);
-  setTimeout(startClock, PG_LOAD_CAP_MS);
-  function talk(){
+  const talk = ()=>{
     if(tok !== _gateToken) return;
     gate.classList.add("talking");
-    play(voSrc, afterVo);
+    setImg(GATE_ART.talk);
+    play(voSrc, finish);                            // the talk loop runs until the VO's end
     // the headline is written in word by word as she says it (no VO, or reduced motion: shown at once)
     if(title){
-      title.getAnimations().forEach(a => a.cancel());
       title.classList.remove("pg-wait"); title.classList.add("pg-write");
-      const times = voSrc && PHASE_GATE_TITLE_AT[toPhase];
+      const times = voSrc && o.times;
       const rm = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
       if(times && !rm && !pgWriteWords(title, times, performance.now())) title.animate([{ clipPath:"inset(-30% 112% -30% -12%)" }, { clipPath:"inset(-30% -12% -30% -12%)" }],
         { duration:times[times.length - 1][1] - times[0][0], delay:times[0][0], fill:"both" });   // (words not measurable: one even wipe)
     }
-  }
-  function afterVo(){
-    if(tok !== _gateToken){ closeGate(); return; }
-    const clipLeft = Math.max(0, PG_CLIP_MS - (Date.now() - clipAt));
-    const hold = voSrc ? Math.min(clipLeft, PG_TAIL_MS) : clipLeft;
-    const finish = ()=>{
-      PeekPlayer.stop();
-      gate.classList.remove("show", "leaving", "talking");
-      $("stage").classList.remove("blurred");
-      if(cb) cb();                              // mounts the next slide
-      $("stage").classList.remove("gating");    // header returns once the slide is in
-      document.body.classList.remove("gating");
-    };
-    setTimeout(()=>{
-      if(tok !== _gateToken){ closeGate(); return; }
-      let done = false, fallback = 0;
-      const once = ()=>{
-        if(done) return; done = true;
-        clearTimeout(fallback);
-        if(img) img.removeEventListener("animationend", once);
-        if(cv) cv.removeEventListener("animationend", once);
-        if(tok !== _gateToken){ closeGate(); return; }
-        finish();
-      };
-      if(img) img.addEventListener("animationend", once);
-      if(cv) cv.addEventListener("animationend", once);
-      gate.classList.add("leaving");
-      fallback = setTimeout(once, PG_EXIT_MS + 500);
-    }, hold);
-  }
+    setTimeout(finish, 20000);                      // never strand the child
+  };
+  // the peek clock starts when the peek picture has actually loaded (the three are fetched under the landing)
+  let started = false;
+  const go = ()=>{ if(started || tok !== _gateToken) return; started = true; setTimeout(talk, GATE_ART.peek_ms); };
+  if(!img) go();
+  else { img.addEventListener("load", go, { once:true }); img.addEventListener("error", go, { once:true }); setTimeout(go, 2500); if(img.complete && img.naturalWidth) go(); }
+}
+function phaseBlurTransition(cb, toPhase){
+  SwiftPAL.emit("phase_transition", { to: toPhase });
+  pgGate({ title:PHASE_GATE_TITLE[toPhase] || "", vo:PHASE_GATE_VO[toPhase], times:PHASE_GATE_TITLE_AT[toPhase], onDone:cb });
 }
 
 function completeSlide(success){
@@ -5469,7 +5401,7 @@ function boot(){
         if(hero.title_first) c.classList.add("title-first"); } }
   })();
   // the clips that must play from frame 0 (gate, celebration): one download each, under the landing
-  Assets.prefetch(["assets/gif/peeking.webp", "assets/gif/sw_head_celebrate_anim.webp", "assets/last_swifty_end.webp"]);
+  Assets.prefetch([GATE_ART.peek, GATE_ART.talk, GATE_ART.rest, "assets/gif/sw_head_celebrate_anim.webp", "assets/last_swifty_end.webp"]);
 
   // ----- landing-screen welcome VO -----
   const landSrc = (CARD.assets && CARD.assets.audio && CARD.assets.audio["vo_landing"]) || ("assets/Audio/vo_landing." + AUDIO_EXT);
