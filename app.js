@@ -3998,8 +3998,9 @@ SlideModules.WORKED_EXAMPLE = {
     const align = ()=>{
       if(d.scene !== "marbles" || wrap.classList.contains("final")) return;
       eq.classList.add("aligned");                       // full width FIRST, then measure against it
-      // Pari's and Aaru's boxes are one size (the taller one's), so the two read as a matching pair
-      const pair = [scene.querySelector(".ba"), scene.querySelector(".bb")], ph = Math.max(...pair.map(x => x.offsetHeight));
+      // Pari's, Aaru's and the combined box are one height (the tallest one's - the combined box), so their tops and
+      // bottoms line up in one row and the marble rows line up across all three
+      const pair = [scene.querySelector(".ba"), scene.querySelector(".bb"), scene.querySelector(".bt")], ph = Math.max(...pair.map(x => x.offsetHeight));
       pair.forEach(x => x.style.minHeight = ph + "px");
       const er = eq.getBoundingClientRect(), sc = smScale();
       const cx = el => { const r = el.getBoundingClientRect(); return (r.left + r.width / 2 - er.left) / sc; };
@@ -4067,10 +4068,11 @@ SlideModules.WORKED_EXAMPLE = {
           show(cards[1]); cards[1].classList.add("lit"); sfxPop(8);
           smLater(alive, 1200, () => cards[1].classList.remove("lit"));
         } }], gap:400 },
-      { id:S[4], pre:() => { lastSent() && lastSent().classList.remove("hl-sent"); cards[1].classList.remove("lit"); unpair(); },   // "= ?" and then the total need the right side
+      { id:S[4], pre:() => { lastSent() && lastSent().classList.remove("hl-sent"); cards[1].classList.remove("lit"); },
         cues:() => {
           const t = smSeqTimes(S[4], tokens);
-          return t.map((ms, i) => ms == null ? null : { at:ms, fn:() => { if(i >= 3) show(cards[i]); cards.forEach((c, j) => c.classList.toggle("lit", j === i)); } }).filter(Boolean);
+          // the groups glide left as the "=" comes in ("= ?" and then the total need the right side)
+          return t.map((ms, i) => ms == null ? null : { at:ms, fn:() => { if(i === 3) unpair(); if(i >= 3) show(cards[i]); cards.forEach((c, j) => c.classList.toggle("lit", j === i)); } }).filter(Boolean);
         }, post:() => smUnlit(eq), gap:400 },
       { id:S[5], pre:() => {
           unpair();
