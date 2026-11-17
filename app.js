@@ -3176,6 +3176,16 @@ function smTokCues(id, els, tokens, from){
   return times.map((ms, i) => ms == null ? null : { at:ms, fn:() => els.forEach((e, j) => { if(e) e.classList.toggle("lit", j === i); }) }).filter(Boolean);
 }
 function smUnlit(root){ root.querySelectorAll(".lit").forEach(e => e.classList.remove("lit")); }
+/* [reveal] when a screen shows the answer (after the wrong tries), the hand nudge points at it too; it goes away at the
+   child's next tap anywhere */
+function smRevealHand(el){
+  if(!el) return;
+  setTimeout(() => {
+    if(!el.isConnected || !placeNudge(el)) return;
+    const off = () => { stopNudge(); document.removeEventListener("pointerdown", off, true); };
+    document.addEventListener("pointerdown", off, true);
+  }, 450);   // after the wiggle / fade has settled
+}
 
 /* ---------- counted objects (rows of ten) ---------- */
 const SM_COLORS = ["#4EA3F0", "#F9695E", "#4EBE6A", "#FDC23C", "#9B7BE8", "#FF8FB1"];
@@ -4270,7 +4280,7 @@ SlideModules.SIGN_DRAG = {
         smPlay(d.wa1_vo, smNumCues(story, d.wa1_vo).concat([{ at:a, fn:() => sync.a && sync.a() }, { at:b, fn:() => sync.b && sync.b() }]), () => {});
       } else {
         revealed = true; state.scaffoldLevel = 3; stopAudio();
-        smWiggle(tile, 430); tiles.forEach(t => { if(t !== right) t.classList.add("faded"); }); right.classList.add("pulse");
+        smWiggle(tile, 430); tiles.forEach(t => { if(t !== right) t.classList.add("faded"); }); right.classList.add("pulse"); smRevealHand(right);
         SwiftPAL.emit("answer_revealed", { slide_id:slide.id, phase:slide.phase, attempts:state.attempts });
       }
       idleArm();
@@ -4363,7 +4373,7 @@ SlideModules.PICK_SENTENCE = {
         } else smAnimate(d.anim, alive, () => { busy = false; }); }
       else {
         revealed = true; state.scaffoldLevel = 3;
-        cells.forEach(c => { if(c !== right) c.classList.add("faded"); }); right.classList.add("reveal");
+        cells.forEach(c => { if(c !== right) c.classList.add("faded"); }); right.classList.add("reveal"); smRevealHand(right);
         SwiftPAL.emit("answer_revealed", { slide_id:slide.id, phase:slide.phase, attempts:state.attempts });
       }
     });
@@ -4436,7 +4446,7 @@ SlideModules.BUILD_SENTENCE = {
       revealedAny = true; state.scaffoldLevel = 3;
       SwiftPAL.emit("answer_revealed", { slide_id:slide.id, phase:slide.phase, attempts:state.attempts, box:z._i });
       tile.classList.add("reveal");
-      smFly(tile, z, 900, () => { if(alive()) z.classList.add("idle"); }, { ghost:true, fade:true });
+      smFly(tile, z, 900, () => { if(alive()){ z.classList.add("idle"); smRevealHand(tile); } }, { ghost:true, fade:true });
     };
     const wrong = (z, tile) => {
       smWrong(slide);
@@ -4546,7 +4556,7 @@ SlideModules.PICK_STORY = {
         }
         else {
           revealed = true; state.scaffoldLevel = 3; stopAudio();
-          cards.forEach(x => { if(x !== right) x.classList.add("faded"); }); right.classList.add("reveal");
+          cards.forEach(x => { if(x !== right) x.classList.add("faded"); }); right.classList.add("reveal"); smRevealHand(right);
           SwiftPAL.emit("answer_revealed", { slide_id:slide.id, phase:slide.phase, attempts:state.attempts });
         }
       };
@@ -4941,7 +4951,7 @@ SlideModules.STORY_FILL = {
       b.classList.add("bad"); setTimeout(() => b.classList.remove("bad"), 500);
       // never stuck: the 3rd miss on the same box lights the card that belongs there
       if(k >= 3){ const want = d.answers[b._i], t = tiles.find(x => !x.classList.contains("used") && x._v === want);
-        if(t){ t.classList.add("reveal"); revealedAny = true; state.scaffoldLevel = 3;
+        if(t){ t.classList.add("reveal"); smRevealHand(t); revealedAny = true; state.scaffoldLevel = 3;
           SwiftPAL.emit("answer_revealed", { slide_id:slide.id, phase:slide.phase, attempts:state.attempts, box:b._i }); } }
     };
     // intro: VO1 (equation tokens light in sync) → VO2 (each sentence lights; its box pulses on "कुछ / कितनी")
