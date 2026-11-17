@@ -3839,8 +3839,8 @@ function smLaddooFrames(cfg, card, alive, close, sync){
   } else smLater(alive, 400 + mine.length * 55 + 900, share);
 }
 
-/* [P1 hint] the top-down basket: the bananas stand upright in rows of ten (each row a ten, split 5 | 5), so 27 reads
-   as ten, ten and seven. With the hint VO ("टोकरी में 27 केले थे। बंदर 14 केले ले गया। …") they come in on "27", the
+/* [P1 hint] the top-down basket: the bananas stand upright in rows of ten (ten side by side, no middle gap), so 27 reads
+   as ten, ten and seven. With the hint VO ("टोकरी में 27 केले थे। बंदर 14 केले ले गया। …") the basket glows on "27", the
    monkey hops in on "बंदर", and on "14" the bananas go to him one at a time - each leaves a grey banana in its place -
    and he munches them; then he hops away and the 13 left glow. The card closes once the eating and the VO are over. */
 function smBananaBasket(cfg, card, alive, close, sync){
@@ -3859,10 +3859,11 @@ function smBananaBasket(cfg, card, alive, close, sync){
   const synced = !!sync, STEP = 210, FLY = 680;
   let ate = false, voOver = !synced;
   const tryClose = () => { if(ate && voOver) smLater(alive, 1600, close); };
-  all.forEach(it => it.style.visibility = "hidden"); mk.style.visibility = "hidden";
+  // the bananas are in the basket from the moment the card opens (an empty basket waiting for "27" looked like it was
+  // still loading); on "27" the basket glows
+  mk.style.visibility = "hidden";
   const fill = smOnce(() => { if(!alive()) return;
-    all.forEach(it => it.style.visibility = ""); smPopIn(all, 24, sfxPop);
-    basket.classList.add("lit"); smLater(alive, all.length * 24 + 1200, () => basket.classList.remove("lit")); });
+    basket.classList.add("lit"); smLater(alive, 1800, () => basket.classList.remove("lit")); });
   const hop = (from, to, ms) => mk.animate([{ transform:`translateX(${from}px)`, opacity:from ? 0 : 1 },
       { transform:`translate(${from + (to - from) * .35}px,-26px)`, opacity:1, offset:.25 }, { transform:`translateX(${from + (to - from) * .55}px)`, opacity:1, offset:.45 },
       { transform:`translate(${from + (to - from) * .8}px,-20px)`, opacity:1, offset:.7 }, { transform:`translateX(${to}px)`, opacity:to ? 0 : 1 }],
@@ -4533,7 +4534,16 @@ SlideModules.PICK_STORY = {
         }
         if(revealed) return;
         smWrong(slide); smWiggle(c); c.classList.add("flash"); setTimeout(() => c.classList.remove("flash"), 700);
-        if(state.attempts === 1){ state.scaffoldLevel = 1; smPlay(d.wa1_vo, smTokCues(d.wa1_vo, tokEls, tokens.slice(0, 3)), () => smUnlit(eqc)); }
+        if(state.attempts === 1){
+          state.scaffoldLevel = 1;
+          // 32 -> − -> 17 light up one by one as they are said, and the last one goes out with the next word ("यानी")
+          // instead of staying lit to the end of the line
+          const cues = smTokCues(d.wa1_vo, tokEls, tokens.slice(0, 3));
+          let j = 0; tokens.slice(0, 3).forEach(t => { const k = smFind(d.wa1_vo, t, j); if(k >= 0) j = k + 1; });
+          const nx = smWords(d.wa1_vo)[j];
+          if(nx) cues.push({ at:nx.ms, fn:() => smUnlit(eqc) });
+          smPlay(d.wa1_vo, cues, () => smUnlit(eqc));
+        }
         else {
           revealed = true; state.scaffoldLevel = 3; stopAudio();
           cards.forEach(x => { if(x !== right) x.classList.add("faded"); }); right.classList.add("reveal");
