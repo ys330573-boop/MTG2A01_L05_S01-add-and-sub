@@ -3414,7 +3414,7 @@ function smAnimate(cfg, alive, onDone, sync){
         sfxWhoosh(); card.querySelector(".sm-anim-row").classList.add("merging");
         const tm = smMoveOnto(ga.concat(gb), slots, 900, 12);
         smLater(alive, tm + 120, () => {
-          badge.textContent = String(total); badge.classList.add("up"); card.appendChild(badge); sfxCorrect();
+          badge.textContent = String(total); badge.classList.add("up"); card.appendChild(badge);
           smLater(alive, 2200, close);
         });
       });
@@ -3496,7 +3496,7 @@ function smAnimate(cfg, alive, onDone, sync){
         if(i % 3 === 0) bump(src);
         badge.textContent = String(cfg.a + i + 1); sfxPop(i);
       }, i * 150));
-      smLater(alive, more.length * 150 + 750, () => { badge.classList.add("up"); sfxCorrect(); smLater(alive, 2000, close); });
+      smLater(alive, more.length * 150 + 750, () => { badge.classList.add("up"); smLater(alive, 2000, close); });
     });
     function board(bus){
       /* [G1] no bus stop: the new passengers board one by one (as T1's marbles come in) - each steps up at the door and
@@ -3513,7 +3513,7 @@ function smAnimate(cfg, alive, onDone, sync){
           { transform:"translate(0px,0px) scale(1)", opacity:1 }], { duration:WALK, easing:"cubic-bezier(.4,0,.3,1)", fill:"both" });
         setTimeout(() => { if(alive()){ badge.textContent = String(cfg.a + i + 1); sfxPop(i); } }, WALK * .86);
       }, i * STEP));
-      smLater(alive, more.length * STEP + WALK + 400, () => { badge.classList.add("up"); sfxCorrect(); smLater(alive, 2000, close); });
+      smLater(alive, more.length * STEP + WALK + 400, () => { badge.classList.add("up"); smLater(alive, 2000, close); });
     }
   } else {
     const keep = items.slice(0, cfg.a - cfg.b), gone = items.slice(cfg.a - cfg.b), dst = endImg(".sm-anim-dst");
@@ -3529,7 +3529,7 @@ function smAnimate(cfg, alive, onDone, sync){
       }, i * 120));
       smLater(alive, gone.length * 120 + 900, () => {
         keep.forEach(it => it.classList.add("sm-keep"));
-        badge.classList.add("down"); sfxCorrect();
+        badge.classList.add("down");
         smLater(alive, 2200, close);
       });
     });
@@ -3581,7 +3581,7 @@ function smBangleBundles(cfg, card, alive, close, sync){
   // the end: the bag goes, then the bangles left slide to the middle; 1 s later the hint closes
   const finish = () => {
     const stand = card.querySelector(".sm-bstand"), bagEl = card.querySelector(".sm-anim-dst");
-    stand.classList.add("kept"); sfxCorrect();
+    stand.classList.add("kept");
     smLater(alive, 150, () => {
       if(bagEl) bagEl.animate([{ opacity:1, transform:"none" }, { opacity:0, transform:"translateY(24px) scale(.7)" }], { duration:420, easing:"ease-in", fill:"forwards" });
       smLater(alive, 460, () => {
@@ -3684,7 +3684,6 @@ function smBalloonGift(cfg, card, alive, close, sync){
     }, i * 700));
     // once she has given them: Dadi's frame goes, Golu's whole box comes back to the middle
     smLater(alive, (moves.length - 1) * 700 + 950 + 350, () => {
-      sfxCorrect();
       dadi.animate([{ opacity:1, transform:"none" }, { opacity:0, transform:"translateY(20px) scale(.9)" }], { duration:450, easing:"ease-in", fill:"forwards" });
       smLater(alive, 500, () => {
         const dx = centreDx();
@@ -3740,7 +3739,7 @@ function smClassroom(cfg, card, alive, close, sync){
       }, i * STAG));
       // everyone is in the classroom: the two boxes go, the classroom comes to the middle
       smLater(alive, (kids.length - 1) * STAG + MS + 300, () => {
-        sfxCorrect(); glow();
+        glow();
         [boys, girls].forEach(b => b.animate([{ opacity:1, transform:"none" }, { opacity:0, transform:"translateY(20px) scale(.9)" }], { duration:450, easing:"ease-in", fill:"forwards" }));
         smLater(alive, 500, () => {
           const c = smRect(card), r = smRect(room), dx = (c.x + c.w / 2) - (r.x + r.w / 2);
@@ -3818,7 +3817,7 @@ function smLaddooFrames(cfg, card, alive, close, sync){
         };
     }, i * STEP));
     smLater(alive, gone.length * STEP + FLY + 400, () => {
-      dadiPanel.classList.add("kept"); sfxCorrect();
+      dadiPanel.classList.add("kept");
       if(sync){ ate = true; tryClose(); } else smLater(alive, 2200, close);
     });
   }));
@@ -3887,7 +3886,7 @@ function smBananaBasket(cfg, card, alive, close, sync){
         { duration:FLY, easing:"cubic-bezier(.45,.05,.3,1)", fill:"forwards" }).onfinish = () => { if(!alive()) return; fly.remove(); munch(i); sfxPop(i); };
     }, i * STEP));
     smLater(alive, gone.length * STEP + FLY + 300, () => {
-      hop(0, 340, 900); scene.classList.add("kept"); sfxCorrect();
+      hop(0, 340, 900); scene.classList.add("kept");
       smLater(alive, 900, () => { ate = true; if(synced) tryClose(); else smLater(alive, 1600, close); });
     });
   }));
