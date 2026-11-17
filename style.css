@@ -3153,6 +3153,11 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
 .sm-bp-it svg{display:block;overflow:visible;}
 .sm-bp-it b{min-width:40px;padding:0 10px;border-radius:999px;background:var(--t);color:var(--ink);font-size:22px;line-height:32px;text-align:center;}
 .sm-bp-it.slot{visibility:hidden;}
+/* [G3 hint] Golu's places for Dadi's balloons start shut - no gap between his bundles and his singles - and each opens
+   (its width grows from 0, so the singles after it slide right) just before her balloon flies into it (app.js smBalloonGift) */
+.sm-bp-card .sm-bp-it{transition:width .45s cubic-bezier(.3,.8,.3,1),margin .45s cubic-bezier(.3,.8,.3,1);}
+.sm-bp-card .sm-bp-it.ten{width:92px;} .sm-bp-card .sm-bp-it.one{width:41px;}
+.sm-bp-card .sm-bp-it.slot.shut{width:0;margin-left:-8px;overflow:hidden;}
 .sm-bp-it.ghost{opacity:.28;filter:grayscale(1);transition:opacity .4s,filter .4s;}
 .sm-bp-it.pop{animation:smPop .4s cubic-bezier(.34,1.56,.64,1) backwards;}
 .sm-bp-fly{position:absolute;z-index:5;margin:0;pointer-events:none;}

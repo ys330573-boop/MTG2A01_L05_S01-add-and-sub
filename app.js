@@ -3631,10 +3631,12 @@ function smBalloonGift(cfg, card, alive, close, sync){
   const item = (tens, c, cls) => `<div class="sm-bp-it ${tens ? "ten" : "one"} ${cls || ""}">${tens ? bundleSVG() : singleSVG(c)}<b>${tens ? 10 : 1}</b></div>`;
   const split = n => ({ t:Math.floor(n / 10), o:n % 10 });
   const g = split(cfg.a), d = split(cfg.b), sum = split(cfg.a + cfg.b);
-  // Golu's row has places kept for what is coming: his bundles, the new bundles, his singles, the new singles
+  // Golu's row has places for what is coming: his bundles, the new bundles, his singles, the new singles. The new places
+  // start SHUT (no gap: his singles stand right after his bundles) and each opens just before its balloon arrives, pushing
+  // what follows it to the right (style.css .sm-bp-card .sm-bp-it.slot.shut)
   let gRow = "", dRow = "";
-  for(let i = 0; i < sum.t; i++) gRow += item(true, null, i < g.t ? "" : "slot");
-  for(let i = 0; i < sum.o; i++) gRow += item(false, COL[(i * 3 + 1) % COL.length], i < g.o ? "" : "slot");
+  for(let i = 0; i < sum.t; i++) gRow += item(true, null, i < g.t ? "" : "slot shut");
+  for(let i = 0; i < sum.o; i++) gRow += item(false, COL[(i * 3 + 1) % COL.length], i < g.o ? "" : "slot shut");
   for(let i = 0; i < d.t; i++) dRow += item(true);
   for(let i = 0; i < d.o; i++) dRow += item(false, COL[(i * 3 + 6) % COL.length]);
   const side = (k, name, n, row) => `<div class="sm-bp-side ${k}"><div class="sm-bp-av"><img src="${smArt("av_" + k)}" alt="" draggable="false"><span>${name}</span></div>` +
@@ -3670,6 +3672,11 @@ function smBalloonGift(cfg, card, alive, close, sync){
     // Dadi's balloons go over to Golu, one piece at a time, along an arc, into the places waiting in his frame
     const box = smRect(card), moves = givT.map((el, i) => [el, slotsT[i], 10]).concat(givO.map((el, i) => [el, slotsO[i], 1])).filter(m => m[1]);
     let v = cfg.a;
+    const OPEN = 450;   // its place opens first (the singles slide right), then the balloon flies into it
+    moves.forEach(([el, to, add], i) => setTimeout(() => {
+      if(!alive()) return;
+      to.classList.remove("shut");
+    }, i * 700));
     moves.forEach(([el, to, add], i) => setTimeout(() => {
       if(!alive()) return;
       const a = smRect(el), z = smRect(to), fly = el.cloneNode(true);
@@ -3681,9 +3688,9 @@ function smBalloonGift(cfg, card, alive, close, sync){
           if(!alive()) return; fly.remove(); to.innerHTML = el.innerHTML;   // [SME] it lands looking exactly as it did with Dadi
           to.classList.remove("slot"); v += add; set(v); sfxPop(i + 4);
         };
-    }, i * 700));
+    }, i * 700 + OPEN));
     // once she has given them: Dadi's frame goes, Golu's whole box comes back to the middle
-    smLater(alive, (moves.length - 1) * 700 + 950 + 350, () => {
+    smLater(alive, (moves.length - 1) * 700 + OPEN + 950 + 350, () => {
       dadi.animate([{ opacity:1, transform:"none" }, { opacity:0, transform:"translateY(20px) scale(.9)" }], { duration:450, easing:"ease-in", fill:"forwards" });
       smLater(alive, 500, () => {
         const dx = centreDx();
