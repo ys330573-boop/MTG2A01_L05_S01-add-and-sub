@@ -4778,12 +4778,12 @@ SlideModules.PALACE_SCENE = {
         };
       };
     };
-    const free = smReplay((done) => smPlay(d.vo, [], done));
+    const free = smReplay((done) => smPlay(swImg ? PHASE_GATE_VO.practice : d.vo, [], done));   // (the intro's replay = its transition line)
     setSwMood(d.kind === "treasure" ? "celebrate" : "talk");
     const after = () => { if(toGate) walkToGate(); else setNavActive(true); };
     if(swImg){
-      // the palace line first, then "चलिए, साथ में करें!" (said and written word by word - user 2026-11-13)
-      smLater(alive, 500, () => pgGate({ title:PHASE_GATE_TITLE.guided, lead:d.vo, src:SM_PL_GO.src, times:SM_PL_GO.times, onDone:() => { if(!alive()) return; free(); smLater(alive, 350, after); } }));
+      // before the palace game: the "अब आपकी बारी!" transition with its own VO only (written word by word as said)
+      smLater(alive, 500, () => pgGate({ title:PHASE_GATE_TITLE.practice, vo:PHASE_GATE_VO.practice, times:PHASE_GATE_TITLE_AT.practice, onDone:() => { if(!alive()) return; free(); smLater(alive, 350, after); } }));
       return;
     }
     smSteps([500, { id:d.vo }], alive, () => { free(); after(); });
