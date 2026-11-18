@@ -191,6 +191,18 @@ function stopAudio(){
   setInterval(tick, 80);
 })();
 const speakerBusy = ()=> document.body.classList.contains("spk-busy");
+/* [VO lock] (user 2026-11-18) the whole game takes a tap or a drag only once the voice-over is over: while a line plays -
+   and in the short gap between chained lines (spk-busy) - every press inside the stage is swallowed before any handler
+   sees it. The cover (its own wait for the greeting) and the transition gate are left alone. */
+(function voLock(){
+  const block = (e)=>{
+    if(!speakerBusy()) return;
+    const st = document.getElementById("stage"); if(!st || !st.contains(e.target)) return;
+    const gate = document.getElementById("startGate"); if(gate && !gate.classList.contains("hidden")) return;
+    e.stopPropagation(); if(e.cancelable) e.preventDefault();
+  };
+  ["pointerdown", "mousedown", "touchstart", "click"].forEach(t => document.addEventListener(t, block, { capture:true, passive:false }));
+})();
 /* play(src, onEnd): real MP3 if path exists; silent 1.5s beat if missing/blocked. */
 function play(src, onEnd){
   stopAudio(); setPlaying(true);
