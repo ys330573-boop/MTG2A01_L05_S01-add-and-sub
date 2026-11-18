@@ -3358,3 +3358,7 @@ img.sm-bird{width:42px;height:42px;object-fit:contain;display:inline-block;font-
 .audio-chip,.tut-audio,.sg-vo{transition:opacity .18s ease, filter .18s ease;}
 body.spk-busy .audio-chip,body.spk-busy .tut-audio,body.spk-busy .sg-vo{pointer-events:none !important;cursor:default !important;
   opacity:.45 !important;filter:grayscale(.75) !important;}
+
+/* [palace doors] no instruction band on the palace pages (user 2026-11-17): the prompt text strip is hidden; Swiftie's
+   face and the speaker chip stay */
+body.sm-palace-page .prompt-band{visibility:hidden;}

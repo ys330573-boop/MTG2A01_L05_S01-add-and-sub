@@ -4734,12 +4734,12 @@ SlideModules.PALACE_SCENE = {
           const ms = 3800;
           smRunAs(back, smRunKf(dx, dy, SM_GATE_FOOT.h / H, 24), ms, "cubic-bezier(.35,.1,.55,1)", () => {
             if(!alive()) return; window.__palArrive = toGate.id; completeSlide(true); });
-          smCam(cam, SM_CAM_GATE, ms, "cubic-bezier(.45,0,.35,1)", SM_CAM_HOLD);
+          // (no camera zoom - the screen stays on the whole hall; only he runs)
           return;
         }
         const ms = T(4800);
         const a = back.animate(smWalkKf(dx, dy, SM_GATE_FOOT.h / H, 9), { duration:ms, easing:"cubic-bezier(.3,0,.7,1)", fill:"forwards" });
-        smCam(cam, SM_CAM_GATE, ms, "cubic-bezier(.45,0,.35,1)");
+        // (no camera zoom)
         a.onfinish = () => { if(!alive()) return; window.__palArrive = toGate.id; completeSlide(true); };
       });
       if(front.classList.contains("talker") && !rm){
@@ -4802,7 +4802,7 @@ SlideModules.STORY_FILL = {
     const d = slide.data, alive = smAlive(); smReady(slide);
     const tokens = smParseEq(d.eq);
     const wrap = smEl("div", "sm-doorwrap door-" + d.door);
-    const left = smEl("div", "sm-door-side", `<div class="sm-ribbon small">${smEsc(d.title)}</div>` + smDoorHTML(d.door) +
+    const left = smEl("div", "sm-door-side", smDoorHTML(d.door) +   // (no "पहला दरवाज़ा" ribbon - user 2026-11-17)
       `<img class="sm-door-sw" src="${smArt("sw_back")}" alt="" onerror="this.src='assets/UI/sw_lg_happy.png'">`);
     const parch = smEl("div", "sm-parch");
     const eqc = smEl("div", "sm-eq-chip", smEqHTML(tokens));
@@ -4827,7 +4827,7 @@ SlideModules.STORY_FILL = {
        Gates after the first run a quicker version; a tap during the arrival skips straight to the puzzle. */
     const gates = CARD.slides.filter(s => s.type === "STORY_FILL"), gi = Math.max(0, gates.findIndex(s => s.id === slide.id));
     const track = smEl("div", "sm-gates", gates.map((g, i) => `<i class="sm-gate c-${g.data.door} ${i < gi ? "done" : i === gi ? "now" : "todo"}"></i>`).join(""));
-    wrap.appendChild(track);
+    // (the gate tracker is not shown any more - user 2026-11-17; markGateDone still keeps it up to date, off screen)
     const markGateDone = () => { const g = track.children[gi]; if(g){ g.classList.remove("now"); g.classList.add("done", "pop"); } if(gi === gates.length - 1) track.classList.add("all"); };
     // the gate side spans the whole stage (its ribbon, the far gate at the end of the carpet and Swiftie sit at stage spots); the scroll centres
     { let x = 0, y = 0; for(let e = wrap; e && e !== $("stage"); e = e.offsetParent){ x += e.offsetLeft; y += e.offsetTop; }
@@ -4838,7 +4838,8 @@ SlideModules.STORY_FILL = {
     // at the gate with the camera in close, else he starts at the near left with the whole hall in view
     const cam = smEl("div", "sm-cam"); left.appendChild(cam); cam.appendChild(door); cam.appendChild(sw);
     const arrived = window.__palArrive === slide.id; window.__palArrive = null;
-    smCam(cam, arrived ? SM_CAM_GATE : null, 0); if(arrived) wrap.classList.add("atgate");
+    // [no zoom] the camera stays on the whole hall (user 2026-11-17): only Swiftie moves, the screen does not zoom in
+    smCam(cam, null, 0); if(arrived) wrap.classList.add("atgate");
     const rm = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches), quick = gi > 0;
     let staging = true, ff = rm, cur = null, pend = null;
     const dur = ms => ff ? 0 : Math.round(quick ? ms * .65 : ms);
@@ -4855,17 +4856,17 @@ SlideModules.STORY_FILL = {
         if(!ff){   // he runs up the carpet (the running sprite), and stands at the gate
           const ms = 2800, a = smRunAs(sw, smRunKf(333, -333, SM_GATE_S, 20, SM_CARPET_X, 12), ms, "cubic-bezier(.35,.1,.55,1)", (run) => {
             cur = null; wrap.classList.add("atgate"); sw.style.visibility = ""; run.remove(); if(alive()) fn(); });
-          cur = [a, ...smCam(cam, SM_CAM_GATE, ms, "cubic-bezier(.45,0,.35,1)", SM_CAM_HOLD)];
+          cur = [a];
           return;
         }
         const ms = ff ? 0 : 3400, a = sw.animate(smWalkKf(333, -333, SM_GATE_S, 7, SM_CARPET_X, 12), { duration:ms, easing:"cubic-bezier(.3,0,.7,1)", fill:"forwards" });
-        cur = [a, ...smCam(cam, SM_CAM_GATE, ms, "cubic-bezier(.45,0,.35,1)")];
+        cur = [a];
         a.onfinish = () => { cur = null; wrap.classList.add("atgate"); a.cancel(); if(alive()) fn(); };
       };
-      walkUp(() => {
+      walkUp(() => wait(1000, () => {   // he stands at the gate for a second first
         // 2 · the gate's jewel glows
         wrap.classList.add("summon"); if(!ff) sfxSparkle();
-        wait(800, () => {
+        wait(600, () => {
           // 3 · a rolled scroll floats out of the jewel, glides to the middle and unrolls; the hall blurs behind it
           parch.classList.remove("away"); const g = toGem();
           wrap.classList.add("focus"); const h = hall(); if(h) h.classList.add("sm-focus"); if(!ff) sfxWhoosh();
@@ -4877,7 +4878,7 @@ SlideModules.STORY_FILL = {
             wrap.classList.remove("summon"); parch.classList.remove("rolled"); done();
           });
         });
-      });
+      }));
     };
     // after the correct-response line: the seal, then the scroll rolls up and flies back into the jewel (the hall un-blurs)
     const sealAndReturn = (then) => {
@@ -4925,13 +4926,12 @@ SlideModules.STORY_FILL = {
           // [gate to gate] Swiftie has stepped into the portal: the camera never pulls back. It eases on towards the portal
           // while the "gate passed" line plays, then flies through it after him into the next hall (smThroughPortal).
           smLater(alive, 2950, () => {
-            const p = smHallPt(door, SM_CAM_GATE, .56), P = { x:SM_CAM_GATE.x + 2 * p.x, y:SM_CAM_GATE.y + 2 * p.y };
-            if(!rm) smCam(cam, smCamOn(p, 2.3, P.x + (666.5 - P.x) * .15, P.y + (415 - P.y) * .15), 7000, "cubic-bezier(.3,.1,.5,1)");
+            const p = smHallPt(door, { x:0, y:0, s:1 }, .56);   // (the camera is on the whole hall)
             const on = () => smThroughPortal(cam, p, d.door, rm ? 0 : 1100, () => {
               if(!alive()) return; const nx = CARD.slides[state.idx + 1];
               window.__palThrough = nx && nx.layout === "palace" ? nx.id : null; completeSlide(!revealedAny); });
             if(d.pass_vo){
-              wrap.appendChild(smEl("div", "sm-pass", smEsc(smText(d.pass_vo))));   // along the bottom, under the open gate
+              // (its line is said; no text box - user 2026-11-17)
               smPlay(d.pass_vo, [], () => smLater(alive, 300, on));
             } else smLater(alive, rm ? 0 : 900, on);
           });
