@@ -4658,10 +4658,6 @@ const SW_RUN = { sheet:"assets/UI/sw_run.webp", n:10, cols:5, ms:70 };
 // his turn from the front to the back: a 5-across sprite sheet of 19 frames (10 poses + blended in-betweens), 42 ms each
 const SW_TURN = { sheet:"assets/UI/sw_turn.webp", n:19, cols:5, ms:42 };
 [SW_PAL.talk, SW_PAL.still, SW_TURN.sheet, SW_RUN.sheet].forEach(s => { const i = new Image(); i.src = s; });   // warm the cache before the palace
-/* the palace intro's transition: after the palace line Swiftie says "चलिए, साथ में करें!" - the guided gate's own words,
-   cut from the end of vo_pt_guided (5.65-7.66 s) into vo_pl_go - and the headline is written in word by word with it:
-   [start, end] ms of each word from that clip's start (measured from its pauses) */
-const SM_PL_GO = { src:"assets/Audio/vo_pl_go.mp3", times:[[120, 570], [1000, 1330], [1460, 1590], [1640, 1890]] };   // चलिए, | साथ | में | करें!
 
 SlideModules.PALACE_SCENE = {
   // STORY BEAT for the "रहस्यमयी महल" adventure (storyboard panels 1 and 7–8): palace backdrop, Swiftie
@@ -5154,10 +5150,10 @@ const PHASE_GATE_VO    = { tutorial:"vo_pt_tutorial", guided:"vo_pt_guided", pra
    each word, not when she starts talking: [start, end] ms of every headline word from the clip start, measured from
    the pauses in each clip (अब/आपकी run together, so their split is estimated). The wipe crosses a word while it is
    said and waits in the pauses between. */
-const PHASE_GATE_TITLE_AT = {
-  tutorial:[[4440, 4880], [5290, 5670], [5720, 6010]],                 // चलिए, | शुरू | करें!
-  guided:  [[5770, 6220], [6660, 6970], [7110, 7240], [7290, 7540]],   // चलिए, | साथ | में | करें!
-  practice:[[1880, 2000], [2000, 2220], [2340, 2870]]                  // अब | आपकी | बारी!
+const PHASE_GATE_TITLE_AT = {   // (the new VO batch, 2026-11-18)
+  tutorial:[[2890, 3160], [3390, 3650], [3650, 3890]],                 // चलिए, | शुरू | करें!
+  guided:  [[3830, 4160], [4540, 4790], [4800, 4950], [4950, 5200]],   // चलिए, | साथ | में | करें!
+  practice:[[1220, 1400], [1400, 1760], [1760, 2040]]                  // अब | आपकी | बारी!
 };
 // write the headline in word by word on the clip's clock (times as above, from `t0`)
 function pgWriteWords(title, times, t0){
