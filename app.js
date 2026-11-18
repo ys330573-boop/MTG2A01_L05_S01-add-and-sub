@@ -4657,7 +4657,7 @@ const SW_PAL = { talk:"assets/UI/sw_pal_talk.webp", still:"assets/UI/sw_pal_stil
 const SW_RUN = { sheet:"assets/UI/sw_run.webp", n:10, cols:5, ms:70 };
 // his turn from the front to the back: a 5-across sprite sheet of 19 frames (10 poses + blended in-betweens), 42 ms each
 const SW_TURN = { sheet:"assets/UI/sw_turn.webp", n:19, cols:5, ms:42 };
-[SW_PAL.still, SW_TURN.sheet, SW_RUN.sheet].forEach(s => { const i = new Image(); i.src = s; });   // warm the cache before the palace
+[SW_PAL.talk, SW_PAL.still, SW_TURN.sheet, SW_RUN.sheet].forEach(s => { const i = new Image(); i.src = s; });   // warm the cache before the palace
 /* the palace intro's transition: after the palace line Swiftie says "चलिए, साथ में करें!" - the guided gate's own words,
    cut from the end of vo_pt_guided (5.65-7.66 s) into vo_pl_go - and the headline is written in word by word with it:
    [start, end] ms of each word from that clip's start (measured from its pauses) */
@@ -4834,6 +4834,15 @@ SlideModules.STORY_FILL = {
       left.style.left = -x + "px"; left.style.top = -y + "px"; wrap.classList.add("staged"); }
     parch.classList.add("rolled", "away");
     const sw = left.querySelector(".sm-door-sw"), door = left.querySelector(".sm-door2"), glow = left.querySelector(".dr-glow"), hall = () => document.getElementById("smPalaceBg");
+    // [door layout] while the puzzle panel is open it stands on the right and Swiftie (big) on the left;
+    // he comes in with the panel and goes when it rolls up (style.css .sm-door-buddy, shown by .focus)
+    // he talks (the lip-moving clip) while a voice-over plays and rests with his beak closed when it is quiet
+    { const bud = smEl("img", "sm-door-buddy"); bud.src = SW_PAL.still; bud.alt = ""; bud.draggable = false; wrap.appendChild(bud);
+      let talk = false; const lip = setInterval(() => {
+        if(!alive() || !bud.isConnected){ clearInterval(lip); return; }
+        const on = !!isPlaying && wrap.classList.contains("focus");
+        if(on !== talk){ talk = on; bud.src = on ? SW_PAL.talk : SW_PAL.still; }
+      }, 120); }
     // [cinematic] the gate and Swiftie sit in the camera layer (the ribbon stays put); after the intro Swiftie is already
     // at the gate with the camera in close, else he starts at the near left with the whole hall in view
     const cam = smEl("div", "sm-cam"); left.appendChild(cam); cam.appendChild(door); cam.appendChild(sw);
