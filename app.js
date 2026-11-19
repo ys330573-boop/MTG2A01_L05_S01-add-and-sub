@@ -204,11 +204,15 @@ const speakerBusy = ()=> document.body.classList.contains("spk-busy");
   ["pointerdown", "mousedown", "touchstart", "click"].forEach(t => document.addEventListener(t, block, { capture:true, passive:false }));
 })();
 /* play(src, onEnd): real MP3 if path exists; silent 1.5s beat if missing/blocked. */
+/* [VO version] the voice-overs are re-recorded under the same file names and assets/ is cached for a week (vercel.json),
+   so every VO url carries the batch version - a browser that still holds an old clip fetches the new one */
+const VO_VER = "20261118";
+function voUrl(src){ return src && /assets\/Audio\/vo_/.test(src) ? src + (src.indexOf("?") < 0 ? "?v=" : "&v=") + VO_VER : src; }
 function play(src, onEnd){
   stopAudio(); setPlaying(true);
   let done=false; const fire=()=>{ if(done)return; done=true; setPlaying(false); if(onEnd) onEnd(); };
   if(src){
-    const a=new Audio(src); currentAudio=a;
+    const a=new Audio(voUrl(src)); currentAudio=a;
     a.onended=fire;
     a.onerror=()=>{ currentAudio=null; setTimeout(fire, 1200); };
     a.play().catch(()=>{ currentAudio=null; setTimeout(fire, 1200); });
@@ -220,7 +224,7 @@ function play(src, onEnd){
 function playSfx(id, onEnd){
   if(!id) return;
   try{
-    const a = new Audio("assets/Audio/" + id + "." + AUDIO_EXT);
+    const a = new Audio(voUrl("assets/Audio/" + id + "." + AUDIO_EXT));
     a.volume = 0.7;
     if(onEnd) a.onended = ()=>{ a.onended = null; onEnd(); };
     a.play().catch(()=>{});
@@ -3105,7 +3109,7 @@ function smPlay(id, cues, onEnd){
   const list = (cues || []).filter(c => c && c.at != null && c.fn).sort((a, b) => a.at - b.at);
   let k = 0, done = false, simT0 = null, iv = null;
   const fireTo = ms => { while(k < list.length && list[k].at <= ms){ const c = list[k++]; try{ c.fn(); }catch(e){ console.error(e); } } };
-  const src = smVO(id), a = src ? new Audio(src) : null;
+  const src = smVO(id), a = src ? new Audio(voUrl(src)) : null;
   const finish = () => {
     if(done) return; done = true; clearInterval(iv);
     if(tok !== _smTok) return;
