@@ -206,10 +206,25 @@ const speakerBusy = ()=> document.body.classList.contains("spk-busy");
 /* play(src, onEnd): real MP3 if path exists; silent 1.5s beat if missing/blocked. */
 /* [VO version] the voice-overs are re-recorded under the same file names and assets/ is cached for a week (vercel.json),
    so every VO url carries the batch version - a browser that still holds an old clip fetches the new one */
-const VO_VER = "20261118";
+const VO_VER = "20261119";
 function voUrl(src){ return src && /assets\/Audio\/vo_/.test(src) ? src + (src.indexOf("?") < 0 ? "?v=" : "&v=") + VO_VER : src; }
+/* [speaker = last VO] (user 2026-11-19) the speaker always replays the voice-over heard last on this page (the hint, the
+   idle line, the feedback - whatever it was), not the page's opening line. Every VO goes through play() or smPlay(), which
+   note it here; a story / instruction text on the page that belongs to that clip is read along again (karaoke). */
+let lastVoSrc = null;
+function noteVo(src){ if(src && /assets\/Audio\/vo_/.test(src)) lastVoSrc = src.split("?")[0]; }
+function replayLastVo(){
+  if(!lastVoSrc) return false;
+  const m = lastVoSrc.match(/assets\/Audio\/(vo_[^/.]+)\.\w+$/), id = m && m[1];
+  if(id && CARD.assets && CARD.assets.audio_text && CARD.assets.audio_text[id]){
+    const sent = document.querySelector(`#stage .sm-sent[data-vo="${id}"]`), box = sent && sent.parentElement;
+    if(box){ smPlay(id, smKaraoke(box, id), () => smKaraokeClear(box)); return true; }
+    smPlay(id, [], () => {}); return true;
+  }
+  play(lastVoSrc, () => {}); return true;
+}
 function play(src, onEnd){
-  stopAudio(); setPlaying(true);
+  stopAudio(); setPlaying(true); noteVo(src);
   let done=false; const fire=()=>{ if(done)return; done=true; setPlaying(false); if(onEnd) onEnd(); };
   if(src){
     const a=new Audio(voUrl(src)); currentAudio=a;
@@ -3104,7 +3119,7 @@ function smSentenceStarts(id){
    (audio.currentTime). Missing/blocked audio → a simulated clock of the clip's length, so the
    choreography still runs. Any stopAudio()/play() supersedes it silently (no stale callbacks). */
 function smPlay(id, cues, onEnd){
-  stopAudio(); setPlaying(true);
+  stopAudio(); setPlaying(true); if(id) noteVo(smVO(id));
   const tok = _smTok;
   const list = (cues || []).filter(c => c && c.at != null && c.fn).sort((a, b) => a.at - b.at);
   let k = 0, done = false, simT0 = null, iv = null;
@@ -3152,7 +3167,7 @@ function smEl(tag, cls, html){ const e = document.createElement(tag); if(cls) e.
 /* ---------- story text: one span per spoken word, wrapped in sentence spans ---------- */
 function smStoryHTML(id){
   const t = smText(id), ws = smWords(id);
-  let html = '<span class="sm-sent" data-s="0">', pos = 0, s = 0;
+  let html = `<span class="sm-sent" data-s="0" data-vo="${smEsc(id)}">`, pos = 0, s = 0;
   ws.forEach((w, i) => {
     html += smEsc(t.slice(pos, w.s));
     const n = smNorm(w.w), isNum = /^\d+$/.test(n);
@@ -3160,13 +3175,13 @@ function smStoryHTML(id){
     pos = w.e + 1;
     const nx = i + 1 < ws.length ? ws[i + 1].s : t.length, gap = t.slice(pos, nx);
     if(i < ws.length - 1 && /[।?!]/.test(gap)){
-      html += smEsc(gap.replace(/\s+$/, "")) + `</span> <span class="sm-sent" data-s="${++s}">`;
+      html += smEsc(gap.replace(/\s+$/, "")) + `</span> <span class="sm-sent" data-s="${++s}" data-vo="${smEsc(id)}">`;
       pos = nx;
     }
   });
   html += smEsc(t.slice(pos)) + "</span>";
   // the story's question goes on its own line (as in the deck's mockups): tag a trailing "…?" sentence
-  return /\?\s*$/.test(t) && s > 0 ? html.replace(new RegExp(`<span class="sm-sent" data-s="${s}">`), `<span class="sm-sent q" data-s="${s}">`) : html;
+  return /\?\s*$/.test(t) && s > 0 ? html.replace(`<span class="sm-sent" data-s="${s}" `, `<span class="sm-sent q" data-s="${s}" `) : html;
 }
 /* karaoke: light each word of `box` as clip `id` speaks it */
 function smKaraoke(box, id){
@@ -4368,7 +4383,7 @@ SlideModules.PICK_SENTENCE = {
       if(now - quietAt < 14000) return;
       quietAt = now; state.nudgeUsed = true; state.scaffoldLevel = Math.max(state.scaffoldLevel, 1);
       SwiftPAL.emit("nudge_invoked", { slide_id:slide.id, phase:slide.phase });
-      smPlay(d.q_vo, [], () => {});
+      smPlay(d.idle_vo || d.q_vo, [], () => {});
     }, 200);
     const endIntro = smOnce(() => { showOpts(); free(); smKaraokeClear(story); setSwMood("point"); });
     const win = (cell) => {
@@ -4487,7 +4502,8 @@ SlideModules.BUILD_SENTENCE = {
       revealedAny = true; state.scaffoldLevel = 3;
       SwiftPAL.emit("answer_revealed", { slide_id:slide.id, phase:slide.phase, attempts:state.attempts, box:z._i });
       tile.classList.add("reveal");
-      smFly(tile, z, 900, () => { if(alive()){ z.classList.add("idle"); smRevealHand(tile); } }, { ghost:true, fade:true });
+      // (user 2026-11-19) the ghost drag is the guide - no hand nudge after it
+      smFly(tile, z, 900, () => { if(alive()) z.classList.add("idle"); }, { ghost:true, fade:true });
     };
     const wrong = (z, tile) => {
       smWrong(slide);
@@ -4495,15 +4511,19 @@ SlideModules.BUILD_SENTENCE = {
       const kind = spec.slot === "num" ? (isOp(v) ? "op_in_num" : "wrong_num") : (isOp(v) ? "wrong_op" : "num_in_op");
       const kk = z._i + ":" + kind, n = (wrongKind.get(kk) || 0) + 1, total = (wrongBy.get(z) || 0) + 1;
       wrongKind.set(kk, n); wrongBy.set(z, total);
-      state.scaffoldLevel = Math.max(state.scaffoldLevel, Math.min(total, 2));
       z.classList.add("bad"); setTimeout(() => z.classList.remove("bad"), 500);
-      if(total >= 3){ smLater(alive, 450, () => ghost(z)); return; }
+      /* (user 2026-11-19) the sign box keeps its two ladders apart: numbers dropped on it never count towards choosing
+         the sign. A wrong sign: 1st -> it bounces back and the story's visual hint plays; 2nd -> the ghost drag shows the
+         right sign. A number on it: 2nd and later -> "यहाँ जोड़ या घटाव का चिह्न आएगा।", the 3rd -> the ghost drag. */
+      const opBox = spec.slot === "op", steps = opBox ? n : total;
+      state.scaffoldLevel = Math.max(state.scaffoldLevel, Math.min(steps, 2));
+      if(opBox ? (kind === "wrong_op" ? n >= 2 : n >= 3) : total >= 3){ smLater(alive, 450, () => ghost(z)); return; }
       const fb = d.fb || {};
       if(kind === "op_in_num" && n >= 2) smPlay(fb.op_in_num, [], () => {});
       else if(kind === "num_in_op" && n >= 2) smPlay(fb.num_in_op, [], () => {});
       else if(kind === "wrong_op"){
-        if(n === 1) smPlay(fb.wrong_op_1, smNumCues(story, fb.wrong_op_1), () => {});
-        else if(fb.wrong_op_2_anim && fb.wrong_op_2_anim.wrap === "basket" && fb.wrong_op_1){
+        if(!fb.wrong_op_2_anim) smPlay(fb.wrong_op_1, smNumCues(story, fb.wrong_op_1), () => {});
+        else if(fb.wrong_op_2_anim.wrap === "basket" && fb.wrong_op_1){
           // [P1] the basket hint plays WITH the op VO: the bananas come in on "27", the monkey on "बंदर", the eating on "14"
           const an = fb.wrong_op_2_anim, vo = fb.wrong_op_1, sync = {}, iA = smFind(vo, String(an.a));
           const at = (w, from) => { const j = smWords(vo).findIndex((x, k) => k >= (from || 0) && smNorm(x.w).startsWith(w)); return j < 0 ? null : smWords(vo)[j].ms; };
@@ -4512,7 +4532,7 @@ SlideModules.BUILD_SENTENCE = {
               { at:smAt(vo, String(an.b), Math.max(0, iA + 1)), fn:() => sync.b && sync.b() }],
             () => sync.end && sync.end());
         }
-        else if(fb.wrong_op_2_anim && fb.wrong_op_2_anim.classroom && fb.wrong_op_1){
+        else if(fb.wrong_op_2_anim.classroom && fb.wrong_op_1){
           // [P2] the classroom hint plays WITH the op VO: boys on "लड़के", girls on "लड़कियों", into the class on "मिलाकर"
           const an = fb.wrong_op_2_anim, vo = fb.wrong_op_1, sync = {}, cue = (w, k) => ({ at:smAt(vo, w), fn:() => sync[k] && sync[k]() });
           busy = true; stopAudio(); smAnimate(an, alive, () => { busy = false; }, sync);
@@ -4572,15 +4592,29 @@ SlideModules.PICK_STORY = {
         { duration:460, easing:"cubic-bezier(.3,.8,.25,1)" }); sfxPop(4 + cards.indexOf(c) * 3); };
     const readCard = (c, done) => { showCard(c); cards.forEach(x => x.classList.toggle("reading", x === c)); smPlay(c._s.vo, smKaraoke(c, c._s.vo), () => { c.classList.remove("reading"); smKaraokeClear(c); if(done) done(); }); };
     const free = smReplay((done) => smPlay(d.q_vo, [], done));
-    const endIntro = smOnce(() => { cards.forEach(showCard); free(); eqc.classList.remove("lit"); cards.forEach(x => { x.classList.remove("reading"); smKaraokeClear(x); }); setSwMood("point"); });
+    const endIntro = smOnce(() => { cards.forEach(showCard); free(); eqc.classList.remove("lit", "lit-all"); cards.forEach(x => { x.classList.remove("reading"); smKaraokeClear(x); }); setSwMood("point"); });
+    /* [P3/P4 idle] (user 2026-11-19) 14 s with no tap and no voice-over: "इस संख्या वाक्य के लिए सही कहानी पर टैप करिए।"
+       (data.idle_vo), again after every further 14 s of quiet (as G3/G4); stops once the answer is shown or picked */
+    let quietAt = performance.now();
+    const idleIv = setInterval(() => {
+      if(!alive() || state.locked || revealed){ clearInterval(idleIv); return; }
+      const now = performance.now();
+      if(isPlaying || speakerBusy() || cards.some(x => x.classList.contains("sm-hold"))){ quietAt = now; return; }
+      if(now - quietAt < 14000 || !d.idle_vo) return;
+      quietAt = now; state.nudgeUsed = true; state.scaffoldLevel = Math.max(state.scaffoldLevel, 1);
+      SwiftPAL.emit("nudge_invoked", { slide_id:slide.id, phase:slide.phase });
+      smPlay(d.idle_vo, [], () => {});
+    }, 200);
     cards.forEach(c => {
       c.onclick = () => {
         if(state.locked) return;
-        endIntro();
+        endIntro(); quietAt = performance.now();
         if(c === right){
-          state.locked = true; c.classList.add("correct"); cards.forEach(x => { if(x !== c) x.classList.add("faded"); });
+          state.locked = true; clearInterval(idleIv); c.classList.add("correct"); cards.forEach(x => { if(x !== c) x.classList.add("faded"); });
           smEmitCorrect(slide, "story_pick_correct", { revealed });
-          smCelebrate(slide, alive, d.cr_vo, [], revealed);
+          // (user 2026-11-19) picked after the hint (highlight + hand): only the correct SFX, no "शाबाश" line
+          if(revealed){ sfxCorrect(); setSwMood("happy"); smLater(alive, 1300, () => completeSlide(false)); }
+          else smCelebrate(slide, alive, d.cr_vo, [], revealed);
           return;
         }
         if(revealed) return;
@@ -4604,7 +4638,8 @@ SlideModules.PICK_STORY = {
     });
     setSwMood("talk");
     smSteps([
-      { id:d.q_vo, pre:() => eqc.classList.add("lit"), post:() => eqc.classList.remove("lit"), gap:350 },
+      // (user 2026-11-19) while "यह संख्या वाक्य किस कहानी का है?" is said the whole sentence (its panel) is lit, not its numbers
+      { id:d.q_vo, pre:() => eqc.classList.add("lit-all"), post:() => eqc.classList.remove("lit-all"), gap:350 },
       (next) => readCard(cards[0], () => smLater(alive, 300, next)),
       (next) => readCard(cards[1], next)
     ], alive, endIntro);
@@ -4820,7 +4855,9 @@ SlideModules.PALACE_SCENE = {
     const after = () => { if(toGate) walkToGate(); else setNavActive(true); };
     if(swImg){
       // before the palace game: the "अब आपकी बारी!" transition with its own VO only (written word by word as said)
-      smLater(alive, 500, () => pgGate({ title:PHASE_GATE_TITLE.practice, vo:PHASE_GATE_VO.practice, times:PHASE_GATE_TITLE_AT.practice, onDone:() => { if(!alive()) return; free(); smLater(alive, 350, after); } }));
+      // (user 2026-11-19) the gate goes up in the same frame the page mounts - before, the palace scene showed bare for
+      // half a second first (the "flash" before the transition)
+      pgGate({ title:PHASE_GATE_TITLE.practice, vo:PHASE_GATE_VO.practice, times:PHASE_GATE_TITLE_AT.practice, onDone:() => { if(!alive()) return; free(); smLater(alive, 350, after); } });
       return;
     }
     smSteps([500, { id:d.vo }], alive, () => { free(); after(); });
@@ -5088,7 +5125,7 @@ function mountSlideNow(idx){
   state.attempts = 0; state.selectedKey = null; state.locked = false;
   state.hintUsed = false; state.nudgeUsed = false; state.scaffoldLevel = 0; state.hintActive = false;
   state.audioReplays = 0; state.gateNavUntilAudio = false; state.endBtnPending = false;
-  state.replayAudio = null;   // a module may set a slide-specific replay (e.g. teach slides whose
+  lastVoSrc = null; state.replayAudio = null;   // a module may set a slide-specific replay (e.g. teach slides whose
                               // audio roles aren't in the autoPlayChain order); else the chip replays the chain
   state.ownsAudio = false;    // a module that drives its OWN audio sequence sets this → skip autoPlayChain
                               // (else the auto prompt-chain stomps/truncates the module's timed VO)
@@ -5116,6 +5153,7 @@ function mountSlideNow(idx){
     if(speakerBusy()) return;   // [speaker busy] grey = no replay until the voice-over is over
     state.audioReplays++;
     SwiftPAL.emit("audio_replay", { slide_id: slide.id, phase: slide.phase, count: state.audioReplays });
+    if(replayLastVo()) return;
     if(state.replayAudio) state.replayAudio(); else autoPlayChain(slide);
   };
 
@@ -5151,6 +5189,7 @@ function mountSlideNow(idx){
       if(speakerBusy()) return;   // [speaker busy]
       state.audioReplays++;
       SwiftPAL.emit("audio_replay", { slide_id: slide.id, phase: slide.phase, count: state.audioReplays, src: "tut_chip" });
+      if(replayLastVo()) return;
       if(state.replayAudio) state.replayAudio(); else autoPlayChain(slide);
     };
     $("slideHost").appendChild(card);

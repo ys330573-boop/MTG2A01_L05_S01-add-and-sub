@@ -3389,3 +3389,20 @@ body.spk-busy .slide-stage, body.spk-busy .slide-stage *, body.spk-busy #navBtn{
    button is shown disabled - no pulse, greyed like the speaker - and wakes up (pop + pulse again) once the line is over */
 body.spk-busy .nav-btn.active,body.spk-busy .stage .nav-btn.active{animation:none !important;scale:1 !important;
   opacity:.45 !important;filter:grayscale(.75) !important;transition:opacity .18s ease, filter .18s ease;}
+
+/* [P3/P4 sentence highlight] (user 2026-11-19) while "यह संख्या वाक्य किस कहानी का है?" is said the WHOLE sentence is lit:
+   its panel glows (the page's yellow "lit" look), not only the number cards */
+.sm-eq-inline.big:has(+ .sm-stories){transition:background-color .25s,border-color .25s,box-shadow .25s,scale .25s;}
+.sm-eq-inline.big.lit-all:has(+ .sm-stories){background:#FFF1D8;border-color:#F5A524;scale:1.04;
+  box-shadow:0 4px 0 #F2C77E,0 0 0 6px rgba(255,200,0,.4),0 0 22px rgba(255,160,0,.5);}
+.sm-eq-inline.big.lit-all:has(+ .sm-stories) .sm-tok{border-color:#F5A524;}
+
+/* [P3/P4 story text] (user 2026-11-19) each sentence of a story card starts on its own line and a sentence that still
+   has to wrap is balanced - no single word ("गए।", "गईं?") left alone on a line */
+.sm-story-opt .sm-sent{display:block;text-wrap:balance;}
+.sm-story-opt .sm-sent.q::before{content:none;}
+
+/* [operator colour] (user 2026-11-19) + and − are the dark blue of the numbers everywhere (no green / purple) */
+:root{--sm-add:#012F76;--sm-sub:#012F76;}
+.sg-sentence.add,.sg-sentence.sub,.sg-eq-t.op.add,.sg-eq-t.op.sub{color:#012F76;}
+.sm-cmp-card{--c:#0E7C6E;} .sm-cmp-card.sub{--c:#6A3FB5;}   /* (the compare cards' rims keep their colours) */
