@@ -3503,12 +3503,15 @@ function smAnimate(cfg, alive, onDone, sync){
     more.forEach(it => it.classList.add("hide"));
     const t = smPopIn(base, 20, sfxPop);
     const bus = cfg.wrap === "bus" && !src && card.querySelector(".sm-anim-prop");
+    let hlNew = false, hlOff = false;
     if(bus && sync){
       /* [G1 hint] in step with the hint VO: the 24 aboard glow as it says "24 सवारियाँ", then everything holds still
          until it says "16 सवारियाँ" - only then do the new ones board (fallback: board anyway if that cue never comes) */
       sync.a = () => { if(alive()) base.forEach((it, i) => { it.classList.add("sm-keep");
         it.animate([{ scale:"1" }, { scale:"1.18" }, { scale:"1" }], { duration:420, delay:i * 12, easing:"ease-out" }); }); };
-      sync.b = smOnce(() => smLater(alive, 0, () => board(bus)));
+      /* (user 2026-11-19) at "16 सवारियाँ" the 24 stop glowing and the 16 glow as they board; at "तो …" (sync.c) all glow goes */
+      sync.b = smOnce(() => smLater(alive, 0, () => { base.forEach(it => it.classList.remove("sm-keep")); hlNew = true; board(bus); }));
+      sync.c = () => { hlOff = true; items.forEach(it => it.classList.remove("sm-keep", "sm-new")); };
       smLater(alive, 12000, sync.b);
       return;
     }
@@ -3531,7 +3534,7 @@ function smAnimate(cfg, alive, onDone, sync){
       more.forEach((it, i) => setTimeout(() => {
         if(!alive()) return;
         const r = it.getBoundingClientRect(), dx = (((b.left + b.width * .845) - (r.left + r.width / 2)) / sc).toFixed(1);
-        it.classList.remove("hide"); it.classList.add("sm-new");
+        it.classList.remove("hide"); if(!hlOff) it.classList.add(hlNew ? "sm-keep" : "sm-new");
         it.animate([
           { transform:`translate(${dx}px,16px) scale(.8)`, opacity:0 },
           { transform:`translate(${dx}px,0px) scale(1)`, opacity:1, offset:.2 },
@@ -4251,7 +4254,7 @@ SlideModules.SIGN_DRAG = {
         { duration:440, easing:"cubic-bezier(.3,.8,.25,1)" }); sfxPop(4 + tiles.indexOf(t) * 3); };
     if(oneByOne) tiles.forEach(t => t.classList.add("sm-hold"));
     const free = smReplay((done) => smPlay(d.story_vo, smKaraoke(story, d.story_vo), () => { smKaraokeClear(story); done(); }));
-    /* [G1/G2 idle] 7 s with no tap: no hand - the instruction VO is played again and the dotted box in the sentence
+    /* [G1/G2 idle] 14 s with no tap: no hand - the short instruction VO is played and the dotted box in the sentence
        (where the sign goes) pulses (the same pulse as P1/P2's empty boxes); it re-arms after each try or replay. While
        a voice-over, the hint or a flying card is on, it waits and checks again. */
     let idleT = 0, idleVo = null;
@@ -4266,8 +4269,9 @@ SlideModules.SIGN_DRAG = {
         zone.classList.remove("idle"); void zone.offsetWidth; zone.classList.add("idle");
         state.nudgeUsed = true; state.scaffoldLevel = Math.max(state.scaffoldLevel, 1);
         SwiftPAL.emit("nudge_invoked", { slide_id:slide.id, phase:slide.phase });
-        smPlay(d.q_vo, [], () => { idleVo = null; if(alive()) idleArm(); }); idleVo = currentAudio;
-      }, 7000);
+        // (user 2026-11-19) after 14 s, and the short line "संख्या वाक्य के लिए सही चिह्न चुनिए।" (data.idle_vo)
+        smPlay(d.idle_vo || d.q_vo, [], () => { idleVo = null; if(alive()) idleArm(); }); idleVo = currentAudio;
+      }, 14000);
     };
     const endIntro = smOnce(() => { showWork(); tiles.forEach(showTile); free(); smKaraokeClear(story); setSwMood("point"); idleArm(); });
     const place = (tile, viaReveal) => {
@@ -4291,12 +4295,18 @@ SlideModules.SIGN_DRAG = {
       endIntro(); stopNudge(); smWrong(slide);
       if(state.attempts === 1){
         state.scaffoldLevel = 2; busyHint = true;
-        const sync = {}, a = smAt(d.wa1_vo, String(d.anim.a)), b = smAt(d.wa1_vo, String(d.anim.b), Math.max(0, smFind(d.wa1_vo, String(d.anim.a))));
+        const sync = {}, a = smAt(d.wa1_vo, String(d.anim.a)), bi = smFind(d.wa1_vo, String(d.anim.b), Math.max(0, smFind(d.wa1_vo, String(d.anim.a)))),
+          b = bi < 0 ? null : smWords(d.wa1_vo)[bi].ms;
+        // the question sentence ("तो …बढ़ीं या कम हुईं?"): the hint's highlight goes off as it starts
+        const ci = bi < 0 ? -1 : smWords(d.wa1_vo).findIndex((w, k) => k > bi && smNorm(w.w) === smNorm("तो")), c = ci < 0 ? null : smWords(d.wa1_vo)[ci].ms;
         smAnimate(d.anim, alive, () => { busyHint = false; }, sync);
-        smPlay(d.wa1_vo, smNumCues(story, d.wa1_vo).concat([{ at:a, fn:() => sync.a && sync.a() }, { at:b, fn:() => sync.b && sync.b() }]), () => {});
+        smPlay(d.wa1_vo, smNumCues(story, d.wa1_vo).concat([{ at:a, fn:() => sync.a && sync.a() }, { at:b, fn:() => sync.b && sync.b() },
+          { at:c, fn:() => sync.c && sync.c() }]), () => {});
       } else {
         revealed = true; state.scaffoldLevel = 3; stopAudio();
         smWiggle(tile, 430); tiles.forEach(t => { if(t !== right) t.classList.add("faded"); }); right.classList.add("pulse"); smRevealHand(right);
+        // (user 2026-11-19) the hand on the right sign comes with its line (G1: "सवारियाँ बढ़ गईं, इसलिए हम जोड़ करेंगे।")
+        if(d.wa2_vo) smPlay(d.wa2_vo, [], () => {});
         SwiftPAL.emit("answer_revealed", { slide_id:slide.id, phase:slide.phase, attempts:state.attempts });
       }
       idleArm();

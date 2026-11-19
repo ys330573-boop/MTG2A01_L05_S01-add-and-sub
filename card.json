@@ -143,7 +143,8 @@
           "a": 24,
           "b": 16,
           "wrap": "bus"
-        }
+        },
+        "idle_vo": "vo_g_idle"
       },
       "signals": {
         "on_complete": []
@@ -181,7 +182,8 @@
           "b": 36,
           "to": "🛍️",
           "wrap": "shop"
-        }
+        },
+        "idle_vo": "vo_g_idle"
       },
       "signals": {
         "on_complete": []
@@ -765,7 +767,8 @@
       "vo_t5_s2": "assets/Audio/vo_t5_s2.mp3",
       "vo_t5_s3": "assets/Audio/vo_t5_s3.mp3",
       "vo_t5_s4": "assets/Audio/vo_t5_s4.mp3",
-      "vo_well_done": "assets/Audio/vo_well_done.mp3"
+      "vo_well_done": "assets/Audio/vo_well_done.mp3",
+      "vo_g_idle": "assets/Audio/vo_g_idle.mp3"
     },
     "audio_text": {
       "vo_build_num": "यहाँ संख्या रखनी है।",
@@ -857,7 +860,8 @@
       "vo_t5_s2": "पहली कहानी में कंचे मिलाए, इसलिए जोड़ किया। 23 जोड़ 12 बराबर 35।",
       "vo_t5_s3": "दूसरी कहानी में चिड़ियाँ कम हो गईं, इसलिए घटाया। 23 घटा 12 बराबर 11।",
       "vo_t5_s4": "देखा! संख्याएँ वही हैं, पर संख्या वाक्य अलग हैं!",
-      "vo_well_done": "शाबाश! आपने कर दिखाया।"
+      "vo_well_done": "शाबाश! आपने कर दिखाया।",
+      "vo_g_idle": "संख्या वाक्य के लिए सही चिह्न चुनिए।"
     },
     "audio_words": {
       "vo_build_num": [
@@ -6188,6 +6192,43 @@
           3650,
           45,
           48
+        ]
+      ],
+      "vo_g_idle": [
+        [
+          0,
+          0,
+          5
+        ],
+        [
+          820,
+          7,
+          11
+        ],
+        [
+          1300,
+          13,
+          14
+        ],
+        [
+          1460,
+          16,
+          18
+        ],
+        [
+          1760,
+          20,
+          22
+        ],
+        [
+          2140,
+          24,
+          28
+        ],
+        [
+          2520,
+          30,
+          34
         ]
       ]
     },
