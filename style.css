@@ -3406,3 +3406,13 @@ body.spk-busy .nav-btn.active,body.spk-busy .stage .nav-btn.active{animation:non
 :root{--sm-add:#012F76;--sm-sub:#012F76;}
 .sg-sentence.add,.sg-sentence.sub,.sg-eq-t.op.add,.sg-eq-t.op.sub{color:#012F76;}
 .sm-cmp-card{--c:#0E7C6E;} .sm-cmp-card.sub{--c:#6A3FB5;}   /* (the compare cards' rims keep their colours) */
+
+/* [gate view] (user 2026-11-19, option A) the open gate shows the next hall (painted into door_<c>_open_view, exactly in
+   the opening). The light is the opening's exact shape (mask door_<c>_mask, the same box as the door art): it floods out
+   as the leaves swing open, then settles to a soft glow - no spinning swirl, no clip polygon that misses the edges */
+.sm-door2 .dr-portal{left:0;top:0;width:100%;height:100%;clip-path:none;overflow:visible;mix-blend-mode:screen;opacity:0;
+  background:radial-gradient(ellipse 46% 40% at 50% 40%,rgba(255,248,226,1),rgba(255,218,156,.8) 45%,rgba(255,196,126,.4) 75%,rgba(255,186,116,.22));
+  -webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;}
+.sm-doorwrap.open .sm-door2 .dr-portal{animation:drLight 1.6s ease-out .1s forwards;}
+@keyframes drLight{0%{opacity:0;}35%{opacity:.95;}100%{opacity:.18;}}
+@media (prefers-reduced-motion:reduce){ .sm-doorwrap.open .sm-door2 .dr-portal{animation:none;opacity:.18;} }

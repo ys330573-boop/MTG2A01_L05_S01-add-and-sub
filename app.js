@@ -3992,8 +3992,11 @@ function smPalaceBG(){
 function smDoorHTML(color){
   const f = n => smArt("door_" + color + "_" + n);
   return `<div class="sm-door2 c-${color}">` +
-           `<img class="dr-open" src="${f("open")}" alt="" draggable="false">` +
-           `<div class="dr-portal"><img src="${smArt("prop_portal_swirl")}" alt="" draggable="false"></div>` +
+           /* (user 2026-11-19, option A) the open gate shows the next hall through its opening - no pink swirl. The hall is
+              painted into the open-gate picture exactly in its opening (door_<c>_open_view), and a light the exact shape
+              of that opening (door_<c>_mask) floods out as the leaves swing, then settles */
+           `<img class="dr-open" src="${f("open_view")}" alt="" draggable="false" onerror="this.onerror=null;this.src='${f("open")}'">` +
+           `<div class="dr-portal" style="-webkit-mask-image:url(${f("mask")});mask-image:url(${f("mask")})"></div>` +
            `<img class="dr-closed" src="${f("closed")}" alt="" draggable="false">` +
            `<img class="dr-leaf l" src="${f("closed")}" alt="" draggable="false"><img class="dr-leaf r" src="${f("closed")}" alt="" draggable="false">` +
            `<i class="dr-glow"></i><i class="dr-flash"></i>` +
