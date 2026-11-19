@@ -3323,7 +3323,8 @@ function smFly(src, dst, ms, cb, opt){
   const a = smRect(src), c = src.cloneNode(true), d = smDelta(src, dst);
   c.classList.add("sm-flyer"); if(opt.ghost) c.classList.add("ghost");
   c.style.cssText = `position:absolute;left:${a.x}px;top:${a.y}px;width:${a.w}px;height:${a.h}px;margin:0;z-index:${opt.z || 76};` +
-                    `transition:transform ${ms}ms cubic-bezier(.45,.05,.3,1),opacity ${ms}ms ease;`;
+                    `transition:transform ${ms}ms cubic-bezier(.45,.05,.3,1),` +
+                    (opt.fadeEnd ? `opacity 280ms ease ${Math.max(0, ms - 280)}ms;` : `opacity ${ms}ms ease;`);   // fadeEnd: seen all the way, gone on landing
   $("stage").appendChild(c);
   requestAnimationFrame(() => requestAnimationFrame(() => {
     c.style.transform = `translate(${d.dx}px,${d.dy}px) scale(${opt.scale || 1})`;
@@ -4502,8 +4503,17 @@ SlideModules.BUILD_SENTENCE = {
       revealedAny = true; state.scaffoldLevel = 3;
       SwiftPAL.emit("answer_revealed", { slide_id:slide.id, phase:slide.phase, attempts:state.attempts, box:z._i });
       tile.classList.add("reveal");
-      // (user 2026-11-19) the ghost drag is the guide - no hand nudge after it
-      smFly(tile, z, 900, () => { if(alive()) z.classList.add("idle"); }, { ghost:true, fade:true });
+      /* (user 2026-11-19) the ghost drag is a little slower and the hand DOES it: the hand presses the right card, then
+         carries the ghost copy along the same path into the box and lifts off there - no separate nudge after it */
+      const FLY = 1500, PRESS = 450, nh = $("nudgeHand");
+      const sc = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--scale")) || 1;
+      const a = tile.getBoundingClientRect(), b = z.getBoundingClientRect();
+      const at = `${(((a.left + a.width / 2) - (b.left + b.width / 2)) / sc).toFixed(1)}px ${(((a.top + a.height / 2) - (b.top + b.height / 2)) / sc).toFixed(1)}px`;
+      if(placeNudge(z) && nh){
+        nh._drag = [nh.animate([{ translate:at, offset:0 }, { translate:at, offset:PRESS / (PRESS + FLY), easing:"cubic-bezier(.45,.05,.3,1)" },
+          { translate:"0px 0px", offset:1 }], { duration:PRESS + FLY, fill:"forwards" })];
+      }
+      smLater(alive, PRESS, () => smFly(tile, z, FLY, () => { if(!alive()) return; z.classList.add("idle"); smLater(alive, 250, stopNudge); }, { ghost:true, fade:true, fadeEnd:true }));
     };
     const wrong = (z, tile) => {
       smWrong(slide);
