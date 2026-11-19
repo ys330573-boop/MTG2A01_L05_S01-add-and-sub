@@ -3384,3 +3384,8 @@ body.sm-palace-page .slide-stage{overflow:visible;}
 /* [VO lock] (user 2026-11-19) while a voice-over plays the options are really disabled, not just ignored: nothing on the
    page takes the pointer (no hover, no press/scale feedback, a plain cursor) until the line is over (body.spk-busy) */
 body.spk-busy .slide-stage, body.spk-busy .slide-stage *, body.spk-busy #navBtn{pointer-events:none !important;cursor:default !important;}
+
+/* [Next during replay] (user 2026-11-19) when the speaker replays the last line after the teaching sequence, the Next
+   button is shown disabled - no pulse, greyed like the speaker - and wakes up (pop + pulse again) once the line is over */
+body.spk-busy .nav-btn.active,body.spk-busy .stage .nav-btn.active{animation:none !important;scale:1 !important;
+  opacity:.45 !important;filter:grayscale(.75) !important;transition:opacity .18s ease, filter .18s ease;}
