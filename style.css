@@ -3380,3 +3380,7 @@ body.sm-palace-page #swBuddy,body.sm-palace-page #audioChip{visibility:hidden;} 
 /* the slide area starts under the (now empty) header band; on the palace pages it no longer clips, so the bigger panel
    can use the height up there (the stage itself still clips at its edges) */
 body.sm-palace-page .slide-stage{overflow:visible;}
+
+/* [VO lock] (user 2026-11-19) while a voice-over plays the options are really disabled, not just ignored: nothing on the
+   page takes the pointer (no hover, no press/scale feedback, a plain cursor) until the line is over (body.spk-busy) */
+body.spk-busy .slide-stage, body.spk-busy .slide-stage *, body.spk-busy #navBtn{pointer-events:none !important;cursor:default !important;}
