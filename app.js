@@ -4357,9 +4357,22 @@ SlideModules.PICK_SENTENCE = {
       c.animate([{ opacity:0, transform:"translateY(22px) scale(.9)" }, { opacity:1, transform:"translateY(-4px) scale(1.03)", offset:.7 }, { opacity:1, transform:"none" }],
         { duration:420, easing:"cubic-bezier(.3,.8,.25,1)" }); sfxPop(3 + i * 3); }, i * 380)));
     const free = smReplay((done) => smPlay(d.story_vo, smKaraoke(story, d.story_vo), () => { smKaraokeClear(story); done(); }));
+    /* [G3/G4 idle] (user 2026-11-19) 14 s with no tap and no voice-over: the instruction VO (q_vo, "इस कहानी के लिए सही
+       संख्या वाक्य पर टैप करिए।") is played - and again after every further 14 s of quiet. Any VO (the hint, a replay) or a tap
+       restarts the count. It stops once the answer is shown or picked. */
+    let quietAt = performance.now();
+    const idleIv = setInterval(() => {
+      if(!alive() || state.locked || revealed){ clearInterval(idleIv); return; }
+      const now = performance.now();
+      if(busy || isPlaying || speakerBusy()){ quietAt = now; return; }
+      if(now - quietAt < 14000) return;
+      quietAt = now; state.nudgeUsed = true; state.scaffoldLevel = Math.max(state.scaffoldLevel, 1);
+      SwiftPAL.emit("nudge_invoked", { slide_id:slide.id, phase:slide.phase });
+      smPlay(d.q_vo, [], () => {});
+    }, 200);
     const endIntro = smOnce(() => { showOpts(); free(); smKaraokeClear(story); setSwMood("point"); });
     const win = (cell) => {
-      state.locked = true; stopNudge(); cell.classList.remove("reveal"); cell.classList.add("correct");
+      state.locked = true; stopNudge(); clearInterval(idleIv); cell.classList.remove("reveal"); cell.classList.add("correct");
       cells.forEach(c => { if(c !== cell) c.classList.add("faded"); });
       /* [ui] the other sentences leave (their places kept, so nothing jumps), then the right one glides up to the middle
          just under the word problem and grows, while its sentence is read */
@@ -4376,7 +4389,7 @@ SlideModules.PICK_SENTENCE = {
     };
     cells.forEach(cell => cell.onclick = () => {
       if(state.locked || busy) return;
-      endIntro();
+      endIntro(); quietAt = performance.now();
       if(cell === right){ win(cell); return; }
       if(revealed) return;
       smWrong(slide); smWiggle(cell); cell.classList.add("flash"); setTimeout(() => cell.classList.remove("flash"), 700);
@@ -4400,6 +4413,8 @@ SlideModules.PICK_SENTENCE = {
       else {
         revealed = true; state.scaffoldLevel = 3;
         cells.forEach(c => { if(c !== right) c.classList.add("faded"); }); right.classList.add("reveal"); smRevealHand(right);
+        // (user 2026-11-19) the hand comes with its line (G3: "42 गुब्बारे थे, 11 और आ गए। इसलिए 42 में 11 जोड़ेंगे।")
+        if(d.wa3_vo) smPlay(d.wa3_vo, [], () => {});
         SwiftPAL.emit("answer_revealed", { slide_id:slide.id, phase:slide.phase, attempts:state.attempts });
       }
     });
