@@ -4723,18 +4723,51 @@ function smRunKf(dx, dy, s1, n, ox, oy){
 /* [gates] a back-view Swiftie <img> (framed like sw_back) runs along `kf` as the running sprite: a stand-in in the same
    box loops the stride while it moves; on arrival it stands (frame 0) and fn(stand-in) decides what happens to it.
    Returns the move's animation (finish() it to skip). */
-function smRunAs(img, kf, ms, ease, fn){
-  const rows = Math.ceil(SW_RUN.n / SW_RUN.cols), run = smEl("div", "sm-pal-run");
-  const h = img.offsetHeight;   // the frames are 3:4, like sw_back (whose width is 0 until the image has loaded)
-  run.style.cssText = `left:${img.offsetLeft}px;top:${img.offsetTop}px;width:${(h * .75).toFixed(1)}px;height:${h}px;` +
-    `z-index:${getComputedStyle(img).zIndex};background-image:url(${SW_RUN.sheet});background-size:${SW_RUN.cols * 100}% ${rows * 100}%;`;
-  const show = (i) => { run.style.backgroundPosition = `${(i % SW_RUN.cols) * 100 / (SW_RUN.cols - 1)}% ${Math.floor(i / SW_RUN.cols) * 100 / (rows - 1)}%`; };
+/* [sprite canvas] (user 2026-11-19: "smooth, no glitch, higher quality, no dotted lines while she runs") Swiftie's turn
+   and run are drawn on a canvas, one frame at a time, cut exactly out of a strip whose frames sit apart: nothing of a
+   neighbouring frame can bleed in (the CSS background sprite let the frame above leak in as a dotted line on some GPUs),
+   the canvas has the screen's real pixel density and is drawn with high-quality smoothing (sharper than a scaled CSS
+   background). The turn keeps only the clean poses (the old sheet's blended in-betweens looked like a double image). */
+const SPR_TURN = { sheet:"assets/UI/sw_turn2.webp", cw:380, ch:380, gut:16 };   // 0 profile (faces left) … 5 back
+const SPR_RUN = { sheet:"assets/UI/sw_run2.webp", cw:300, ch:400, gut:16, cycle:[1, 2, 3, 4], ms:92, bob:7 };   // 0 = standing
+const _sprImg = {};
+function sprImg(s){ if(!_sprImg[s.sheet]){ const i = new Image(); i.decoding = "async"; i.src = s.sheet; _sprImg[s.sheet] = i; } return _sprImg[s.sheet]; }
+function sprReady(list, fn){ Promise.all(list.map(s => { const i = sprImg(s); return i.decode ? i.decode().catch(() => {}) : Promise.resolve(); })).then(fn, fn); }
+function sprCanvas(cls, x, y, w, h, z){
+  const c = smEl("canvas", cls);
+  c.style.cssText = `left:${x.toFixed(1)}px;top:${y.toFixed(1)}px;width:${w.toFixed(1)}px;height:${h.toFixed(1)}px;` + (z && z !== "auto" ? `z-index:${z};` : "");
+  const k = Math.min(3, (parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--scale")) || 1) * (window.devicePixelRatio || 1));
+  c.width = Math.max(1, Math.round(w * k)); c.height = Math.max(1, Math.round(h * k));
+  return c;
+}
+function sprDraw(c, s, i, mirror){
+  const img = sprImg(s), ctx = c.getContext("2d");
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, c.width, c.height);
+  if(!img.complete || !img.naturalWidth) return false;
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+  if(mirror) ctx.setTransform(-1, 0, 0, 1, c.width, 0);
+  ctx.drawImage(img, i * (s.cw + s.gut), 0, s.cw, s.ch, 0, 0, c.width, c.height);
+  return true;
+}
+/* opt.mirror: the run faces the other way (PL1, where she comes in from the left). Each footfall gives a small hop
+   (a `transform` on top of the path's translate/scale, so it shrinks with her into the distance). */
+function smRunAs(img, kf, ms, ease, fn, opt){
+  opt = opt || {};
+  const h = img.offsetHeight, w = h * .75;   // the frames are 3:4, like sw_back (whose width is 0 until the image has loaded)
+  const run = sprCanvas("sm-pal-run", img.offsetLeft, img.offsetTop, w, h, getComputedStyle(img).zIndex);
+  const show = (i) => sprDraw(run, SPR_RUN, i, opt.mirror);
   show(0); img.parentNode.insertBefore(run, img); img.style.visibility = "hidden";
-  const t0 = performance.now(); let going = true;
-  const stride = (now) => { if(!going || !run.isConnected) return; show(1 + Math.floor((now - t0) / SW_RUN.ms) % (SW_RUN.n - 1)); requestAnimationFrame(stride); };
+  const t0 = performance.now(), cyc = SPR_RUN.cycle; let going = true, last = -1;
+  const stride = (now) => {
+    if(!going || !run.isConnected) return;
+    const t = (now - t0) / SPR_RUN.ms, k = Math.floor(t) % cyc.length;
+    if(k !== last){ last = k; show(cyc[k]); }
+    run.style.transform = `translateY(${(-SPR_RUN.bob * Math.abs(Math.sin(Math.PI * t / 2))).toFixed(2)}px)`;   // one hop per two frames (= a step)
+    requestAnimationFrame(stride);
+  };
   requestAnimationFrame(stride);
   const a = run.animate(kf, { duration:ms, easing:ease, fill:"forwards" });
-  a.onfinish = () => { going = false; show(0); if(fn) fn(run); };
+  a.onfinish = () => { going = false; run.style.transform = ""; show(0); if(fn) fn(run); };
   return a;
 }
 
@@ -4743,7 +4776,8 @@ const SW_PAL = { talk:"assets/UI/sw_pal_talk.webp", still:"assets/UI/sw_pal_stil
 const SW_RUN = { sheet:"assets/UI/sw_run.webp", n:10, cols:5, ms:70 };
 // his turn from the front to the back: a 5-across sprite sheet of 19 frames (10 poses + blended in-betweens), 42 ms each
 const SW_TURN = { sheet:"assets/UI/sw_turn.webp", n:19, cols:5, ms:42 };
-[SW_PAL.talk, SW_PAL.still, SW_TURN.sheet, SW_RUN.sheet].forEach(s => { const i = new Image(); i.src = s; });   // warm the cache before the palace
+[SW_PAL.talk, SW_PAL.still].forEach(s => { const i = new Image(); i.src = s; });   // warm the cache before the palace
+sprImg(SPR_TURN); sprImg(SPR_RUN);
 
 SlideModules.PALACE_SCENE = {
   // STORY BEAT for the "रहस्यमयी महल" adventure (storyboard panels 1 and 7–8): palace backdrop, Swiftie
@@ -4805,7 +4839,7 @@ SlideModules.PALACE_SCENE = {
       const back = smEl("img", "sm-pal-swb"); back.src = smArt("sw_back"); back.alt = "";
       back.style.cssText = `left:${(cx - W * .58).toFixed(1)}px;top:${(bottom - H * .929).toFixed(1)}px;height:${H.toFixed(1)}px;scale:0 1;`;
       cam.appendChild(back);
-      const walk = () => smLater(alive, T(300), () => {
+      const runNow = () => {
         // 2 · he walks slowly up the carpet to the gate; the camera flies in after him until the gate fills the middle
         const top = parseFloat(back.style.top);
         const dx = SM_GATE_FOOT.cx - (parseFloat(back.style.left) + W / 2), dy = SM_GATE_FOOT.bottom - (top + H);
@@ -4815,7 +4849,7 @@ SlideModules.PALACE_SCENE = {
              its stride while it moves up the carpet and shrinks into the distance, and stands still on arrival */
           const ms = 3800;
           smRunAs(back, smRunKf(dx, dy, SM_GATE_FOOT.h / H, 24), ms, "cubic-bezier(.35,.1,.55,1)", () => {
-            if(!alive()) return; window.__palArrive = toGate.id; completeSlide(true); });
+            if(!alive()) return; window.__palArrive = toGate.id; completeSlide(true); }, { mirror:true });
           // (no camera zoom - the screen stays on the whole hall; only he runs)
           return;
         }
@@ -4823,30 +4857,48 @@ SlideModules.PALACE_SCENE = {
         const a = back.animate(smWalkKf(dx, dy, SM_GATE_FOOT.h / H, 9), { duration:ms, easing:"cubic-bezier(.3,0,.7,1)", fill:"forwards" });
         // (no camera zoom)
         a.onfinish = () => { if(!alive()) return; window.__palArrive = toGate.id; completeSlide(true); };
-      });
+      };
+      const walk = () => smLater(alive, T(300), runNow);
       if(front.classList.contains("talker") && !rm){
-        /* 1 · he turns round on the spot: the turnaround sprite (front -> profile -> back, blended in-betweens with a little
-           motion blur) cross-fades in over the front pose, plays through, and hands over to the back view he walks in */
-        const tn = smEl("div", "sm-pal-turn"), rows = Math.ceil(SW_TURN.n / SW_TURN.cols);
-        tn.style.cssText = `left:${f.x.toFixed(1)}px;top:${f.y.toFixed(1)}px;width:${f.w.toFixed(1)}px;height:${f.h.toFixed(1)}px;` +
-          `background-image:url(${SW_TURN.sheet});background-size:${SW_TURN.cols * 100}% ${rows * 100}%;opacity:0;`;
-        const show = (i) => { tn.style.backgroundPosition = `${(i % SW_TURN.cols) * 100 / (SW_TURN.cols - 1)}% ${Math.floor(i / SW_TURN.cols) * 100 / (rows - 1)}%`; };
-        show(0); cam.appendChild(tn);
+        /* (user 2026-11-19) after "अब आपकी बारी!" she comes in from the LEFT, walking to the right (her profile, hopping
+           along, slowing down as she arrives), stops on the carpet, turns round to the gate - only the clean poses, one after
+           the other, no cross-fades or blended in-betweens (those made the double-image "glitch") - and runs off up the
+           carpet. She faces right, so the whole move is the mirrored sprites; she ends on the old spot (figure centre cx). */
+        // she stops in the middle of the carpet, in line with the gate (so the run goes straight up the carpet)
+        const mx = SM_GATE_FOOT.cx;
+        const k0 = .5347, cw = f.w, ch = f.h, left = mx - cw * (1 - k0), top0 = f.y, feet = top0 + ch * 357.5 / 380;
+        const tn = sprCanvas("sm-pal-turn", left, top0, cw, ch);
+        cam.appendChild(tn); front.style.visibility = "hidden";
+        // the run takes over from the last pose: mirrored back view (figure centre .4183 of its box, feet at .935)
+        back.style.left = (mx - W * (1 - .5817)).toFixed(1) + "px"; back.style.top = (feet - H * .935).toFixed(1) + "px";
         back.style.scale = "1 1"; back.style.opacity = "0";
-        // (the intro's front pose is unseen: he fades in at his spot, already in the turn's first frame)
-        const XF = front.style.visibility === "hidden" ? 380 : 140, t0 = performance.now() + XF;
-        tn.animate([{ opacity:0 }, { opacity:1 }], { duration:XF, fill:"forwards" });
-        front.animate([{ opacity:1 }, { opacity:0 }], { duration:XF, fill:"forwards" });
-        const step = (now) => {
+        const go = () => {
           if(!alive()) return;
-          const i = Math.max(0, Math.min(SW_TURN.n - 1, Math.floor((now - t0) / SW_TURN.ms)));
-          show(i);
-          if(i < SW_TURN.n - 1){ requestAnimationFrame(step); return; }
-          front.style.visibility = "hidden";
-          back.animate([{ opacity:0 }, { opacity:1 }], { duration:160, fill:"forwards" });
-          tn.animate([{ opacity:1 }, { opacity:0 }], { duration:160, fill:"forwards" }).onfinish = () => { tn.remove(); back.style.opacity = "1"; walk(); };
+          sprDraw(tn, SPR_TURN, 0, true);
+          // 1 · in from the left edge: hops along (a bob and a squash on each landing), easing to a stop
+          const off = -(left + cw) - 30, HOPS = 6, N = HOPS * 6, kf = [];
+          for(let k = 0; k <= N; k++){
+            const p = k / N, x = off * Math.pow(1 - p, 2.1), ph = Math.PI * HOPS * p, amp = 16 * (1 - .45 * p);
+            const up = Math.abs(Math.sin(ph)), land = 1 - up;
+            kf.push({ translate:`${x.toFixed(1)}px ${(-amp * up).toFixed(1)}px`,
+                      scale:k === N ? "1 1" : `${(1 + .035 * land - .015 * up).toFixed(3)} ${(1 - .045 * land + .025 * up).toFixed(3)}`,
+                      rotate:`${k === N ? 0 : (2.2 * Math.sin(2 * ph)).toFixed(2)}deg` });
+          }
+          tn.style.transformOrigin = "50% 94%";
+          const ENTER = 1900;
+          tn.animate(kf, { duration:ENTER, easing:"linear", fill:"forwards" }).onfinish = () => smLater(alive, 280, () => {
+            // 2 · she turns round to the gate: profile -> three-quarter -> back, a clean pose every 95 ms
+            let i = 0;
+            const next = () => {
+              if(!alive()) return;
+              if(++i < 6){ sprDraw(tn, SPR_TURN, i, true); smLater(alive, 95, next); return; }
+              // 3 · the back pose hands over to the running sprite in the same frame (no fade) and she runs off
+              smLater(alive, 180, () => { runNow(); tn.remove(); });
+            };
+            smLater(alive, 95, next);
+          });
         };
-        requestAnimationFrame(step);
+        sprReady([SPR_TURN, SPR_RUN], go);
         return;
       }
       // 1 · he turns round: the front pose folds to its edge, the back view unfolds from it
